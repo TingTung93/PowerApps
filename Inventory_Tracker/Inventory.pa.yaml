@@ -705,12 +705,12 @@ Screens:
                                                         // --- YOUR EXISTING FORM LOGIC (UNCHANGED) ---
 
                                                         // Format expiration date
+                                                        Set(tempDate, Blank());
                                                         If(!IsBlank(expiry),
                                                            Set(expiryYear, "20" & Left(expiry, 2));
                                                            Set(expiryMonth, Mid(expiry, 3, 2));
                                                            Set(expiryDay, Right(expiry, 2));
-                                                           Set(tempDate, Date(Value(expiryYear), Value(expiryMonth), Value(expiryDay))),
-                                                           Set(tempDate, Blank())
+                                                           Set(tempDate, Date(Value(expiryYear), Value(expiryMonth), Value(expiryDay)))
                                                         );
 
                                                         // Check if barcode exists and perform GTIN lookup concurrently

@@ -63,6 +63,9 @@ Screens:
                         Items: =Sort(Distinct(Inventories, 'Item Category'), Value)
                         Width: =250
                         Height: =40
+                        Size: =0
+                        FontWeight: =""
+                        DefaultSelectedItems: =Table()
                   - SearchInput_ItemList:
                       Control: Classic/TextInput@2.3.2
                       Properties:
@@ -109,17 +112,10 @@ Screens:
                         Height: =Parent.Height
                         ItemAccessibleLabel: ="Inventory items gallery - " & CountIf(Inventories,true) & " items"
                         Items: |-
-                          =Sort(
-                              If(
-                                  IsEmpty(CATEGORY_ItemList.SelectedItems),
-                                  Search(Inventories, SearchInput_ItemList.Text, "cr31c_name", "cr31c_batch"),
-                                  Filter(
-                                      Search(Inventories, SearchInput_ItemList.Text, "cr31c_name", "cr31c_batch"),
-                                      'Item Category' in CATEGORY_ItemList.SelectedItems.Value
-                                  )
-                              ),
-                              Expiration,
-                              SortOrder.Ascending
+                          =If(
+                              IsEmpty(CATEGORY_ItemList.SelectedItems),
+                              Sort(Search(Inventories, SearchInput_ItemList.Text, "cr31c_name", "cr31c_batch"), Expiration, SortOrder.Ascending),
+                              Sort(Filter(Search(Inventories, SearchInput_ItemList.Text, "cr31c_name", "cr31c_batch"), 'Item Category' in CATEGORY_ItemList.SelectedItems.Value), Expiration, SortOrder.Ascending)
                           )
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
