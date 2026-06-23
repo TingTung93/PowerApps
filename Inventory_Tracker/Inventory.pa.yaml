@@ -231,7 +231,7 @@ Screens:
                                     BorderColor: =RGBA(243, 242, 241, 1)
                                     FocusedBorderColor: =RGBA(98, 100, 167, 1)
                                     FocusedBorderThickness: =2
-                                    Items: "=With(\n    {\n        // Input values from controls\n        wSearchText: Trim(SearchInput1_4.Value),\n        wSelectedManufacturers: ManufacturerDropdown_1.SelectedItems,\n        wShowExpired: varShowExpired\n    },\n    With(\n        {\n            // Step 1: Start with the base data and apply the Search function.\n            // NOTE: The Search() function requires column names to be text strings in quotes.\n            FilteredData: If(\n                IsBlank(wSearchText),\n                Inventories,\n                Search(\n                    Inventories,\n                    wSearchText,\n                    Name, \n                    Barcode, \n                    Batch, \n                    ItemID, \n                    'Item Category'\n                )\n            )\n        },\n        \n        // Step 2: Apply conditional filters on top of the searched data.\n        // NOTE: The Filter() function uses direct column references WITHOUT quotes.\n        SortByColumns(\n            Filter(\n                FilteredData,\n                \n                // Manufacturer Filter: This logic correctly handles a multi-select ComboBox.\n                (IsEmpty(wSelectedManufacturers) || Manufacturer_Lookup in wSelectedManufacturers.Value),\n                \n                // Expired Filter: Applies only if the toggle is on.\n                (Not(wShowExpired) || Expiration < Today())\n            ),\n            \n            // Step 3: Sort the final results.\n            // NOTE: The SortByColumns() function also requires column names in quotes.\n            \"cr31c_name\", SortOrder.Ascending,\n            \"cr31c_expiration\", SortOrder.Ascending\n        )\n    )\n)"
+                                    Items: "=With(\n    {\n        // Input values from controls\n        wSearchText: Trim(SearchInput1_4.Value),\n        wSelectedManufacturers: ManufacturerDropdown_1.SelectedItems,\n        wShowExpired: varShowExpired\n    },\n    With(\n        {\n            // Step 1: Start with the base data and apply the Search function.\n            // NOTE: The Search() function requires column names to be text strings in quotes.\n            FilteredData: If(\n                IsBlank(wSearchText),\n                Inventories,\n                Search(\n                    Inventories,\n                    wSearchText,\n                    Name, \n                    Barcode, \n                    Batch, \n                    ItemID\n                )\n            )\n        },\n        \n        // Step 2: Apply conditional filters on top of the searched data.\n        // NOTE: The Filter() function uses direct column references WITHOUT quotes.\n        SortByColumns(\n            Filter(\n                FilteredData,\n                \n                // Manufacturer Filter: This logic correctly handles a multi-select ComboBox.\n                (IsEmpty(wSelectedManufacturers) || Manufacturer_Lookup in wSelectedManufacturers.Value),\n                \n                // Expired Filter: Applies only if the toggle is on.\n                (Not(wShowExpired) || Expiration < Today())\n            ),\n            \n            // Step 3: Sort the final results.\n            // NOTE: The SortByColumns() function also requires column names in quotes.\n            \"cr31c_name\", SortOrder.Ascending,\n            \"cr31c_expiration\", SortOrder.Ascending\n        )\n    )\n)"
                                     LayoutMaxHeight: =
                                     LayoutMaxWidth: =
                                     OnSelect: |-
@@ -297,7 +297,7 @@ Screens:
                                                         <b>Man:</b> " & ThisItem.Manufacturer_Lookup & " &nbsp;&nbsp; <b>Lot:</b> " & ThisItem.Batch & "
                                                     </div>
                                                     <div style='font-size:12px; color:" & If(ThisItem.Quantity < 1, "'#DC2626'", "#374151") & ";'>
-                                                        <b>Cat:</b> " & ThisItem.'Item Category' & " &nbsp;&nbsp; <b>Qty:</b> " & ThisItem.Quantity & "
+                                                        <b>Cat:</b> " & Coalesce(LookUp(GTIN_Lookups, GTIN = Text(ThisItem.ItemID), First(ItemCategory).Value), "") & " &nbsp;&nbsp; <b>Qty:</b> " & ThisItem.Quantity & "
                                                     </div>
                                                 </div>
 
@@ -704,15 +704,6 @@ Screens:
 
                                                         // --- YOUR EXISTING FORM LOGIC (UNCHANGED) ---
 
-                                                        // Format expiration date
-                                                        Set(tempDate, Blank());
-                                                        If(!IsBlank(expiry),
-                                                           Set(expiryYear, "20" & Left(expiry, 2));
-                                                           Set(expiryMonth, Mid(expiry, 3, 2));
-                                                           Set(expiryDay, Right(expiry, 2));
-                                                           Set(tempDate, Date(Value(expiryYear), Value(expiryMonth), Value(expiryDay)))
-                                                        );
-
                                                         // Check if barcode exists and perform GTIN lookup concurrently
                                                         Concurrent(
                                                            Set(existingInventory, LookUp(Inventories, cr31c_barcode = BarcodeInput_Fallback.Text)),
@@ -730,7 +721,7 @@ Screens:
 
                                                                  Set(varRegistrationGTIN, gtin);
                                                                  Set(varRegistrationBatch, batch);
-                                                                 Set(varRegistrationExpiry, tempDate); //this line is still broken. Incompatible type. We can't evaluate your formula because the context variable types are incompatible with the types of values in other places in your app.
+                                                                 Set(varRegistrationExpiry, expiry);
                                                                  Set(varRegistrationBarcode, BarcodeInput_Fallback.Text);
                                                                  Set(varReturnToInventory, true);
                                                                  Navigate(Registration, ScreenTransition.None);
@@ -1102,15 +1093,11 @@ Screens:
                                                       Y: =DataCardKey4_3.Y
                                           - Item Category_DataCard1_1:
                                               Control: TypedDataCard@1.0.7
-                                              Variant: TextualEdit
+                                              Variant: BlankCard
                                               Properties:
                                                 BorderColor: =RGBA(243, 242, 241, 1)
-                                                DataField: ="cr31c_itemcategory"
-                                                Default: =ThisItem.'Item Category'
-                                                DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Item Category')
-                                                MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, 'Item Category')
+                                                DisplayName: ="Item Category"
                                                 Required: =false
-                                                Update: =DataCardValue3_4.Value
                                                 Width: =382
                                                 X: =1
                                                 Y: =3
@@ -1131,7 +1118,7 @@ Screens:
                                                     MetadataKey: FieldValue
                                                     Properties:
                                                       AccessibleLabel: =Parent.DisplayName
-                                                      DisplayMode: =Parent.DisplayMode
+                                                      DisplayMode: =DisplayMode.View
                                                       Mode: ='TextInputCanvas.Mode'.SingleLine
                                                       Required: =Parent.Required
                                                       TriggerOutput: ='TextInputCanvas.TriggerOutput'.FocusOut
