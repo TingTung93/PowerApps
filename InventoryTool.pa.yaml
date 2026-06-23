@@ -1,0 +1,259 @@
+Screens:
+  InventoryTool:
+    Properties:
+      Fill: =RGBA(255, 255, 255, 1)
+      Height: =1123
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      OnVisible: "=// OnVisible - Print-Optimized Layout using KNOWN dimensions\r\n\r\nUpdateContext({\r\n    ctxGalleryLayout:\r\n        With(\r\n            {\r\n                // --- INPUTS: Use KNOWN values, not gallery self-references ---\r\n                itemCount: CountRows(\r\n                    If(\r\n                        IsEmpty(CATEGORY.SelectedItems),\r\n                        Inventories,\r\n                        Filter(Inventories, 'Item Category' in CATEGORY.SelectedItems.Value)\r\n                    )\r\n                ),\r\n                pageWidth: 794,                    // Known screen/page width\r\n                pageHeight: InventoryTool.Height - 36,    // Screen height minus toolbar\r\n                templatePadding: 3,                // Match your TemplatePadding\r\n                minItemHeight: 45                  // Minimum row height\r\n            },\r\n            \r\n            With(\r\n                {\r\n                    LayoutOptions: ForAll(\r\n                        Sequence(9, 2) As ColumnOption,\r\n                        With(\r\n                            {\r\n                                numColumns: ColumnOption.Value,\r\n                                numRows: RoundUp(itemCount / ColumnOption.Value, 0)\r\n                            },\r\n                            {\r\n                                calculatedHeight: RoundDown(\r\n                                    (pageHeight - (templatePadding * (numRows - 1))) / numRows, \r\n                                    0\r\n                                ),\r\n                                columns: numColumns\r\n                            }\r\n                        )\r\n                    )\r\n                },\r\n                With(\r\n                    {\r\n                        BestFit: First(\r\n                            Sort(\r\n                                Filter(LayoutOptions, calculatedHeight >= minItemHeight),\r\n                                columns,\r\n                                SortOrder.Ascending\r\n                            )\r\n                        )\r\n                    },\r\n                    If(\r\n                        !IsBlank(BestFit),\r\n                        { wrapCount: BestFit.columns, templateHeight: BestFit.calculatedHeight },\r\n                        { wrapCount: 4, templateHeight: minItemHeight }\r\n                    )\r\n                )\r\n            )\r\n        )\r\n})"
+      Width: =794
+    Children:
+      - PrintContainer1:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Height: =36
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Horizontal
+            LayoutGap: '=10  '
+            LayoutJustifyContent: =LayoutJustifyContent.End
+            PaddingRight: =20
+            Visible: =Not(InventoryTool.Printing)
+            Width: =794
+          Children:
+            - PrintButton1:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ='ButtonCanvas.Appearance'.Secondary
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  OnSelect: =Print()
+                  Text: ="Print"
+                  Visible: =Not(InventoryTool.Printing)
+                  Width: =50
+                  X: =404
+                  Y: =368
+            - CATEGORY:
+                Control: ModernCombobox@1.1.0
+                Properties:
+                  DefaultSelectedItems: |-
+                    =// No change needed here if you're okay with it resetting on its own.
+                    // The original formula is a bit complex; we can simplify or remove it.
+                    Table()
+                  FontWeight: =""
+                  Height: =Parent.Height - 2
+                  InputTextPlaceholder: ="All CATEGORIES"
+                  ItemDisplayText: =ThisItem.Value
+                  Items: =Sort(Distinct(Inventories, 'Item Category'), Value)
+                  OnChange: "=// CATEGORY.OnChange - same formula as OnVisible above\r\n\r\nUpdateContext({\r\n    ctxGalleryLayout:\r\n        With(\r\n            {\r\n                itemCount: CountRows(\r\n                    If(\r\n                        IsEmpty(CATEGORY.SelectedItems),\r\n                        Inventories,\r\n                        Filter(Inventories, 'Item Category' in CATEGORY.SelectedItems.Value)\r\n                    )\r\n                ),\r\n                pageWidth: 794,\r\n                pageHeight: InventoryTool.Height - 36,\r\n                templatePadding: 3,\r\n                minItemHeight: 45\r\n            },\r\n            \r\n            With(\r\n                {\r\n                    LayoutOptions: ForAll(\r\n                        Sequence(9, 2) As ColumnOption,\r\n                        With(\r\n                            {\r\n                                numColumns: ColumnOption.Value,\r\n                                numRows: RoundUp(itemCount / ColumnOption.Value, 0)\r\n                            },\r\n                            {\r\n                                calculatedHeight: RoundDown(\r\n                                    (pageHeight - (templatePadding * (numRows - 1))) / numRows, \r\n                                    0\r\n                                ),\r\n                                columns: numColumns\r\n                            }\r\n                        )\r\n                    )\r\n                },\r\n                With(\r\n                    {\r\n                        BestFit: First(\r\n                            Sort(\r\n                                Filter(LayoutOptions, calculatedHeight >= minItemHeight),\r\n                                columns,\r\n                                SortOrder.Ascending\r\n                            )\r\n                        )\r\n                    },\r\n                    If(\r\n                        !IsBlank(BestFit),\r\n                        { wrapCount: BestFit.columns, templateHeight: BestFit.calculatedHeight },\r\n                        { wrapCount: 4, templateHeight: minItemHeight }\r\n                    )\r\n                )\r\n            )\r\n        )\r\n})"
+                  Size: =0
+                  Visible: =Not(InventoryTool.Printing)
+                  Width: =(Parent.Width - Parent.LayoutGap) / 4
+                  X: =50
+                  Y: =40
+            - NavBar_7:
+                Control: CanvasComponent
+                ComponentName: NavBar
+                Properties:
+                  ActiveFillColor: =App.Theme.Colors.Lighter80
+                  ActiveScreen: =App.ActiveScreen
+                  ActiveTextColor: =Color.Blue
+                  BaseFillColor: =App.Theme.Colors.Darker70
+                  Height: =75
+                  Items: |+
+                    =Table(
+                        {Label: "Inventory", Screen: Inventory},
+                        {Label: "Registration", Screen: Registration},
+                        {Label: "Quick Pick", Screen: QuickPick},
+                        {Label: "Rapid Scan", Screen: RapidScan},
+                        {Label: "Item List", Screen: ItemList},
+                        {Label: "Table View", Screen: 'Table View'},
+                        {Label: "Inventory Tool", Screen: InventoryTool},
+                        {Label: "Archive", Screen: Archive},
+                        {Label: "Settings", Screen: Settings}
+                    )
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinHeight: '=0  '
+                  LayoutMinWidth: =0
+                  Width: =Parent.Width/2
+      - Gallery7:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
+          Properties:
+            BorderColor: =RGBA(243, 242, 241, 1)
+            FocusedBorderColor: =RGBA(98, 100, 167, 1)
+            FocusedBorderThickness: =2
+            Height: |+
+              =Parent.Height - Self.Y
+            Items: |-
+              =SortByColumns(
+                  If(
+                      IsEmpty(CATEGORY.SelectedItems),
+                      Inventories,
+                      Filter(
+                          Inventories,
+                          'Item Category' in CATEGORY.SelectedItems.Value
+                      )
+                  ),
+                  "cr31c_name",
+                  SortOrder.Ascending,
+                  "cr31c_expiration",
+                  SortOrder.Ascending,
+                  "cr31c_manufacturer_lookup",
+                  SortOrder.Ascending
+              )
+            ShowScrollbar: =false
+            TemplatePadding: =3
+            TemplateSize: |-
+              =If(
+                  IsBlank(ctxGalleryLayout) || ctxGalleryLayout.templateHeight <= 0,
+                  45,
+                  ctxGalleryLayout.templateHeight
+              )
+            Width: =794
+            WrapCount: |-
+              =If(
+                  IsBlank(ctxGalleryLayout) || ctxGalleryLayout.wrapCount <= 0,
+                  4,
+                  ctxGalleryLayout.wrapCount
+              )
+            Y: =If(InventoryTool.Printing, 0, 36)
+          Children:
+            - HtmlText2:
+                Control: HtmlViewer@2.1.0
+                Properties:
+                  AutoHeight: =true
+                  BorderStyle: =BorderStyle.Solid
+                  BorderThickness: =1
+                  DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                  Font: =Font.'Segoe UI'
+                  Height: =Parent.TemplateHeight
+                  HtmlText: |-
+                    =// HtmlText - Scalable QR code with guaranteed quiet zone
+
+                    With(
+                        {
+                            textToFit: ThisItem.Name,
+                            rowHeight: Parent.TemplateHeight,
+                            cellWidth: Parent.TemplateWidth,
+                            baseFontSize: 13,
+                            minFontSize: 7,
+                            quietZone: 6  // Minimum white space (px) around QR code on each side
+                        },
+                        With(
+                            {
+                                // QR code scales with row height, leaving room for quiet zone
+                                // Use 60% of row height for the QR, clamped between 30px and 80px
+                                qrSize: RoundDown(
+                                    Max(30, Min(80, (rowHeight - 8) * 0.6)),
+                                    0
+                                ),
+                                // Total space the QR block occupies = QR + quiet zone on all sides
+                                qrBlockSize: RoundDown(
+                                    Max(30, Min(80, (rowHeight - 8) * 0.6)) + 6 * 2,
+                                    0
+                                ),
+                                bgColor: Switch(
+                                    true,
+                                    ThisItem.Expiration < Today(), "rgba(255, 224, 224, 0.9)",
+                                    ThisItem.Expiration <= DateAdd(Today(), 30), "rgba(255, 243, 224, 0.9)",
+                                    "transparent"
+                                ),
+                                checkedColor: If(
+                                    ThisItem.'Modified On' < DateAdd(Today(), -30), 
+                                    "#A80000", 
+                                    "#605E5C"
+                                )
+                            },
+                            With(
+                                {
+                                    // Calculate available width for text AFTER the QR block
+                                    textAreaWidth: cellWidth - qrBlockSize - 20,
+                                    dynamicSize: RoundDown(
+                                        Max(
+                                            minFontSize,
+                                            Min(
+                                                baseFontSize,
+                                                ((cellWidth - qrBlockSize - 20) / Max(1, Len(textToFit) * 0.55)) * baseFontSize
+                                            )
+                                        ),
+                                        0
+                                    )
+                                },
+
+                                // --- BUILD THE HTML ---
+                                "<div style='" &
+                                    "display:flex;" &
+                                    "align-items:center;" &
+                                    "width:100%;" &
+                                    "height:" & rowHeight & "px;" &
+                                    "box-sizing:border-box;" &
+                                    "background-color:" & bgColor & ";" &
+                                    "overflow:hidden;" &
+                                "'>" &
+
+                                    // === QR CODE BLOCK with quiet zone ===
+                                    "<div style='" &
+                                        "flex-shrink:0;" &
+                                        "display:flex;" &
+                                        "align-items:center;" &
+                                        "justify-content:center;" &
+                                        "width:" & qrBlockSize & "px;" &
+                                        "height:" & qrBlockSize & "px;" &
+                                        "background-color:#FFFFFF;" &
+                                        "padding:" & quietZone & "px;" &
+                                        "box-sizing:border-box;" &
+                                        "margin:0 8px 0 4px;" &
+                                    "'>" &
+                                        "<img src='https://api.qrserver.com/v1/create-qr-code/?size=" & qrSize & "x" & qrSize & "&ecc=L&margin=1&data=" & 
+                                            EncodeUrl(ThisItem.Barcode) & 
+                                        "' width='" & qrSize & "' height='" & qrSize & "' style='display:block;' />" &
+                                    "</div>" &
+
+                                    // === ITEM NAME + LOT ===
+                                    "<div style='" &
+                                        "flex-grow:1;" &
+                                        "overflow:hidden;" &
+                                        "padding-right:4px;" &
+                                    "'>" &
+                                        "<div style='" &
+                                            "white-space:nowrap;" &
+                                            "overflow:hidden;" &
+                                            "text-overflow:ellipsis;" &
+                                            "font-size:" & dynamicSize & "px;" &
+                                            "font-weight:bold;" &
+                                            "color:#201F1E;" &
+                                            "line-height:1.2;" &
+                                        "'>" & textToFit & "</div>" &
+                                        "<div style='" &
+                                            "font-size:" & Max(7, RoundDown(dynamicSize * 0.75, 0)) & "px;" &
+                                            "color:#605E5C;" &
+                                            "line-height:1.3;" &
+                                            "margin-top:1px;" &
+                                        "'>Lot: " & ThisItem.Batch & "</div>" &
+                                    "</div>" &
+
+                                    // === DATA POINTS (Qty, Exp, Checked) ===
+                                    "<div style='" &
+                                        "flex-shrink:0;" &
+                                        "text-align:right;" &
+                                        "font-size:" & Max(7, RoundDown(dynamicSize * 0.8, 0)) & "px;" &
+                                        "padding-left:4px;" &
+                                        "padding-right:4px;" &
+                                        "line-height:1.4;" &
+                                    "'>" &
+                                        "<div><b>Qty: " & ThisItem.Quantity & "</b></div>" &
+                                        "<div>Exp: " & Text(ThisItem.Expiration, "mm/dd/yy") & "</div>" &
+                                        "<div style='color:" & checkedColor & ";'>Chk: " & Text(ThisItem.'Modified On', "mm/dd/yy") & "</div>" &
+                                    "</div>" &
+
+                                "</div>"
+                            )
+                        )
+                    )
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =8
+                  Width: =Parent.TemplateWidth
