@@ -1,0 +1,949 @@
+Screens:
+  QuickPick:
+    Properties:
+      Fill: =RGBA(255, 255, 255, 1)
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      OnVisible: |-
+        =// Clear decode results but keep varSuppressOnChange active during cleanup
+        Set(varSuppressOnChange, true);
+
+        Set(cleanedBarcode, "");
+        Set(gtin, "");
+        Set(batch, "");
+        Set(expiry, "");
+        Set(expiryFormatted, "");
+        Set(existingInventory, Blank());
+        Set(varRawBarcode, "");
+        Set(isAwaitingSecondScan, false);
+
+        // Reset the form and barcode input
+        NewForm(InventoryForm_1);
+        Set(varResetBarcode, true);
+
+        // Re-enable OnChange processing
+        Set(varSuppressOnChange, false);
+        Set(varResetBarcode, false);
+
+        // Check if returning from Registration
+        If(varReturnToQuickPick,
+           Set(varReturnToQuickPick, false);
+           Notify(
+               "Product registered! Please scan the barcode again to add to inventory", 
+               NotificationType.Success, 
+               4000
+           )
+        );
+    Children:
+      - MainContainer_1:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(245, 245, 245, 1)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =16
+            PaddingBottom: =16
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =16
+            Width: =Parent.Width
+          Children:
+            - NavBar_3:
+                Control: CanvasComponent
+                ComponentName: NavBar
+                Properties:
+                  ActiveFillColor: =App.Theme.Colors.Lighter80
+                  ActiveScreen: =App.ActiveScreen
+                  ActiveTextColor: =Color.Blue
+                  BaseFillColor: =App.Theme.Colors.Darker70
+                  Height: =75
+                  Items: |+
+                    =Table(
+                        {Label: "Inventory", Screen: Inventory},
+                        {Label: "Registration", Screen: Registration},
+                        {Label: "Quick Pick", Screen: QuickPick},
+                        {Label: "Rapid Scan", Screen: RapidScan},
+                        {Label: "Item List", Screen: ItemList},
+                        {Label: "Table View", Screen: 'Table View'},
+                        {Label: "Inventory Tool", Screen: InventoryTool},
+                        {Label: "Archive", Screen: Archive},
+                        {Label: "Settings", Screen: Settings}
+                    )
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  Width: =App.Width
+            - FormContainer_1:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  Fill: =RGBA(255, 255, 255, 1)
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =16
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutOverflowY: =LayoutOverflow.Scroll
+                  PaddingBottom: =15
+                  PaddingLeft: =15
+                  PaddingRight: =15
+                  PaddingTop: =15
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                Children:
+                  - InventoryForm_1:
+                      Control: Form@2.4.4
+                      Layout: Vertical
+                      Properties:
+                        AcceptsFocus: =true
+                        BorderColor: =RGBA(243, 242, 241, 1)
+                        DataSource: =Inventories
+                        DefaultMode: =FormMode.New
+                        Item: =existingInventory
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =0
+                        OnFailure: =Notify("There is an unspecified error", NotificationType.Error)
+                        OnSuccess: |-
+                          =Notify("Entry saved successfully", NotificationType.Success);
+
+                          // Suppress OnChange during cleanup
+                          Set(varSuppressOnChange, true);
+
+                          // Reset the form
+                          ResetForm(InventoryForm_1);
+                          NewForm(InventoryForm_1);
+
+                          // Clear scan-related variables (but NOT gblBarcodeResult yet)
+                          Set(cleanedBarcode, "");
+                          Set(gtin, "");
+                          Set(batch, "");
+                          Set(expiry, "");
+                          Set(expiryFormatted, "");
+                          Set(existingInventory, Blank());
+                          Set(varRawBarcode, "");
+
+                          // Reset barcode input for next scan
+                          Set(varResetBarcode, true);
+
+                          // Re-enable OnChange, then release reset
+                          Set(varSuppressOnChange, false);
+                          Set(varResetBarcode, false);
+
+                          // NOW clear the barcode result (after suppress is off and reset is done)
+                          Set(gblBarcodeResult, Blank());
+                      Children:
+                        - BarcodeCard_1:
+                            Control: TypedDataCard@1.0.7
+                            Variant: PcfCoreTextualEditCard
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              BorderThickness: =5
+                              DataField: ="cr31c_barcode"
+                              Default: =ThisItem.Barcode
+                              DisplayName: ="Barcode"
+                              MaxLength: =100
+                              Required: =true
+                              Update: =BarcodeInput_Fallback.Text
+                              Width: =429
+                              X: =0
+                              Y: =0
+                            Children:
+                              - BarcodeLabel_1:
+                                  Control: FluentV8/Label@1.8.6
+                                  MetadataKey: FieldName
+                                  Properties:
+                                    AutoHeight: =true
+                                    FontSize: =9
+                                    Height: =22
+                                    Text: =Parent.DisplayName
+                                    Tooltip: =Parent.DisplayName
+                                    VerticalAlignment: =VerticalAlign.Bottom
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =10
+                              - ExistenceCheck_1:
+                                  Control: ModernText@1.0.0
+                                  Properties:
+                                    Fill: =If(!IsBlank(existingInventory), Color.LightGreen, Color.Aqua)
+                                    Height: =30
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =0
+                                    RadiusTopRight: =0
+                                    Size: =14
+                                    Text: |-
+                                      =If(BarcodeInput_Fallback.Text = Blank(), "",
+                                         If(!IsBlank(existingInventory), 
+                                            "Barcode already exists in the inventory. Editing the entry.",
+                                            "Barcode is new. You can add it to the inventory.")
+                                      )
+                                    VerticalAlign: =VerticalAlign.Top
+                                    Width: =Parent.Width-Self.X
+                                    X: =83
+                                    Y: =10
+                              - RegisterItem:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    Height: =36
+                                    OnSelect: |+
+                                      =// OnSelect property of RegisterNewItemButton
+                                      UpdateContext({
+                                          varRegistrationGTIN: gblBarcodeResult.gtin_out,
+                                          varRegistrationBatch: gblBarcodeResult.batch_out,
+                                          varRegistrationExpiry: gblBarcodeResult.expiry_out,
+                                          varRegistrationBarcode: BarcodeInput_Fallback.Text
+                                      });
+                                      Navigate(Registration, ScreenTransition.None);
+                                    Text: ="Register New Item"
+                                    Visible: |+
+                                      =// Visible property of RegisterNewItemButton
+                                      And(
+                                          !IsBlank(BarcodeInput_Fallback.Text),
+                                          IsBlank(LookUp(GTIN_Lookups, GTIN = gblBarcodeResult.gtin_out))
+                                      )
+                                    Width: =162
+                                    X: =120
+                                    Y: =24
+                              - BarcodeInput_Fallback:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    AccessibleLabel: =If(Parent.Required, Substitute("{0}. Required.", "{0}", Parent.DisplayName), Parent.DisplayName)
+                                    BorderColor: =RGBA(243, 242, 241, 1)
+                                    BorderThickness: =0
+                                    Color: =RGBA(37, 36, 35, 1)
+                                    Default: =Parent.Default
+                                    DelayOutput: =true
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(200, 198, 196, 1)
+                                    DisabledFill: =RGBA(243, 242, 241, 1)
+                                    DisplayMode: =Parent.DisplayMode
+                                    Fill: =RGBA(152, 208, 70, 1)
+                                    FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                                    FocusedBorderThickness: =2
+                                    Font: =Font.'Segoe UI'
+                                    Height: =32
+                                    HintText: ="Click here and scan to begin adding/updating inventory. Microsoft broke so you need to click."
+                                    HoverBorderColor: =RGBA(243, 242, 241, 1)
+                                    HoverColor: =RGBA(37, 36, 35, 1)
+                                    HoverFill: =RGBA(243, 242, 241, 1)
+                                    OnChange: "=// Guard: skip if suppressed or if text is blank/too short (reset artifact)\r\nIf(\r\n    varSuppressOnChange || IsBlank(Self.Text) || Len(Trim(Self.Text)) < 5,\r\n    Blank(),\r\n\r\n    If(\r\n        Len(Self.Text) > 25,\r\n\r\n        // --- PATH 1: BARCODE IS LONG ENOUGH TO BE COMPLETE ---\r\n        Set(gblIsProcessing, true);\r\n\r\n        // Call the flow to parse barcode fields\r\n        Set(gblBarcodeResult, GTIN_Parse_V3.Run(Self.Text));\r\n\r\n        // Store the raw barcode for lookup\r\n        Set(varRawBarcode, Trim(Self.Text));\r\n        \r\n        // Perform the lookup using RAW BARCODE\r\n        Set(existingInventory, \r\n            LookUp(Inventories, cr31c_barcode = varRawBarcode)\r\n        );\r\n        \r\n        // Set the form mode\r\n        If(\r\n            !IsBlank(existingInventory),\r\n            EditForm(InventoryForm_1);\r\n            Notify(\r\n                \"Existing record found: \" & gblBarcodeResult.batch_out & \" | Exp: \" & gblBarcodeResult.expiry_formatted,\r\n                NotificationType.Success\r\n            ),\r\n            NewForm(InventoryForm_1);\r\n            Notify(\r\n                \"New item — Batch: \" & gblBarcodeResult.batch_out \r\n                & If(!IsBlank(gblBarcodeResult.serial_out), \" | Serial: \" & gblBarcodeResult.serial_out, \"\")\r\n                & If(!IsBlank(gblBarcodeResult.count_out), \" | Count: \" & gblBarcodeResult.count_out, \"\")\r\n                & If(!IsBlank(gblBarcodeResult.additional_id_out), \" | Addl ID: \" & gblBarcodeResult.additional_id_out, \"\"),\r\n                NotificationType.Information\r\n            )\r\n        );\r\n        \r\n        Set(gblIsProcessing, false);\r\n        SetFocus(QuantityInput_1),\r\n        \r\n        // --- PATH 2: BARCODE IS TOO SHORT ---\r\n        Notify(\"GTIN captured. Please scan the Lot/Expiry barcode.\", NotificationType.Information)\r\n    )\r\n);\r\n"
+                                    PaddingBottom: =4
+                                    PaddingRight: =12
+                                    PaddingTop: =0
+                                    PressedBorderColor: =RGBA(98, 100, 167, 1)
+                                    PressedColor: =RGBA(37, 36, 35, 1)
+                                    PressedFill: =RGBA(243, 242, 241, 1)
+                                    RadiusBottomLeft: =3
+                                    RadiusBottomRight: =3
+                                    RadiusTopLeft: =3
+                                    RadiusTopRight: =3
+                                    Reset: =varResetBarcode
+                                    Size: =10.5
+                                    Tooltip: =Parent.DisplayName
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =40
+                        - QuantityCard_1:
+                            Control: TypedDataCard@1.0.7
+                            Variant: PcfCoreNumberEditCard
+                            Properties:
+                              BorderColor: =RGBA(243, 242, 241, 1)
+                              DataField: ="cr31c_quantity"
+                              Default: =ThisItem.Quantity
+                              DisplayName: ="Quantity"
+                              Height: =82
+                              Required: =true
+                              Update: =Value(QuantityInput_1.Text)
+                              Width: =434
+                              X: =1
+                              Y: =0
+                            Children:
+                              - QuantityLabel_1:
+                                  Control: FluentV8/Label@1.8.6
+                                  MetadataKey: FieldName
+                                  Properties:
+                                    AutoHeight: =true
+                                    FontSize: =9
+                                    Height: =22
+                                    Text: =Parent.DisplayName
+                                    Tooltip: =Parent.DisplayName
+                                    VerticalAlignment: =VerticalAlign.Bottom
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =10
+                              - QuantityInput_1:
+                                  Control: Classic/TextInput@2.3.2
+                                  MetadataKey: FieldValue
+                                  Properties:
+                                    AccessibleLabel: =If(Parent.Required, Substitute("{0}. Required.", "{0}", Parent.DisplayName), Parent.DisplayName)
+                                    BorderColor: =RGBA(243, 242, 241, 1)
+                                    BorderThickness: =0
+                                    Color: =RGBA(37, 36, 35, 1)
+                                    Default: =If(!IsBlank(Parent.Default), Parent.Default, "1")
+                                    DelayOutput: =true
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(200, 198, 196, 1)
+                                    DisabledFill: =RGBA(243, 242, 241, 1)
+                                    DisplayMode: =Parent.DisplayMode
+                                    Fill: =RGBA(255, 191, 0, 1)
+                                    FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                                    FocusedBorderThickness: =2
+                                    Font: =Font.'Segoe UI'
+                                    Format: =TextFormat.Number
+                                    Height: =32
+                                    HintText: ="Indicate the quantity here"
+                                    HoverBorderColor: =RGBA(243, 242, 241, 1)
+                                    HoverColor: =RGBA(37, 36, 35, 1)
+                                    HoverFill: =RGBA(243, 242, 241, 1)
+                                    PaddingBottom: =4
+                                    PaddingRight: =12
+                                    PaddingTop: =0
+                                    PressedBorderColor: =RGBA(98, 100, 167, 1)
+                                    PressedColor: =RGBA(37, 36, 35, 1)
+                                    PressedFill: =RGBA(243, 242, 241, 1)
+                                    RadiusBottomLeft: =3
+                                    RadiusBottomRight: =3
+                                    RadiusTopLeft: =3
+                                    RadiusTopRight: =3
+                                    Size: =10.5
+                                    Tooltip: =Parent.DisplayName
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =QuantityLabel_1.Y + QuantityLabel_1.Height + 4
+                        - ItemCodeCard_1:
+                            Control: TypedDataCard@1.0.7
+                            Variant: PcfCoreTextualEditCard
+                            Properties:
+                              BorderColor: =RGBA(243, 242, 241, 1)
+                              DataField: ="cr31c_itemid"
+                              Default: =ThisItem.ItemID
+                              DisplayName: ="Item Code/GTIN"
+                              MaxLength: =100
+                              Required: =false
+                              Update: =ItemCodeInput_1.Value
+                              Width: =434
+                              X: =2
+                              Y: =0
+                            Children:
+                              - ItemCodeLabel_1:
+                                  Control: FluentV8/Label@1.8.6
+                                  MetadataKey: FieldName
+                                  Properties:
+                                    AutoHeight: =true
+                                    FontSize: =9
+                                    Height: =22
+                                    Text: =Parent.DisplayName
+                                    Tooltip: =Parent.DisplayName
+                                    VerticalAlignment: =VerticalAlign.Bottom
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =10
+                              - ItemCodeInput_1:
+                                  Control: FluentV8/TextBox@1.7.2
+                                  MetadataKey: FieldValue
+                                  Properties:
+                                    AccessibleLabel: =Parent.DisplayName
+                                    DisplayMode: =Parent.DisplayMode
+                                    Placeholder: ="This should auto-populate after you scan the barcode"
+                                    Required: =Parent.Required
+                                    Tooltip: =Parent.DisplayName
+                                    Value: =gblBarcodeResult.gtin_out
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =ItemCodeLabel_1.Y + ItemCodeLabel_1.Height + 4
+                        - ProductNameCard_1:
+                            Control: TypedDataCard@1.0.7
+                            Variant: PcfCoreTextualEditCard
+                            Properties:
+                              BorderColor: =RGBA(243, 242, 241, 1)
+                              DataField: ="cr31c_name"
+                              Default: =ThisItem.Name
+                              DisplayName: ="Product Name"
+                              MaxLength: =100
+                              Required: =true
+                              Update: =ProductNameInput_1.Value
+                              Width: =434
+                              X: =0
+                              Y: =1
+                            Children:
+                              - ProductNameLabel_1:
+                                  Control: FluentV8/Label@1.8.6
+                                  MetadataKey: FieldName
+                                  Properties:
+                                    AutoHeight: =true
+                                    FontSize: =9
+                                    Height: =22
+                                    Text: =Parent.DisplayName
+                                    Tooltip: =Parent.DisplayName
+                                    VerticalAlignment: =VerticalAlign.Bottom
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =10
+                              - ProductNameInput_1:
+                                  Control: FluentV8/TextBox@1.7.2
+                                  MetadataKey: FieldValue
+                                  Properties:
+                                    AccessibleLabel: =Parent.DisplayName
+                                    DisplayMode: =Parent.DisplayMode
+                                    Placeholder: ="If this does not populate, please register the item code"
+                                    Required: =Parent.Required
+                                    Tooltip: =Parent.DisplayName
+                                    Value: =LookUp(GTIN_Lookups, GTIN = Text(ItemCodeInput_1.Value), ItemName)
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =ProductNameLabel_1.Y + ProductNameLabel_1.Height + 4
+                        - ManufacturerCard_1:
+                            Control: TypedDataCard@1.0.7
+                            Variant: PcfCoreTextualEditCard
+                            Properties:
+                              BorderColor: =RGBA(243, 242, 241, 1)
+                              DataField: ="cr31c_manufacturer_lookup"
+                              Default: =ThisItem.Manufacturer_Lookup
+                              DisplayName: ="Manufacturer"
+                              MaxLength: =100
+                              Required: =true
+                              Update: =ManufacturerInput_1.Value
+                              Width: =434
+                              X: =1
+                              Y: =1
+                            Children:
+                              - ManufacturerLabel_1:
+                                  Control: FluentV8/Label@1.8.6
+                                  MetadataKey: FieldName
+                                  Properties:
+                                    AutoHeight: =true
+                                    FontSize: =9
+                                    Height: =22
+                                    Text: =Parent.DisplayName
+                                    Tooltip: =Parent.DisplayName
+                                    VerticalAlignment: =VerticalAlign.Bottom
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =10
+                              - ManufacturerInput_1:
+                                  Control: FluentV8/TextBox@1.7.2
+                                  MetadataKey: FieldValue
+                                  Properties:
+                                    AccessibleLabel: =Parent.DisplayName
+                                    DisplayMode: =Parent.DisplayMode
+                                    Placeholder: ="If this does not populate, please register the item code"
+                                    Required: =Parent.Required
+                                    Tooltip: =Parent.DisplayName
+                                    Value: =LookUp(GTIN_Lookups, GTIN = Text(ItemCodeInput_1.Value), ItemManufacturer)
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =ManufacturerLabel_1.Y + ManufacturerLabel_1.Height + 4
+                        - BatchCard_1:
+                            Control: TypedDataCard@1.0.7
+                            Variant: PcfCoreTextualEditCard
+                            Properties:
+                              BorderColor: =RGBA(243, 242, 241, 1)
+                              DataField: ="cr31c_batch"
+                              Default: =ThisItem.Batch
+                              DisplayName: ="Batch/Lot Number"
+                              MaxLength: =100
+                              Required: =false
+                              Update: =BatchInput_1.Value
+                              Width: =434
+                              X: =2
+                              Y: =1
+                            Children:
+                              - BatchLabel_1:
+                                  Control: FluentV8/Label@1.8.6
+                                  MetadataKey: FieldName
+                                  Properties:
+                                    AutoHeight: =true
+                                    FontSize: =9
+                                    Height: =22
+                                    Text: =Parent.DisplayName
+                                    Tooltip: =Parent.DisplayName
+                                    VerticalAlignment: =VerticalAlign.Bottom
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =10
+                              - BatchInput_1:
+                                  Control: FluentV8/TextBox@1.7.2
+                                  MetadataKey: FieldValue
+                                  Properties:
+                                    AccessibleLabel: =Parent.DisplayName
+                                    DisplayMode: =Parent.DisplayMode
+                                    Placeholder: ="This should auto-populate. Please verify for new items"
+                                    Required: =Parent.Required
+                                    Tooltip: =Parent.DisplayName
+                                    Value: =gblBarcodeResult.batch_out
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =BatchLabel_1.Y + BatchLabel_1.Height + 4
+                        - ExpirationCard_1:
+                            Control: TypedDataCard@1.0.7
+                            Variant: PcfCoreDateTimeEditCard
+                            Properties:
+                              BorderColor: =RGBA(243, 242, 241, 1)
+                              DataField: ="cr31c_expiration"
+                              Default: =ThisItem.Expiration
+                              DisplayName: ="Expiration Date"
+                              Required: =false
+                              Update: =If(Not IsBlank(ExpirationPicker_1.Value), DateTime(Year(ExpirationPicker_1.Value), Month(ExpirationPicker_1.Value), Day(ExpirationPicker_1.Value), 0, 0, 0))
+                              Width: =434
+                              X: =0
+                              Y: =2
+                            Children:
+                              - ExpirationLabel_1:
+                                  Control: FluentV8/Label@1.8.6
+                                  MetadataKey: FieldName
+                                  Properties:
+                                    AutoHeight: =true
+                                    FontSize: =9
+                                    Height: =22
+                                    Text: =Parent.DisplayName
+                                    Tooltip: =Parent.DisplayName
+                                    VerticalAlignment: =VerticalAlign.Bottom
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =10
+                              - ExpirationPicker_1:
+                                  Control: FluentV8/DatePicker@1.5.9
+                                  MetadataKey: DateFieldValue
+                                  Properties:
+                                    AccessibleLabel: =If(Parent.Required, Substitute("{0}. Required.", "{0}", Parent.DisplayName), Parent.DisplayName)
+                                    DisplayMode: =Parent.DisplayMode
+                                    Tooltip: =Parent.DisplayName
+                                    Value: =Date("20"&Left((gblBarcodeResult.expiry_out),2),Mid((gblBarcodeResult.expiry_out),3,2),Right((gblBarcodeResult.expiry_out),2))
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =ExpirationLabel_1.Y + ExpirationLabel_1.Height + 4
+                        - Item Category_DataCard2:
+                            Control: TypedDataCard@1.0.7
+                            Variant: TextualEdit
+                            Properties:
+                              BorderColor: =RGBA(243, 242, 241, 1)
+                              DataField: ="cr31c_itemcategory"
+                              Default: =ThisItem.'Item Category'
+                              DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Item Category')
+                              MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, 'Item Category')
+                              Required: =false
+                              Update: =DataCardValue4.Value
+                              Width: =434
+                              X: =1
+                              Y: =2
+                            Children:
+                              - DataCardKey4:
+                                  Control: Text@0.0.51
+                                  MetadataKey: FieldName
+                                  Properties:
+                                    Height: =22
+                                    Text: =Parent.DisplayName
+                                    Weight: ='TextCanvas.Weight'.Semibold
+                                    Width: =Parent.Width - 48
+                                    Wrap: =false
+                                    X: =24
+                                    Y: =10
+                              - DataCardValue4:
+                                  Control: TextInput@0.0.54
+                                  MetadataKey: FieldValue
+                                  Properties:
+                                    AccessibleLabel: =Parent.DisplayName
+                                    DisplayMode: =Parent.DisplayMode
+                                    Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                                    Required: =Parent.Required
+                                    ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                    Value: =LookUp(GTIN_Lookups, GTIN = Text(ItemCodeInput_1.Value), First(ItemCategory).Value)
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =DataCardKey4.Y + DataCardKey4.Height + 4
+                              - ErrorMessage4:
+                                  Control: Text@0.0.51
+                                  MetadataKey: ErrorMessage
+                                  Properties:
+                                    Height: =30
+                                    Text: =Parent.Error
+                                    Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =DataCardValue4.Y + DataCardValue4.Height
+                              - StarVisible4:
+                                  Control: Text@0.0.51
+                                  MetadataKey: FieldRequired
+                                  Properties:
+                                    Align: ='TextCanvas.Align'.Center
+                                    Height: =30
+                                    Text: ="*"
+                                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                                    Width: =30
+                                    Y: =DataCardKey4.Y
+                        - CleanedBarcode_DataCard1:
+                            Control: TypedDataCard@1.0.7
+                            Variant: TextualEdit
+                            Properties:
+                              BorderColor: =RGBA(243, 242, 241, 1)
+                              DataField: ="cr31c_cleanedbarcode"
+                              Default: =ThisItem.CleanedBarcode
+                              DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,CleanedBarcode)
+                              MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, CleanedBarcode)
+                              Required: =false
+                              Update: =DataCardValue7.Value
+                              Width: =434
+                              X: =2
+                              Y: =2
+                            Children:
+                              - DataCardKey7:
+                                  Control: Text@0.0.51
+                                  MetadataKey: FieldName
+                                  Properties:
+                                    Height: =22
+                                    Text: =Parent.DisplayName
+                                    Weight: ='TextCanvas.Weight'.Semibold
+                                    Width: =Parent.Width - 48
+                                    Wrap: =false
+                                    X: =24
+                                    Y: =10
+                              - DataCardValue7:
+                                  Control: TextInput@0.0.54
+                                  MetadataKey: FieldValue
+                                  Properties:
+                                    AccessibleLabel: =Parent.DisplayName
+                                    DisplayMode: =Parent.DisplayMode
+                                    Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                                    Required: =Parent.Required
+                                    ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                    Value: |-
+                                      =If(!IsBlank(gblBarcodeResult.gtin_out), 
+                                          Trim(gblBarcodeResult.gtin_out) & Trim(gblBarcodeResult.batch_out), 
+                                          Parent.Default
+                                      )
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =DataCardKey7.Y + DataCardKey7.Height + 4
+                              - ErrorMessage5:
+                                  Control: Text@0.0.51
+                                  MetadataKey: ErrorMessage
+                                  Properties:
+                                    Height: =30
+                                    Text: =Parent.Error
+                                    Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =DataCardValue7.Y + DataCardValue7.Height
+                              - StarVisible5:
+                                  Control: Text@0.0.51
+                                  MetadataKey: FieldRequired
+                                  Properties:
+                                    Align: ='TextCanvas.Align'.Center
+                                    Height: =30
+                                    Text: ="*"
+                                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                                    Width: =30
+                                    Y: =DataCardKey7.Y
+                        - Notes/Comments_DataCard1:
+                            Control: TypedDataCard@1.0.7
+                            Variant: TextualEdit
+                            IsLocked: true
+                            Properties:
+                              BorderColor: =RGBA(243, 242, 241, 1)
+                              DataField: ="cr31c_notescomments"
+                              Default: =ThisItem.'Notes/Comments'
+                              DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Notes/Comments')
+                              MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, 'Notes/Comments')
+                              Required: =false
+                              Update: =DataCardValue9.Value
+                              Width: =434
+                              X: =0
+                              Y: =3
+                            Children:
+                              - DataCardKey9:
+                                  Control: Text@0.0.51
+                                  MetadataKey: FieldName
+                                  Properties:
+                                    Height: =22
+                                    Text: =Parent.DisplayName
+                                    Weight: ='TextCanvas.Weight'.Semibold
+                                    Width: =Parent.Width - 48
+                                    Wrap: =false
+                                    X: =24
+                                    Y: =10
+                              - DataCardValue9:
+                                  Control: TextInput@0.0.54
+                                  MetadataKey: FieldValue
+                                  Properties:
+                                    AccessibleLabel: =Parent.DisplayName
+                                    DisplayMode: =Parent.DisplayMode
+                                    Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                                    Required: =Parent.Required
+                                    ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                    Value: =Parent.Default
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =DataCardKey9.Y + DataCardKey9.Height + 4
+                              - ErrorMessage7:
+                                  Control: Text@0.0.51
+                                  MetadataKey: ErrorMessage
+                                  Properties:
+                                    Height: =30
+                                    Text: =Parent.Error
+                                    Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =DataCardValue9.Y + DataCardValue9.Height
+                              - StarVisible7:
+                                  Control: Text@0.0.51
+                                  MetadataKey: FieldRequired
+                                  Properties:
+                                    Align: ='TextCanvas.Align'.Center
+                                    Height: =30
+                                    Text: ="*"
+                                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                                    Width: =30
+                                    Y: =DataCardKey9.Y
+                        - Modified On_DataCard2:
+                            Control: TypedDataCard@1.0.7
+                            Variant: TextualView
+                            IsLocked: true
+                            Properties:
+                              BorderColor: =RGBA(243, 242, 241, 1)
+                              DataField: ="modifiedon"
+                              Default: =ThisItem.'Modified On'
+                              DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Modified On')
+                              Required: =false
+                              Width: =434
+                              X: =1
+                              Y: =3
+                            Children:
+                              - DataCardKey10:
+                                  Control: Text@0.0.51
+                                  MetadataKey: FieldName
+                                  Properties:
+                                    Height: =22
+                                    Text: =Parent.DisplayName
+                                    Weight: ='TextCanvas.Weight'.Semibold
+                                    Width: =Parent.Width - 48
+                                    Wrap: =false
+                                    X: =24
+                                    Y: =10
+                              - DataCardValue10:
+                                  Control: TextInput@0.0.54
+                                  MetadataKey: FieldValue
+                                  Properties:
+                                    AccessibleLabel: =Parent.DisplayName
+                                    DisplayMode: =DisplayMode.View
+                                    Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                                    Required: =Parent.Required
+                                    ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                    Value: =Parent.Default
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =DataCardKey10.Y + DataCardKey10.Height + 4
+                        - Modified By_DataCard2:
+                            Control: TypedDataCard@1.0.7
+                            Variant: ComboBoxView
+                            IsLocked: true
+                            Properties:
+                              BorderColor: =RGBA(243, 242, 241, 1)
+                              DataField: ="modifiedby"
+                              Default: =ThisItem.'Modified By'
+                              DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Modified By')
+                              Required: =false
+                              Width: =434
+                              X: =2
+                              Y: =3
+                            Children:
+                              - DataCardKey11:
+                                  Control: Text@0.0.51
+                                  MetadataKey: FieldName
+                                  Properties:
+                                    Height: =22
+                                    Text: =Parent.DisplayName
+                                    Weight: ='TextCanvas.Weight'.Semibold
+                                    Width: =Parent.Width - 48
+                                    Wrap: =false
+                                    X: =24
+                                    Y: =10
+                              - DataCardValue11:
+                                  Control: ComboBox@0.0.51
+                                  MetadataKey: FieldValue
+                                  Properties:
+                                    DefaultSelectedItems: =[Parent.Default]
+                                    DisplayMode: =DisplayMode.View
+                                    Items: =Choices([@Inventories].'Modified By')
+                                    ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                    Width: =Parent.Width - 48
+                                    X: =24
+                                    Y: =DataCardKey11.Y + DataCardKey11.Height + 4
+                                  Children:
+                                    - First Name2:
+                                        Control: ComboBoxDataField@1.5.0
+                                        Variant: textualColumn
+                                        IsLocked: true
+                                        Properties:
+                                          FieldDisplayName: ="First Name"
+                                          FieldName: ="firstname"
+                                          FieldType: ="s"
+                                          Order: =1
+                                    - Last Name2:
+                                        Control: ComboBoxDataField@1.5.0
+                                        Variant: textualColumn
+                                        IsLocked: true
+                                        Properties:
+                                          FieldDisplayName: ="Last Name"
+                                          FieldName: ="lastname"
+                                          FieldType: ="s"
+                                          Order: =2
+                                    - Full Name2:
+                                        Control: ComboBoxDataField@1.5.0
+                                        Variant: textualColumn
+                                        IsLocked: true
+                                        Properties:
+                                          FieldDisplayName: ="Full Name"
+                                          FieldName: ="fullname"
+                                          FieldType: ="s"
+                                          Order: =3
+                                    - Invitation Status2:
+                                        Control: ComboBoxDataField@1.5.0
+                                        Variant: textualColumn
+                                        IsLocked: true
+                                        Properties:
+                                          FieldDisplayName: ="Invitation Status"
+                                          FieldName: ="invitestatuscode"
+                                          FieldType: ="l"
+                                          Order: =4
+                                    - System Managed User Type2:
+                                        Control: ComboBoxDataField@1.5.0
+                                        Variant: textualColumn
+                                        IsLocked: true
+                                        Properties:
+                                          FieldDisplayName: ="System Managed User Type"
+                                          FieldName: ="systemmanagedusertype"
+                                          FieldType: ="l"
+                                          Order: =5
+                  - ButtonContainer_1:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =50
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =10
+                        LayoutJustifyContent: =LayoutJustifyContent.End
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =0
+                        PaddingBottom: =10
+                        PaddingRight: =24
+                        PaddingTop: =10
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - EnterKeyScanner_1:
+                            Control: Image@2.2.3
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              BorderStyle: =BorderStyle.None
+                              BorderThickness: =2
+                              DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                              DisabledFill: =RGBA(0, 0, 0, 0)
+                              FillPortions: =1
+                              Height: |+
+                                =Parent.Height
+                              HoverBorderColor: =RGBA(0, 0, 0, 0)
+                              HoverFill: =RGBA(0, 0, 0, 0)
+                              Image: =ResetBarcodeScanner
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              LayoutMinHeight: =Parent.Height
+                              PressedBorderColor: =RGBA(0, 0, 0, 0)
+                              PressedFill: =RGBA(0, 0, 0, 0)
+                              RadiusBottomLeft: =3
+                              RadiusBottomRight: =3
+                              RadiusTopLeft: =3
+                              RadiusTopRight: =3
+                              Width: =298
+                              X: '=0   '
+                              Y: |+
+                                =0
+                        - EnterKeyScanner:
+                            Control: Image@2.2.3
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              BorderStyle: =BorderStyle.None
+                              BorderThickness: =2
+                              DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                              DisabledFill: =RGBA(0, 0, 0, 0)
+                              FillPortions: =1
+                              Height: =Parent.Height
+                              HoverBorderColor: =RGBA(0, 0, 0, 0)
+                              HoverFill: =RGBA(0, 0, 0, 0)
+                              Image: =AddEnterKey
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              PressedBorderColor: =RGBA(0, 0, 0, 0)
+                              PressedFill: =RGBA(0, 0, 0, 0)
+                              RadiusBottomLeft: =3
+                              RadiusBottomRight: =3
+                              RadiusTopLeft: =3
+                              RadiusTopRight: =3
+                              Width: =298
+                        - CancelButton_1:
+                            Control: Button@0.0.45
+                            Properties:
+                              AccessibleLabel: ="Cancel form button"
+                              Appearance: ='ButtonCanvas.Appearance'.Secondary
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnSelect: |-
+                                =// Suppress OnChange during cleanup
+                                Set(varSuppressOnChange, true);
+
+                                ResetForm(InventoryForm_1);
+                                NewForm(InventoryForm_1);
+                                Notify("Changes discarded", NotificationType.Warning);
+
+                                // Clear variables
+                                Set(cleanedBarcode, "");
+                                Set(gtin, "");
+                                Set(batch, "");
+                                Set(expiry, "");
+                                Set(expiryFormatted, "");
+                                Set(existingInventory, Blank());
+                                Set(varRawBarcode, "");
+                                Set(isAwaitingSecondScan, false);
+
+                                // Reset the barcode input
+                                Set(varResetBarcode, true);
+
+                                // Re-enable OnChange, then release reset
+                                Set(varSuppressOnChange, false);
+                                Set(varResetBarcode, false);
+
+                                // Clear barcode result last
+                                Set(gblBarcodeResult, Blank());
+                              Text: ="Cancel"
+                              Width: =120
+                        - SubmitButton_1:
+                            Control: Button@0.0.45
+                            Properties:
+                              AccessibleLabel: ="Submit form button"
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnSelect: |+
+                                =SubmitForm(InventoryForm_1);
+                                SetFocus(BarcodeInput_Fallback);
+                              Text: ="Submit"
+                              Width: =120
+      - Spinner1:
+          Control: Spinner@1.4.6
+          Properties:
+            Height: =522
+            Visible: =gblIsProcessing
+            Width: =518
+            X: =424
+            Y: =123
