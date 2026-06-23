@@ -3,10 +3,10 @@ Screens:
     Properties:
       Fill: =RGBA(255, 255, 255, 1)
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
-      OnHidden: |+
+      OnHidden: |
         =Set(gblAppIsRunning, false);
       OnVisible: |-
-        // OnVisible property of the RapidScan screen
+        =// OnVisible property of the RapidScan screen
         Clear(colScannedItems);
         Set(gblAppIsRunning, true);
         If(varReturnToRapidScan,
@@ -38,7 +38,7 @@ Screens:
                   ActiveTextColor: =Color.Blue
                   BaseFillColor: =App.Theme.Colors.Darker70
                   Height: =75
-                  Items: |+
+                  Items: |
                     =Table(
                         {Label: "Inventory", Screen: Inventory},
                         {Label: "Registration", Screen: Registration},
@@ -96,7 +96,7 @@ Screens:
                               FillPortions: =1
                               LayoutMinHeight: =16
                               LayoutMinWidth: =16
-                              OnChange: |+
+                              OnChange: |
                                 =// Guard: skip blank, short, or duplicate-in-progress scans
                                 If(
                                     IsBlank(Self.Value) || Len(Trim(Self.Value)) < 5 || varIsProcessing,
@@ -193,75 +193,73 @@ Screens:
                         Width: =Parent.Width
                         WrapCount: =
                       Children:
-                        - Rectangle2:
-                            Control: Rectangle@2.3.0
+                        - Container3:
+                            Control: GroupContainer@1.5.0
+                            Variant: GridLayout
                             Properties:
-                              BorderColor: =RGBA(53, 61, 63, 1)
-                              BorderThickness: =1
-                              DisabledFill: =RGBA(0,0,0,0)
-                              Fill: =RGBA(0,0,0,0)
-                              FocusedBorderColor: =RGBA(98, 100, 167, 1)
                               Height: =Parent.TemplateHeight
-                              HoverFill: =RGBA(0,0,0,0)
-                              OnSelect: =Select(Parent)
-                              PressedFill: =RGBA(0,0,0,0)
-                              TabIndex: =0
                               Width: =Parent.TemplateWidth
-                        - NumberInput1:
-                            Control: ModernNumberInput@1.1.0
-                            Properties:
-                              BorderStyle: =""
-                              Default: =ThisItem.OriginalQuantity
-                              Height: =38
-                              OnChange: |-
-                                =Patch(colScannedItems, ThisItem, { ScannedQuantity: Self.Value })
-                              Size: =0
-                              Width: =120
-                              X: =	If(Parent.TemplateWidth < 650, 10, Parent.TemplateWidth - Self.Width - 130)
-                              Y: =If(Parent.TemplateWidth < 650, HtmlText5.Y + HtmlText5.Height + 10, 25)
-                        - ButtonCanvas2:
-                            Control: Button@0.0.45
-                            Properties:
-                              OnSelect: |+
-                                =Remove(colScannedItems, ThisItem);
-                              Text: ="Remove"
-                              X: =	Parent.TemplateWidth - Self.Width - 10
-                              Y: =NumberInput1.Y
-                        - HtmlText5:
-                            Control: HtmlViewer@2.1.0
-                            Properties:
-                              DisabledBorderColor: =RGBA(200, 198, 196, 1)
-                              Font: =Font.'Segoe UI'
-                              Height: =90
-                              HtmlText: |-
-                                ="<div style='height:100%; display:flex; flex-direction:row; align-items:center; font-family: Segoe UI, sans-serif;'>" &
-                                    // Left: Item Name, Lot, Expiry
-                                    "<div style='flex-grow:1;'>" &
-                                        "<div style='font-size:16px; font-weight:600; color:#201F1E; margin-bottom:4px;'>" & ThisItem.ProductName & "</div>" &
-                                        "<div style='font-size:12px; color:#605E5C;'>" &
-                                            "Lot: <b>" & ThisItem.Batch & "</b>" &
-                                            "<span style='margin: 0 8px;'>|</span>" &
-                                            "Exp: <b>" & Text(ThisItem.Expiration, "mm/dd/yy") & "</b>" &
-                                        "</div>" &
-                                    "</div>" &
+                            Children:
+                              - HtmlText5:
+                                  Control: HtmlViewer@2.1.0
+                                  Properties:
+                                    DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =90
+                                    HtmlText: |-
+                                      ="<div style='height:100%; display:flex; flex-direction:row; align-items:center; font-family: Segoe UI, sans-serif;'>" &
+                                          // Left: Item Name, Lot, Expiry
+                                          "<div style='flex-grow:1;'>" &
+                                              "<div style='font-size:16px; font-weight:600; color:#201F1E; margin-bottom:4px;'>" & ThisItem.ProductName & "</div>" &
+                                              "<div style='font-size:12px; color:#605E5C;'>" &
+                                                  "Lot: <b>" & ThisItem.Batch & "</b>" &
+                                                  "<span style='margin: 0 8px;'>|</span>" &
+                                                  "Exp: <b>" & Text(ThisItem.Expiration, "mm/dd/yy") & "</b>" &
+                                              "</div>" &
+                                          "</div>" &
 
-                                    // Center: PREV QTY from database using raw barcode
-                                    "<div style='flex-shrink:0; text-align:right; margin-left:20px;'>" &
-                                        "<div style='font-size:11px; color:#605E5C; margin-bottom:4px;'>PREV QTY</div>" &
-                                        "<div style='font-size:18px; font-weight:600; color:#605E5C;'>" &
-                                            ThisItem.OriginalQuantity &
-                                        "</div>" &
-                                    "</div>" &
+                                          // Center: PREV QTY from database using raw barcode
+                                          "<div style='flex-shrink:0; text-align:right; margin-left:20px;'>" &
+                                              "<div style='font-size:11px; color:#605E5C; margin-bottom:4px;'>PREV QTY</div>" &
+                                              "<div style='font-size:18px; font-weight:600; color:#605E5C;'>" &
+                                                  ThisItem.OriginalQuantity &
+                                              "</div>" &
+                                          "</div>" &
 
-                                    // Right: Scanned quantity this session
-                                    "<div style='flex-shrink:0; text-align:right; margin-left:20px; background-color: #E6F2FF; padding: 4px 8px; border-radius: 4px;'>" &
-                                        "<div style='font-size:11px; color:#005A9E; margin-bottom:4px;'>SCANNED</div>" &
-                                        "<div style='font-size:18px; font-weight:700; color:#005A9E;'>" & ThisItem.ScannedQuantity & "</div>" &
-                                    "</div>" &
-                                "</div>"
-                              OnSelect: =Select(Parent)
-                              Size: =10.5
-                              Width: =Parent.TemplateWidth/3
+                                          // Right: Scanned quantity this session
+                                          "<div style='flex-shrink:0; text-align:right; margin-left:20px; background-color: #E6F2FF; padding: 4px 8px; border-radius: 4px;'>" &
+                                              "<div style='font-size:11px; color:#005A9E; margin-bottom:4px;'>SCANNED</div>" &
+                                              "<div style='font-size:18px; font-weight:700; color:#005A9E;'>" & ThisItem.ScannedQuantity & "</div>" &
+                                          "</div>" &
+                                      "</div>"
+                                    LayoutGridColumnEnd: =3
+                                    LayoutGridColumnStart: =1
+                                    LayoutGridRowEnd: =3
+                                    LayoutGridRowStart: =1
+                                    Size: =10.5
+                                    Width: =Parent.Width/3
+                                    X: =40
+                                    Y: =40
+                              - ButtonCanvas2:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    OnSelect: |
+                                      =Remove(colScannedItems, ThisItem);
+                                    Text: ="Remove"
+                                    X: =40
+                                    Y: =NumberInput1.Y
+                              - NumberInput1:
+                                  Control: ModernNumberInput@1.1.0
+                                  Properties:
+                                    BorderStyle: =""
+                                    Default: =ThisItem.OriginalQuantity
+                                    Height: =38
+                                    OnChange: |-
+                                      =Patch(colScannedItems, ThisItem, { ScannedQuantity: Self.Value })
+                                    Size: =0
+                                    Width: =120
+                                    X: =40
+                                    Y: =If(Parent.Width < 650, HtmlText5.Y + HtmlText5.Height + 10, 25)
             - FooterContainer1_1:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
