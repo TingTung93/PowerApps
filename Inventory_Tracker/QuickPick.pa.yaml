@@ -1033,7 +1033,7 @@ Screens:
                                       );
                                     Placeholder: ="Barcode for item to be registered"
                                     TriggerOutput: ='TextInputCanvas.TriggerOutput'.Keypress
-                                    Value: =If(!IsBlank(ctxRegBarcode), ctxRegBarcode, "")
+                                    Value: =If(!IsBlank(varRegistrationBarcode), varRegistrationBarcode, "")
                                     X: =28
                                     Y: =32
                               - TextCanvas3_1:
@@ -1198,7 +1198,7 @@ Screens:
                                     ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
                                     Value: |-
                                       =If(!IsBlank(ThisItem.GTIN), ThisItem.GTIN,
-                                          If(!IsBlank(ctxRegGTIN), ctxRegGTIN,
+                                          If(!IsBlank(varRegistrationGTIN), varRegistrationGTIN,
                                              varBarcodeData.ItemID))
                                     Width: =Parent.Width - 48
                                     X: =24

@@ -297,7 +297,7 @@ Screens:
                                                         <b>Man:</b> " & ThisItem.Manufacturer_Lookup & " &nbsp;&nbsp; <b>Lot:</b> " & ThisItem.Batch & "
                                                     </div>
                                                     <div style='font-size:12px; color:" & If(ThisItem.Quantity < 1, "'#DC2626'", "#374151") & ";'>
-                                                        <b>Cat:</b> " & Coalesce(LookUp(GTIN_Lookups, GTIN = Text(ThisItem.ItemID), First(ItemCategory).Value), "") & " &nbsp;&nbsp; <b>Qty:</b> " & ThisItem.Quantity & "
+                                                        <b>Cat:</b> " & Text(LookUp(GTIN_Lookups, GTIN = Text(ThisItem.ItemID), First(ItemCategory).Value)) & " &nbsp;&nbsp; <b>Qty:</b> " & ThisItem.Quantity & "
                                                     </div>
                                                 </div>
 
