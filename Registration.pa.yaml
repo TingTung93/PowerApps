@@ -413,8 +413,18 @@ Screens:
                                       Notify("Success", NotificationType.Success);
                                       ResetForm(Form1_3);
 
-                                      // Return to QuickPick if we came from there
-                                      If(!IsBlank(ctxRegBarcode),
+                                      // Return to previous screen
+                                      If(
+                                         varReturnToRapidScan,
+                                         Navigate(RapidScan, ScreenTransition.None),
+
+                                         varReturnToQuickPick,
+                                         Navigate(QuickPick, ScreenTransition.None),
+
+                                         varReturnToInventory,
+                                         Navigate(Inventory, ScreenTransition.None),
+
+                                         !IsBlank(ctxRegBarcode), // Fallback
                                          Set(varReturnToQuickPick, true);
                                          Navigate(QuickPick, ScreenTransition.None)
                                       )
@@ -518,7 +528,7 @@ Screens:
                                           Default: =ThisItem.ItemName
                                           DisplayName: =DataSourceInfo([@GTIN_Lookups],DataSourceInfo.DisplayName,ItemName)
                                           MaxLength: =DataSourceInfo([@GTIN_Lookups], DataSourceInfo.MaxLength, ItemName)
-                                          Required: =false
+                                          Required: =true
                                           Update: =DataCardValue7_1.Value
                                           Width: =459
                                           X: =1
@@ -637,7 +647,7 @@ Screens:
                                           Default: =ThisItem.GTIN
                                           DisplayName: =DataSourceInfo([@GTIN_Lookups],DataSourceInfo.DisplayName,GTIN)
                                           MaxLength: =DataSourceInfo([@GTIN_Lookups], DataSourceInfo.MaxLength, GTIN)
-                                          Required: =false
+                                          Required: =true
                                           Update: =DataCardValue9_1.Value
                                           Width: =459
                                           X: =1
@@ -961,6 +971,7 @@ Screens:
                                         Control: Button@0.0.45
                                         Properties:
                                           Appearance: ='ButtonCanvas.Appearance'.Primary
+                                          DisplayMode: =If(Form1_3.Valid, DisplayMode.Edit, DisplayMode.Disabled)
                                           LayoutMaxHeight: =
                                           LayoutMaxWidth: =
                                           OnSelect: =SubmitForm(Form1_3)

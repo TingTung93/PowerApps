@@ -3,7 +3,12 @@ Screens:
     Properties:
       Fill: =RGBA(255, 255, 255, 1)
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
-      OnVisible: =Set(varDefaultMan, Table());
+      OnVisible: |-
+        =Set(varDefaultMan, Table());
+        If(varReturnToInventory,
+            Set(varReturnToInventory, false);
+            Notify("Product registered! Please process the item again.", NotificationType.Success, 4000)
+        );
     Children:
       - Container5:
           Control: GroupContainer@1.5.0
@@ -649,7 +654,93 @@ Screens:
                                                       AccessibleLabel: =Parent.DisplayName
                                                       DisplayMode: =Parent.DisplayMode
                                                       Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
-                                                      OnChange: "=// Barcode for testing: 013038290221261510519830017251117300100\n// Clean the barcode\nSet(cleanedBarcode, Substitute(Substitute(BarcodeInput_Fallback.Text, \"(\", \"\"), \")\", \"\"));\n\n// --- EXTRACTION LOGIC (PROCEDURAL & RELIABLE - NO REGEX) ---\n\n// 1. Extract GTIN (AI 01)\n// GTIN is always first and has a fixed length.\nSet(gtin, If(StartsWith(cleanedBarcode, \"01\"), Mid(cleanedBarcode, 3, 14), \"\"));\n\n// 2. Extract Expiration Date (AI 17) - using Find() and Mid()\nSet(startOfExpiryAI, Find(\"17\", cleanedBarcode));\nSet(expiry,\n    If(startOfExpiryAI > 0,\n        // The expiry date is always 6 digits long after the \"17\"\n        Mid(cleanedBarcode, startOfExpiryAI + 2, 6),\n        \"\" // If \"17\" is not found, return blank\n    )\n);\n\n// 3. Extract Batch Number (AI 10) - using Find() and Mid()\nSet(startOfBatchAI, Find(\"10\", cleanedBarcode));\nIf(startOfBatchAI > 0,\n    // We found \"10\". Now find the start of the next AI after it.\n    Set(stringAfterBatch, Mid(cleanedBarcode, startOfBatchAI + 2));\n    \n    // Find the positions of the next possible AIs within the remaining string.\n    Set(pos17, Find(\"17\", stringAfterBatch));\n    Set(pos30, Find(\"30\", stringAfterBatch));\n    \n    // Determine the length of the batch data.\n    Set(batchLength, \n        Coalesce(\n            If(pos17 > 0, pos17 - 1),\n            If(pos30 > 0, pos30 - 1),\n            Len(stringAfterBatch) // If no other AI is found, take to the end\n        )\n    );\n    \n    // Extract the batch number using the calculated length.\n    Set(batch, Left(stringAfterBatch, batchLength));\n,\n    // If \"10\" was not found, set batch to blank.\n    Set(batch, \"\")\n);\n\n\n// --- YOUR EXISTING FORM LOGIC (UNCHANGED) ---\n\n// Format expiration date\nIf(!IsBlank(expiry),\n   Set(expiryYear, \"20\" & Left(expiry, 2));\n   Set(expiryMonth, Mid(expiry, 3, 2));\n   Set(expiryDay, Right(expiry, 2));\n   Set(tempDate, Date(Value(expiryYear), Value(expiryMonth), Value(expiryDay))),\n   Set(tempDate, Blank())\n);\n\n// Check if barcode exists in inventory...\nSet(existingInventory, LookUp(Inventories, Barcode = BarcodeInput_Fallback.Text));\n\n// Set form mode...\nIf(IsBlank(existingInventory),\n   If(!IsBlank(gtin),\n      With({productLookup: LookUp(GTIN_Lookups, GTIN = gtin)},\n         If(!IsBlank(productLookup),\n            NewForm(InventoryForm_1);\n            Set(varProductName, productLookup.ItemName);\n            Set(varManufacturer, productLookup.ItemManufacturer);\n            SetFocus(DataCardValue4_3),\n            \n            Set(varRegistrationGTIN, gtin);\n            Set(varRegistrationBatch, batch);\n            Set(varRegistrationExpiry, tempDate);\n            Set(varRegistrationBarcode, BarcodeInput_Fallback.Text);\n            Navigate(Registration, ScreenTransition.None);\n            Notify(\"Unknown product - Please register it first\", NotificationType.Warning, 3000)\n         )\n      ),\n      NewForm(InventoryForm_1);\n   ),\n   EditForm(InventoryForm_1);\n   SetFocus(DataCardValue4_3)\n)"
+                                                      OnChange: |-
+                                                        =// Barcode for testing: 013038290221261510519830017251117300100
+                                                        // Clean the barcode
+                                                        Set(cleanedBarcode, Substitute(Substitute(BarcodeInput_Fallback.Text, "(", ""), ")", ""));
+
+                                                        // --- EXTRACTION LOGIC (PROCEDURAL & RELIABLE - NO REGEX) ---
+
+                                                        // 1. Extract GTIN (AI 01)
+                                                        // GTIN is always first and has a fixed length.
+                                                        Set(gtin, If(StartsWith(cleanedBarcode, "01"), Mid(cleanedBarcode, 3, 14), ""));
+
+                                                        // 2. Extract Expiration Date (AI 17) - using Find() and Mid()
+                                                        Set(startOfExpiryAI, Find("17", cleanedBarcode));
+                                                        Set(expiry,
+                                                            If(startOfExpiryAI > 0,
+                                                                // The expiry date is always 6 digits long after the "17"
+                                                                Mid(cleanedBarcode, startOfExpiryAI + 2, 6),
+                                                                "" // If "17" is not found, return blank
+                                                            )
+                                                        );
+
+                                                        // 3. Extract Batch Number (AI 10) - using Find() and Mid()
+                                                        Set(startOfBatchAI, Find("10", cleanedBarcode));
+                                                        If(startOfBatchAI > 0,
+                                                            // We found "10". Now find the start of the next AI after it.
+                                                            Set(stringAfterBatch, Mid(cleanedBarcode, startOfBatchAI + 2));
+
+                                                            // Find the positions of the next possible AIs within the remaining string.
+                                                            Set(pos17, Find("17", stringAfterBatch));
+                                                            Set(pos30, Find("30", stringAfterBatch));
+
+                                                            // Determine the length of the batch data.
+                                                            Set(batchLength,
+                                                                Coalesce(
+                                                                    If(pos17 > 0, pos17 - 1),
+                                                                    If(pos30 > 0, pos30 - 1),
+                                                                    Len(stringAfterBatch) // If no other AI is found, take to the end
+                                                                )
+                                                            );
+
+                                                            // Extract the batch number using the calculated length.
+                                                            Set(batch, Left(stringAfterBatch, batchLength));
+                                                        ,
+                                                            // If "10" was not found, set batch to blank.
+                                                            Set(batch, "")
+                                                        );
+
+
+                                                        // --- YOUR EXISTING FORM LOGIC (UNCHANGED) ---
+
+                                                        // Format expiration date
+                                                        If(!IsBlank(expiry),
+                                                           Set(expiryYear, "20" & Left(expiry, 2));
+                                                           Set(expiryMonth, Mid(expiry, 3, 2));
+                                                           Set(expiryDay, Right(expiry, 2));
+                                                           Set(tempDate, Date(Value(expiryYear), Value(expiryMonth), Value(expiryDay))),
+                                                           Set(tempDate, Blank())
+                                                        );
+
+                                                        // Check if barcode exists and perform GTIN lookup concurrently
+                                                        Concurrent(
+                                                           Set(existingInventory, LookUp(Inventories, cr31c_barcode = BarcodeInput_Fallback.Text)),
+                                                           Set(varProductLookup, LookUp(GTIN_Lookups, GTIN = gtin))
+                                                        );
+
+                                                        // Set form mode...
+                                                        If(IsBlank(existingInventory),
+                                                           If(!IsBlank(gtin),
+                                                              If(!IsBlank(varProductLookup),
+                                                                 NewForm(InventoryForm_1);
+                                                                 Set(varProductName, varProductLookup.ItemName);
+                                                                 Set(varManufacturer, varProductLookup.ItemManufacturer);
+                                                                 SetFocus(DataCardValue4_3),
+
+                                                                 Set(varRegistrationGTIN, gtin);
+                                                                 Set(varRegistrationBatch, batch);
+                                                                 Set(varRegistrationExpiry, tempDate);
+                                                                 Set(varRegistrationBarcode, BarcodeInput_Fallback.Text);
+                                                                 Set(varReturnToInventory, true);
+                                                                 Navigate(Registration, ScreenTransition.None);
+                                                                 Notify("Unknown product - Please register it first", NotificationType.Warning, 3000)
+                                                              ),
+                                                              NewForm(InventoryForm_1);
+                                                           ),
+                                                           EditForm(InventoryForm_1);
+                                                           SetFocus(DataCardValue4_3)
+                                                        )
                                                       Required: =Parent.Required
                                                       ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
                                                       Value: =Parent.Default

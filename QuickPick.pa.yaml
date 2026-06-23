@@ -15,6 +15,7 @@ Screens:
         Set(existingInventory, Blank());
         Set(varRawBarcode, "");
         Set(isAwaitingSecondScan, false);
+        Set(varMatchedGTIN, Blank());
 
         // Reset the form and barcode input
         NewForm(InventoryForm_1);
@@ -124,6 +125,7 @@ Screens:
                           Set(expiryFormatted, "");
                           Set(existingInventory, Blank());
                           Set(varRawBarcode, "");
+                          Set(varMatchedGTIN, Blank());
 
                           // Reset barcode input for next scan
                           Set(varResetBarcode, true);
@@ -167,7 +169,7 @@ Screens:
                               - ExistenceCheck_1:
                                   Control: ModernText@1.0.0
                                   Properties:
-                                    Fill: =If(!IsBlank(existingInventory), Color.LightGreen, Color.Aqua)
+                                    Fill: =If(!IsBlank(existingInventory), RGBA(223, 246, 221, 1), RGBA(225, 243, 253, 1))
                                     Height: =30
                                     PaddingBottom: =0
                                     PaddingLeft: =0
@@ -215,8 +217,8 @@ Screens:
                                   Control: Classic/TextInput@2.3.2
                                   Properties:
                                     AccessibleLabel: =If(Parent.Required, Substitute("{0}. Required.", "{0}", Parent.DisplayName), Parent.DisplayName)
-                                    BorderColor: =RGBA(243, 242, 241, 1)
-                                    BorderThickness: =0
+                                    BorderColor: =RGBA(166, 166, 166, 1)
+                                    BorderThickness: =1
                                     Color: =RGBA(37, 36, 35, 1)
                                     Default: =Parent.Default
                                     DelayOutput: =true
@@ -224,7 +226,7 @@ Screens:
                                     DisabledColor: =RGBA(200, 198, 196, 1)
                                     DisabledFill: =RGBA(243, 242, 241, 1)
                                     DisplayMode: =Parent.DisplayMode
-                                    Fill: =RGBA(152, 208, 70, 1)
+                                    Fill: =RGBA(255, 255, 255, 1)
                                     FocusedBorderColor: =RGBA(98, 100, 167, 1)
                                     FocusedBorderThickness: =2
                                     Font: =Font.'Segoe UI'
@@ -233,7 +235,7 @@ Screens:
                                     HoverBorderColor: =RGBA(243, 242, 241, 1)
                                     HoverColor: =RGBA(37, 36, 35, 1)
                                     HoverFill: =RGBA(243, 242, 241, 1)
-                                    OnChange: "=// Guard: skip if suppressed or if text is blank/too short (reset artifact)\r\nIf(\r\n    varSuppressOnChange || IsBlank(Self.Text) || Len(Trim(Self.Text)) < 5,\r\n    Blank(),\r\n\r\n    If(\r\n        Len(Self.Text) > 25,\r\n\r\n        // --- PATH 1: BARCODE IS LONG ENOUGH TO BE COMPLETE ---\r\n        Set(gblIsProcessing, true);\r\n\r\n        // Call the flow to parse barcode fields\r\n        Set(gblBarcodeResult, GTIN_Parse_V3.Run(Self.Text));\r\n\r\n        // Store the raw barcode for lookup\r\n        Set(varRawBarcode, Trim(Self.Text));\r\n        \r\n        // Perform the lookup using RAW BARCODE\r\n        Set(existingInventory, \r\n            LookUp(Inventories, cr31c_barcode = varRawBarcode)\r\n        );\r\n        \r\n        // Set the form mode\r\n        If(\r\n            !IsBlank(existingInventory),\r\n            EditForm(InventoryForm_1);\r\n            Notify(\r\n                \"Existing record found: \" & gblBarcodeResult.batch_out & \" | Exp: \" & gblBarcodeResult.expiry_formatted,\r\n                NotificationType.Success\r\n            ),\r\n            NewForm(InventoryForm_1);\r\n            Notify(\r\n                \"New item — Batch: \" & gblBarcodeResult.batch_out \r\n                & If(!IsBlank(gblBarcodeResult.serial_out), \" | Serial: \" & gblBarcodeResult.serial_out, \"\")\r\n                & If(!IsBlank(gblBarcodeResult.count_out), \" | Count: \" & gblBarcodeResult.count_out, \"\")\r\n                & If(!IsBlank(gblBarcodeResult.additional_id_out), \" | Addl ID: \" & gblBarcodeResult.additional_id_out, \"\"),\r\n                NotificationType.Information\r\n            )\r\n        );\r\n        \r\n        Set(gblIsProcessing, false);\r\n        SetFocus(QuantityInput_1),\r\n        \r\n        // --- PATH 2: BARCODE IS TOO SHORT ---\r\n        Notify(\"GTIN captured. Please scan the Lot/Expiry barcode.\", NotificationType.Information)\r\n    )\r\n);\r\n"
+                                    OnChange: "=// Guard: skip if suppressed or if text is blank/too short (reset artifact)\r\nIf(\r\n    varSuppressOnChange || IsBlank(Self.Text) || Len(Trim(Self.Text)) < 5,\r\n    Blank(),\r\n\r\n    If(\r\n        Len(Self.Text) > 25,\r\n\r\n        // --- PATH 1: BARCODE IS LONG ENOUGH TO BE COMPLETE ---\r\n        Set(gblIsProcessing, true);\r\n\r\n        Set(varRawBarcode, Trim(Self.Text));\r\n\r\n        // Call flow & perform lookups CONCURRENTLY for performance\r\n        Concurrent(\r\n            Set(gblBarcodeResult, GTIN_Parse_V3.Run(Self.Text)),\r\n            Set(existingInventory, LookUp(Inventories, cr31c_barcode = varRawBarcode))\r\n        );\r\n        \r\n        // Perform secondary lookup once the flow returns the GTIN\r\n        Set(varMatchedGTIN, LookUp(GTIN_Lookups, GTIN = gblBarcodeResult.gtin_out));\r\n        \r\n        // Set the form mode\r\n        If(\r\n            !IsBlank(existingInventory),\r\n            EditForm(InventoryForm_1);\r\n            Notify(\r\n                \"Existing record found: \" & gblBarcodeResult.batch_out & \" | Exp: \" & gblBarcodeResult.expiry_formatted,\r\n                NotificationType.Success\r\n            ),\r\n            If(\r\n                IsBlank(varMatchedGTIN) && !IsBlank(gblBarcodeResult.gtin_out),\r\n                Set(varRegistrationGTIN, gblBarcodeResult.gtin_out);\r\n                Set(varRegistrationBatch, gblBarcodeResult.batch_out);\r\n                Set(varRegistrationExpiry, gblBarcodeResult.expiry_out);\r\n                Set(varRegistrationBarcode, Self.Text);\r\n                Set(varReturnToQuickPick, true);\r\n                Navigate(Registration, ScreenTransition.None);\r\n                Notify(\"Unknown product - Please register it first\", NotificationType.Warning, 3000),\r\n\r\n                NewForm(InventoryForm_1);\r\n                Notify(\r\n                    \"New item — Batch: \" & gblBarcodeResult.batch_out \r\n                    & If(!IsBlank(gblBarcodeResult.serial_out), \" | Serial: \" & gblBarcodeResult.serial_out, \"\")\r\n                    & If(!IsBlank(gblBarcodeResult.count_out), \" | Count: \" & gblBarcodeResult.count_out, \"\")\r\n                    & If(!IsBlank(gblBarcodeResult.additional_id_out), \" | Addl ID: \" & gblBarcodeResult.additional_id_out, \"\"),\r\n                    NotificationType.Information\r\n                )\r\n            )\r\n        );\r\n        \r\n        Set(gblIsProcessing, false);\r\n        SetFocus(QuantityInput_1),\r\n        \r\n        // --- PATH 2: BARCODE IS TOO SHORT ---\r\n        Notify(\"GTIN captured. Please scan the Lot/Expiry barcode.\", NotificationType.Information)\r\n    )\r\n);\r\n"
                                     PaddingBottom: =4
                                     PaddingRight: =12
                                     PaddingTop: =0
@@ -283,8 +285,8 @@ Screens:
                                   MetadataKey: FieldValue
                                   Properties:
                                     AccessibleLabel: =If(Parent.Required, Substitute("{0}. Required.", "{0}", Parent.DisplayName), Parent.DisplayName)
-                                    BorderColor: =RGBA(243, 242, 241, 1)
-                                    BorderThickness: =0
+                                    BorderColor: =RGBA(166, 166, 166, 1)
+                                    BorderThickness: =1
                                     Color: =RGBA(37, 36, 35, 1)
                                     Default: =If(!IsBlank(Parent.Default), Parent.Default, "1")
                                     DelayOutput: =true
@@ -292,7 +294,7 @@ Screens:
                                     DisabledColor: =RGBA(200, 198, 196, 1)
                                     DisabledFill: =RGBA(243, 242, 241, 1)
                                     DisplayMode: =Parent.DisplayMode
-                                    Fill: =RGBA(255, 191, 0, 1)
+                                    Fill: =RGBA(255, 255, 255, 1)
                                     FocusedBorderColor: =RGBA(98, 100, 167, 1)
                                     FocusedBorderThickness: =2
                                     Font: =Font.'Segoe UI'
@@ -395,7 +397,7 @@ Screens:
                                     Placeholder: ="If this does not populate, please register the item code"
                                     Required: =Parent.Required
                                     Tooltip: =Parent.DisplayName
-                                    Value: =LookUp(GTIN_Lookups, GTIN = Text(ItemCodeInput_1.Value), ItemName)
+                                    Value: =Coalesce(varMatchedGTIN.ItemName, Parent.Default)
                                     Width: =Parent.Width - 48
                                     X: =24
                                     Y: =ProductNameLabel_1.Y + ProductNameLabel_1.Height + 4
@@ -436,7 +438,7 @@ Screens:
                                     Placeholder: ="If this does not populate, please register the item code"
                                     Required: =Parent.Required
                                     Tooltip: =Parent.DisplayName
-                                    Value: =LookUp(GTIN_Lookups, GTIN = Text(ItemCodeInput_1.Value), ItemManufacturer)
+                                    Value: =Coalesce(varMatchedGTIN.ItemManufacturer, Parent.Default)
                                     Width: =Parent.Width - 48
                                     X: =24
                                     Y: =ManufacturerLabel_1.Y + ManufacturerLabel_1.Height + 4
@@ -519,7 +521,7 @@ Screens:
                                     Width: =Parent.Width - 48
                                     X: =24
                                     Y: =ExpirationLabel_1.Y + ExpirationLabel_1.Height + 4
-                        - Item Category_DataCard2:
+                        - ItemCategoryCard_1:
                             Control: TypedDataCard@1.0.7
                             Variant: TextualEdit
                             Properties:
@@ -529,12 +531,12 @@ Screens:
                               DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Item Category')
                               MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, 'Item Category')
                               Required: =false
-                              Update: =DataCardValue4.Value
+                              Update: =ItemCategoryInput_1.Value
                               Width: =434
                               X: =1
                               Y: =2
                             Children:
-                              - DataCardKey4:
+                              - ItemCategoryLabel_1:
                                   Control: Text@0.0.51
                                   MetadataKey: FieldName
                                   Properties:
@@ -545,7 +547,7 @@ Screens:
                                     Wrap: =false
                                     X: =24
                                     Y: =10
-                              - DataCardValue4:
+                              - ItemCategoryInput_1:
                                   Control: TextInput@0.0.54
                                   MetadataKey: FieldValue
                                   Properties:
@@ -554,11 +556,11 @@ Screens:
                                     Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
                                     Required: =Parent.Required
                                     ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
-                                    Value: =LookUp(GTIN_Lookups, GTIN = Text(ItemCodeInput_1.Value), First(ItemCategory).Value)
+                                    Value: =Coalesce(First(varMatchedGTIN.ItemCategory).Value, Parent.Default)
                                     Width: =Parent.Width - 48
                                     X: =24
-                                    Y: =DataCardKey4.Y + DataCardKey4.Height + 4
-                              - ErrorMessage4:
+                                    Y: =ItemCategoryLabel_1.Y + ItemCategoryLabel_1.Height + 4
+                              - ErrorMessageItemCategory_1:
                                   Control: Text@0.0.51
                                   MetadataKey: ErrorMessage
                                   Properties:
@@ -567,8 +569,8 @@ Screens:
                                     Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
                                     Width: =Parent.Width - 48
                                     X: =24
-                                    Y: =DataCardValue4.Y + DataCardValue4.Height
-                              - StarVisible4:
+                                    Y: =ItemCategoryInput_1.Y + ItemCategoryInput_1.Height
+                              - StarVisibleItemCategory_1:
                                   Control: Text@0.0.51
                                   MetadataKey: FieldRequired
                                   Properties:
@@ -577,8 +579,8 @@ Screens:
                                     Text: ="*"
                                     Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
                                     Width: =30
-                                    Y: =DataCardKey4.Y
-                        - CleanedBarcode_DataCard1:
+                                    Y: =ItemCategoryLabel_1.Y
+                        - CleanedBarcodeCard_1:
                             Control: TypedDataCard@1.0.7
                             Variant: TextualEdit
                             Properties:
@@ -588,12 +590,12 @@ Screens:
                               DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,CleanedBarcode)
                               MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, CleanedBarcode)
                               Required: =false
-                              Update: =DataCardValue7.Value
+                              Update: =CleanedBarcodeInput_1.Value
                               Width: =434
                               X: =2
                               Y: =2
                             Children:
-                              - DataCardKey7:
+                              - CleanedBarcodeLabel_1:
                                   Control: Text@0.0.51
                                   MetadataKey: FieldName
                                   Properties:
@@ -604,7 +606,7 @@ Screens:
                                     Wrap: =false
                                     X: =24
                                     Y: =10
-                              - DataCardValue7:
+                              - CleanedBarcodeInput_1:
                                   Control: TextInput@0.0.54
                                   MetadataKey: FieldValue
                                   Properties:
@@ -620,8 +622,8 @@ Screens:
                                       )
                                     Width: =Parent.Width - 48
                                     X: =24
-                                    Y: =DataCardKey7.Y + DataCardKey7.Height + 4
-                              - ErrorMessage5:
+                                    Y: =CleanedBarcodeLabel_1.Y + CleanedBarcodeLabel_1.Height + 4
+                              - ErrorMessageCleanedBarcode_1:
                                   Control: Text@0.0.51
                                   MetadataKey: ErrorMessage
                                   Properties:
@@ -630,8 +632,8 @@ Screens:
                                     Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
                                     Width: =Parent.Width - 48
                                     X: =24
-                                    Y: =DataCardValue7.Y + DataCardValue7.Height
-                              - StarVisible5:
+                                    Y: =CleanedBarcodeInput_1.Y + CleanedBarcodeInput_1.Height
+                              - StarVisibleCleanedBarcode_1:
                                   Control: Text@0.0.51
                                   MetadataKey: FieldRequired
                                   Properties:
@@ -640,8 +642,8 @@ Screens:
                                     Text: ="*"
                                     Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
                                     Width: =30
-                                    Y: =DataCardKey7.Y
-                        - Notes/Comments_DataCard1:
+                                    Y: =CleanedBarcodeLabel_1.Y
+                        - NotesCommentsCard_1:
                             Control: TypedDataCard@1.0.7
                             Variant: TextualEdit
                             IsLocked: true
@@ -652,12 +654,12 @@ Screens:
                               DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Notes/Comments')
                               MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, 'Notes/Comments')
                               Required: =false
-                              Update: =DataCardValue9.Value
+                              Update: =NotesCommentsInput_1.Value
                               Width: =434
                               X: =0
                               Y: =3
                             Children:
-                              - DataCardKey9:
+                              - NotesCommentsLabel_1:
                                   Control: Text@0.0.51
                                   MetadataKey: FieldName
                                   Properties:
@@ -668,7 +670,7 @@ Screens:
                                     Wrap: =false
                                     X: =24
                                     Y: =10
-                              - DataCardValue9:
+                              - NotesCommentsInput_1:
                                   Control: TextInput@0.0.54
                                   MetadataKey: FieldValue
                                   Properties:
@@ -680,8 +682,8 @@ Screens:
                                     Value: =Parent.Default
                                     Width: =Parent.Width - 48
                                     X: =24
-                                    Y: =DataCardKey9.Y + DataCardKey9.Height + 4
-                              - ErrorMessage7:
+                                    Y: =NotesCommentsLabel_1.Y + NotesCommentsLabel_1.Height + 4
+                              - ErrorMessageNotesComments_1:
                                   Control: Text@0.0.51
                                   MetadataKey: ErrorMessage
                                   Properties:
@@ -690,8 +692,8 @@ Screens:
                                     Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
                                     Width: =Parent.Width - 48
                                     X: =24
-                                    Y: =DataCardValue9.Y + DataCardValue9.Height
-                              - StarVisible7:
+                                    Y: =NotesCommentsInput_1.Y + NotesCommentsInput_1.Height
+                              - StarVisibleNotesComments_1:
                                   Control: Text@0.0.51
                                   MetadataKey: FieldRequired
                                   Properties:
@@ -700,8 +702,8 @@ Screens:
                                     Text: ="*"
                                     Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
                                     Width: =30
-                                    Y: =DataCardKey9.Y
-                        - Modified On_DataCard2:
+                                    Y: =NotesCommentsLabel_1.Y
+                        - ModifiedOnCard_1:
                             Control: TypedDataCard@1.0.7
                             Variant: TextualView
                             IsLocked: true
@@ -715,7 +717,7 @@ Screens:
                               X: =1
                               Y: =3
                             Children:
-                              - DataCardKey10:
+                              - ModifiedOnLabel_1:
                                   Control: Text@0.0.51
                                   MetadataKey: FieldName
                                   Properties:
@@ -726,7 +728,7 @@ Screens:
                                     Wrap: =false
                                     X: =24
                                     Y: =10
-                              - DataCardValue10:
+                              - ModifiedOnInput_1:
                                   Control: TextInput@0.0.54
                                   MetadataKey: FieldValue
                                   Properties:
@@ -738,8 +740,8 @@ Screens:
                                     Value: =Parent.Default
                                     Width: =Parent.Width - 48
                                     X: =24
-                                    Y: =DataCardKey10.Y + DataCardKey10.Height + 4
-                        - Modified By_DataCard2:
+                                    Y: =ModifiedOnLabel_1.Y + ModifiedOnLabel_1.Height + 4
+                        - ModifiedByCard_1:
                             Control: TypedDataCard@1.0.7
                             Variant: ComboBoxView
                             IsLocked: true
@@ -753,7 +755,7 @@ Screens:
                               X: =2
                               Y: =3
                             Children:
-                              - DataCardKey11:
+                              - ModifiedByLabel_1:
                                   Control: Text@0.0.51
                                   MetadataKey: FieldName
                                   Properties:
@@ -764,7 +766,7 @@ Screens:
                                     Wrap: =false
                                     X: =24
                                     Y: =10
-                              - DataCardValue11:
+                              - ModifiedByComboBox_1:
                                   Control: ComboBox@0.0.51
                                   MetadataKey: FieldValue
                                   Properties:
@@ -774,7 +776,7 @@ Screens:
                                     ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
                                     Width: =Parent.Width - 48
                                     X: =24
-                                    Y: =DataCardKey11.Y + DataCardKey11.Height + 4
+                                    Y: =ModifiedByLabel_1.Y + ModifiedByLabel_1.Height + 4
                                   Children:
                                     - First Name2:
                                         Control: ComboBoxDataField@1.5.0
@@ -916,6 +918,7 @@ Screens:
                                 Set(existingInventory, Blank());
                                 Set(varRawBarcode, "");
                                 Set(isAwaitingSecondScan, false);
+                                Set(varMatchedGTIN, Blank());
 
                                 // Reset the barcode input
                                 Set(varResetBarcode, true);

@@ -6,9 +6,13 @@ Screens:
       OnHidden: |+
         =Set(gblAppIsRunning, false);
       OnVisible: |-
-        =// OnVisible property of the RapidScan screen
+        // OnVisible property of the RapidScan screen
         Clear(colScannedItems);
         Set(gblAppIsRunning, true);
+        If(varReturnToRapidScan,
+            Set(varReturnToRapidScan, false);
+            Notify("Product registered! Please scan the barcode again to add to rapid scan.", NotificationType.Success, 4000)
+        );
     Children:
       - ScreenContainer4:
           Control: GroupContainer@1.5.0
@@ -109,48 +113,52 @@ Screens:
                                             Patch(colScannedItems, sessionItem, { ScannedQuantity: sessionItem.ScannedQuantity + 1 }),
 
                                             // --- NEW TO SESSION: Decode and add ---
+                                            Concurrent(
+                                                Set(tmpBarcodeDetails, GTIN_Parse_V3.Run(Self.Value)),
+                                                Set(tmpDbRecord, LookUp(Inventories, cr31c_barcode = Self.Value))
+                                            );
                                             With(
                                                 {
-                                                    barcodeDetails: GTIN_Parse_V3.Run(Self.Value),
-                                                    dbRecord: LookUp(Inventories, cr31c_barcode = Self.Value)
+                                                    parsedGTIN: IfError(tmpBarcodeDetails.gtin_out, ""),
+                                                    parsedBatch: IfError(tmpBarcodeDetails.batch_out, ""),
+                                                    parsedExpiry: IfError(tmpBarcodeDetails.expiry_out, "")
                                                 },
-                                                With(
-                                                    {
-                                                        parsedGTIN: IfError(barcodeDetails.gtin_out, ""),
-                                                        parsedBatch: IfError(barcodeDetails.batch_out, ""),
-                                                        parsedExpiry: IfError(barcodeDetails.expiry_out, "")
-                                                    },
-                                                    If(
-                                                        IsBlank(parsedGTIN),
-                                                        Notify("Flow did not return a valid GTIN. Cannot add item.", NotificationType.Error),
+                                                If(
+                                                    IsBlank(parsedGTIN),
+                                                    Notify("Flow did not return a valid GTIN. Cannot add item.", NotificationType.Error),
 
-                                                        With(
-                                                            { productInfo: LookUp(GTIN_Lookups, GTIN = parsedGTIN) },
-                                                            If(
-                                                                IsBlank(productInfo),
-                                                                Notify("This GTIN is not registered. Please add it to GTIN Lookups first.", NotificationType.Error),
+                                                    With(
+                                                        { productInfo: LookUp(GTIN_Lookups, GTIN = parsedGTIN) },
+                                                        If(
+                                                            IsBlank(productInfo),
+                                                            Set(varRegistrationGTIN, parsedGTIN);
+                                                            Set(varRegistrationBatch, parsedBatch);
+                                                            Set(varRegistrationExpiry, parsedExpiry);
+                                                            Set(varRegistrationBarcode, Self.Value);
+                                                            Set(varReturnToRapidScan, true);
+                                                            Navigate(Registration, ScreenTransition.None);
+                                                            Notify("Unknown product - Please register it first", NotificationType.Warning, 3000),
 
-                                                                Collect(
-                                                                    colScannedItems,
-                                                                    {
-                                                                        OriginalBarcode: Self.Value,
-                                                                        OriginalQuantity: Coalesce(dbRecord.Quantity, 0),
-                                                                        ItemID: parsedGTIN,
-                                                                        ProductName: productInfo.ItemName,
-                                                                        Manufacturer: productInfo.ItemManufacturer,
-                                                                        Batch: parsedBatch,
-                                                                        Expiration: If(
-                                                                            !IsBlank(parsedExpiry),
-                                                                            Date(
-                                                                                Value("20" & Left(parsedExpiry, 2)),
-                                                                                Value(Mid(parsedExpiry, 3, 2)),
-                                                                                Value(Right(parsedExpiry, 2))
-                                                                            ),
-                                                                            Blank()
+                                                            Collect(
+                                                                colScannedItems,
+                                                                {
+                                                                    OriginalBarcode: Self.Value,
+                                                                    OriginalQuantity: Coalesce(tmpDbRecord.Quantity, 0),
+                                                                    ItemID: parsedGTIN,
+                                                                    ProductName: productInfo.ItemName,
+                                                                    Manufacturer: productInfo.ItemManufacturer,
+                                                                    Batch: parsedBatch,
+                                                                    Expiration: If(
+                                                                        !IsBlank(parsedExpiry),
+                                                                        Date(
+                                                                            Value("20" & Left(parsedExpiry, 2)),
+                                                                            Value(Mid(parsedExpiry, 3, 2)),
+                                                                            Value(Right(parsedExpiry, 2))
                                                                         ),
-                                                                        ScannedQuantity: 1
-                                                                    }
-                                                                )
+                                                                        Blank()
+                                                                    ),
+                                                                    ScannedQuantity: 1
+                                                                }
                                                             )
                                                         )
                                                     )

@@ -43,6 +43,41 @@ Screens:
                   LayoutMaxHeight: =
                   LayoutMaxWidth: =
                   Width: =App.Width
+            - SearchContainer_ItemList:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Height: =50
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutJustifyContent: =LayoutJustifyContent.Center
+                  Width: =Parent.Width
+                  PaddingBottom: =10
+                  LayoutGap: =15
+                Children:
+                  - CATEGORY_ItemList:
+                      Control: ModernCombobox@1.1.0
+                      Properties:
+                        InputTextPlaceholder: ="All CATEGORIES"
+                        ItemDisplayText: =ThisItem.Value
+                        Items: =Sort(Distinct(Inventories, 'Item Category'), Value)
+                        Width: =250
+                        Height: =40
+                  - SearchInput_ItemList:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        BorderColor: =RGBA(166, 166, 166, 1)
+                        BorderThickness: =1
+                        Color: =RGBA(37, 36, 35, 1)
+                        DelayOutput: =true
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Height: =40
+                        HintText: ="🔍 Search inventory by Name or Batch..."
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        Width: =600
             - MainContainer2:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
@@ -75,7 +110,14 @@ Screens:
                         ItemAccessibleLabel: ="Inventory items gallery - " & CountIf(Inventories,true) & " items"
                         Items: |-
                           =Sort(
-                              Inventories,
+                              If(
+                                  IsEmpty(CATEGORY_ItemList.SelectedItems),
+                                  Search(Inventories, SearchInput_ItemList.Text, "cr31c_name", "cr31c_batch"),
+                                  Filter(
+                                      Search(Inventories, SearchInput_ItemList.Text, "cr31c_name", "cr31c_batch"),
+                                      'Item Category' in CATEGORY_ItemList.SelectedItems.Value
+                                  )
+                              ),
                               Expiration,
                               SortOrder.Ascending
                           )
@@ -107,7 +149,7 @@ Screens:
                                     "<div style='display:flex; font-family:Segoe UI,sans-serif; border-left:5px solid " & If(ThisItem.IsSelected, "#2563EB", "#A1A1AA") & "; padding:8px 12px; height:100%;'>
                                         <div style='flex-grow:1; display:flex; flex-direction:column; justify-content:center;'>
                                             <div style='font-size:16px; font-weight:600; color:" & If(ThisItem.IsSelected, "#1D4ED8", "#1F2937") & ";'>" & ThisItem.Name & "</div>
-                                            <div style='font-size:12px; color:#374151;'><b>Batch:</b> " & ThisItem.Batch & "     <b>Qty:</b> " & ThisItem.Quantity & "</div>
+                                            <div style='font-size:12px; color:#374151;'><b>Batch:</b> " & ThisItem.Batch & "     <b>Qty:</b> " & ThisItem.Quantity & If(Value(Text(ThisItem.Quantity)) < 5, " <span style='background:#FEE2E2; color:#DC2626; padding:2px 6px; border-radius:10px; font-weight:bold; margin-left:8px;'>LOW STOCK</span>", "") & "</div>
                                         </div>
                                         <div style='display:flex; align-items:center; justify-content:flex-end; min-width:90px; text-align:right;'>
                                             <div style='font-size:12px; font-weight:600; color:" & If(ThisItem.IsSelected, "#1D4ED8", "#374151") & ";'>No Expiration</div>
@@ -130,7 +172,7 @@ Screens:
                                                     If(DateValue(ThisItem.Expiration)<=DateAdd(Today(),7),"#DC2626","#1F2937")
                                                 ) & 
                                             ";'>" & ThisItem.Name & "</div>
-                                            <div style='font-size:12px; color:#374151;'><b>Batch:</b> " & ThisItem.Batch & "     <b>Qty:</b> " & ThisItem.Quantity & "</div>
+                                            <div style='font-size:12px; color:#374151;'><b>Batch:</b> " & ThisItem.Batch & "     <b>Qty:</b> " & ThisItem.Quantity & If(Value(Text(ThisItem.Quantity)) < 5, " <span style='background:#FEE2E2; color:#DC2626; padding:2px 6px; border-radius:10px; font-weight:bold; margin-left:8px;'>LOW STOCK</span>", "") & "</div>
                                         </div>
                                         <div style='display:flex; flex-direction:column; align-items:flex-end; justify-content:center; text-align:right; min-width:90px;'>
                                             <div style='font-size:13px; font-weight:700; padding:3px 6px; border-radius:4px; color:" & 
