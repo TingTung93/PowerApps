@@ -523,15 +523,14 @@ Screens:
                                     Y: =ExpirationLabel_1.Y + ExpirationLabel_1.Height + 4
                         - ItemCategoryCard_1:
                             Control: TypedDataCard@1.0.7
-                            Variant: TextualEdit
+                            Variant: OptionSetEdit
                             Properties:
                               BorderColor: =RGBA(243, 242, 241, 1)
                               DataField: ="cr31c_itemcategory"
                               Default: =ThisItem.'Item Category'
                               DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Item Category')
-                              MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, 'Item Category')
                               Required: =false
-                              Update: =ItemCategoryInput_1.Value
+                              Update: =ItemCategoryInput_1.Selected
                               Width: =434
                               X: =1
                               Y: =2
@@ -548,16 +547,19 @@ Screens:
                                     X: =24
                                     Y: =10
                               - ItemCategoryInput_1:
-                                  Control: TextInput@0.0.54
+                                  Control: ModernCombobox@1.1.0
                                   MetadataKey: FieldValue
                                   Properties:
-                                    AccessibleLabel: =Parent.DisplayName
-                                    DisplayMode: =Parent.DisplayMode
-                                    Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
-                                    Required: =Parent.Required
-                                    ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
-                                    Value: =Coalesce(First(varMatchedGTIN.ItemCategory).Value, Parent.Default)
+                                    ItemDisplayText: =ThisItem.Value
+                                    Items: =Choices([@Inventories].'Item Category')
+                                    DefaultSelectedItems: |-
+                                      =If(
+                                          !IsBlank(First(varMatchedGTIN.ItemCategory).Value),
+                                          Table(LookUp(Choices([@Inventories].'Item Category'), Value = First(varMatchedGTIN.ItemCategory).Value)),
+                                          If(!IsBlank(Parent.Default), Table(Parent.Default), Table())
+                                      )
                                     Width: =Parent.Width - 48
+                                    Height: =40
                                     X: =24
                                     Y: =ItemCategoryLabel_1.Y + ItemCategoryLabel_1.Height + 4
                               - ErrorMessageItemCategory_1:
