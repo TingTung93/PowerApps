@@ -899,7 +899,6 @@ Screens:
             Fill: =RGBA(0, 0, 0, 0.6)
             Height: =Parent.Height
             Width: =Parent.Width
-            ZIndex: =999
             Visible: =varShowRegistrationPopup
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutJustifyContent: =LayoutJustifyContent.Center
