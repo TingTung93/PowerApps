@@ -730,7 +730,7 @@ Screens:
 
                                                                  Set(varRegistrationGTIN, gtin);
                                                                  Set(varRegistrationBatch, batch);
-                                                                 Set(varRegistrationExpiry, tempDate);
+                                                                 Set(varRegistrationExpiry, tempDate); //this line is still broken. Incompatible type. We can't evaluate your formula because the context variable types are incompatible with the types of values in other places in your app.
                                                                  Set(varRegistrationBarcode, BarcodeInput_Fallback.Text);
                                                                  Set(varReturnToInventory, true);
                                                                  Navigate(Registration, ScreenTransition.None);
