@@ -1,0 +1,347 @@
+Screens:
+  RapidScan:
+    Properties:
+      Fill: =RGBA(255, 255, 255, 1)
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      OnHidden: |+
+        =Set(gblAppIsRunning, false);
+      OnVisible: |-
+        =// OnVisible property of the RapidScan screen
+        Clear(colScannedItems);
+        Set(gblAppIsRunning, true);
+    Children:
+      - ScreenContainer4:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(245, 245, 245, 1)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =16
+            PaddingBottom: =16
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =16
+            Width: =Parent.Width
+          Children:
+            - NavBar_8:
+                Control: CanvasComponent
+                ComponentName: NavBar
+                Properties:
+                  ActiveFillColor: =App.Theme.Colors.Lighter80
+                  ActiveScreen: =App.ActiveScreen
+                  ActiveTextColor: =Color.Blue
+                  BaseFillColor: =App.Theme.Colors.Darker70
+                  Height: =75
+                  Items: |+
+                    =Table(
+                        {Label: "Inventory", Screen: Inventory},
+                        {Label: "Registration", Screen: Registration},
+                        {Label: "Quick Pick", Screen: QuickPick},
+                        {Label: "Rapid Scan", Screen: RapidScan},
+                        {Label: "Item List", Screen: ItemList},
+                        {Label: "Table View", Screen: 'Table View'},
+                        {Label: "Inventory Tool", Screen: InventoryTool},
+                        {Label: "Archive", Screen: Archive},
+                        {Label: "Settings", Screen: Settings}
+                    )
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  Width: =App.Width
+            - MainContainer5:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                Children:
+                  - RapidScanInput:
+                      Control: ModernTextInput@1.1.0
+                      Properties:
+                        FontWeight: =""
+                        MaxLength: =-1
+                        OnChange: =
+                        Placeholder: ="Scan item barcode here..."
+                        Size: =0
+                        Visible: =false
+                        X: =40
+                        Y: =40
+                  - Container2:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =RapidScanInput.Height
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                      Children:
+                        - RapidScanInputClassic:
+                            Control: FluentV8/TextBox@1.7.2
+                            Properties:
+                              ColorBackground: =RGBA(152, 208, 70, 1)
+                              ColorText: =RGBA(0, 0, 0, 1)
+                              DisplayMode: =If(varIsProcessing, DisplayMode.Disabled, DisplayMode.Edit)
+                              FillPortions: =1
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              OnChange: |+
+                                =// Guard: skip blank, short, or duplicate-in-progress scans
+                                If(
+                                    IsBlank(Self.Value) || Len(Trim(Self.Value)) < 5 || varIsProcessing,
+                                    Blank(),
+
+                                    Set(varIsProcessing, true);
+
+                                    // Step 1: Check if this exact barcode is already in the current session
+                                    With(
+                                        { sessionItem: LookUp(colScannedItems, OriginalBarcode = Self.Value) },
+                                        If(
+                                            !IsBlank(sessionItem),
+                                            // --- ALREADY IN SESSION: Just increment ---
+                                            Patch(colScannedItems, sessionItem, { ScannedQuantity: sessionItem.ScannedQuantity + 1 }),
+
+                                            // --- NEW TO SESSION: Decode and add ---
+                                            With(
+                                                {
+                                                    barcodeDetails: GTIN_Parse_V3.Run(Self.Value),
+                                                    dbRecord: LookUp(Inventories, cr31c_barcode = Self.Value)
+                                                },
+                                                With(
+                                                    {
+                                                        parsedGTIN: IfError(barcodeDetails.gtin_out, ""),
+                                                        parsedBatch: IfError(barcodeDetails.batch_out, ""),
+                                                        parsedExpiry: IfError(barcodeDetails.expiry_out, "")
+                                                    },
+                                                    If(
+                                                        IsBlank(parsedGTIN),
+                                                        Notify("Flow did not return a valid GTIN. Cannot add item.", NotificationType.Error),
+
+                                                        With(
+                                                            { productInfo: LookUp(GTIN_Lookups, GTIN = parsedGTIN) },
+                                                            If(
+                                                                IsBlank(productInfo),
+                                                                Notify("This GTIN is not registered. Please add it to GTIN Lookups first.", NotificationType.Error),
+
+                                                                Collect(
+                                                                    colScannedItems,
+                                                                    {
+                                                                        OriginalBarcode: Self.Value,
+                                                                        OriginalQuantity: Coalesce(dbRecord.Quantity, 0),
+                                                                        ItemID: parsedGTIN,
+                                                                        ProductName: productInfo.ItemName,
+                                                                        Manufacturer: productInfo.ItemManufacturer,
+                                                                        Batch: parsedBatch,
+                                                                        Expiration: If(
+                                                                            !IsBlank(parsedExpiry),
+                                                                            Date(
+                                                                                Value("20" & Left(parsedExpiry, 2)),
+                                                                                Value(Mid(parsedExpiry, 3, 2)),
+                                                                                Value(Right(parsedExpiry, 2))
+                                                                            ),
+                                                                            Blank()
+                                                                        ),
+                                                                        ScannedQuantity: 1
+                                                                    }
+                                                                )
+                                                            )
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    );
+
+                                    // Reset the input for the next scan
+                                    Set(varIsProcessing, false);
+                                Set(varResetRapidScan, true);
+                                Set(varResetRapidScan, false);
+
+                                );
+                              Placeholder: ="Microsoft broke stuff so you need to click here each time to scan."
+                              Value: =If(varResetRapidScan, "", "")
+                              Width: =Parent.Width
+                              X: =40
+                              Y: =40
+                  - Gallery4:
+                      Control: Gallery@2.15.0
+                      Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
+                      Properties:
+                        BorderColor: =RGBA(243, 242, 241, 1)
+                        FillPortions: =8
+                        FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                        FocusedBorderThickness: =2
+                        Items: =colScannedItems
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        TemplateSize: =	If(Self.Width < 650, 130, 90)
+                        Width: =Parent.Width
+                        WrapCount: =
+                      Children:
+                        - Rectangle2:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              BorderColor: =RGBA(53, 61, 63, 1)
+                              BorderThickness: =1
+                              DisabledFill: =RGBA(0,0,0,0)
+                              Fill: =RGBA(0,0,0,0)
+                              FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                              Height: =Parent.TemplateHeight
+                              HoverFill: =RGBA(0,0,0,0)
+                              OnSelect: =Select(Parent)
+                              PressedFill: =RGBA(0,0,0,0)
+                              TabIndex: =0
+                              Width: =Parent.TemplateWidth
+                        - NumberInput1:
+                            Control: ModernNumberInput@1.1.0
+                            Properties:
+                              BorderStyle: =""
+                              Default: =ThisItem.OriginalQuantity
+                              Height: =38
+                              OnChange: |-
+                                =Patch(colScannedItems, ThisItem, { ScannedQuantity: Self.Value })
+                              Size: =0
+                              Width: =120
+                              X: =	If(Parent.TemplateWidth < 650, 10, Parent.TemplateWidth - Self.Width - 130)
+                              Y: =If(Parent.TemplateWidth < 650, HtmlText5.Y + HtmlText5.Height + 10, 25)
+                        - ButtonCanvas2:
+                            Control: Button@0.0.45
+                            Properties:
+                              OnSelect: |+
+                                =Remove(colScannedItems, ThisItem);
+                              Text: ="Remove"
+                              X: =	Parent.TemplateWidth - Self.Width - 10
+                              Y: =NumberInput1.Y
+                        - HtmlText5:
+                            Control: HtmlViewer@2.1.0
+                            Properties:
+                              DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =90
+                              HtmlText: |-
+                                ="<div style='height:100%; display:flex; flex-direction:row; align-items:center; font-family: Segoe UI, sans-serif;'>" &
+                                    // Left: Item Name, Lot, Expiry
+                                    "<div style='flex-grow:1;'>" &
+                                        "<div style='font-size:16px; font-weight:600; color:#201F1E; margin-bottom:4px;'>" & ThisItem.ProductName & "</div>" &
+                                        "<div style='font-size:12px; color:#605E5C;'>" &
+                                            "Lot: <b>" & ThisItem.Batch & "</b>" &
+                                            "<span style='margin: 0 8px;'>|</span>" &
+                                            "Exp: <b>" & Text(ThisItem.Expiration, "mm/dd/yy") & "</b>" &
+                                        "</div>" &
+                                    "</div>" &
+
+                                    // Center: PREV QTY from database using raw barcode
+                                    "<div style='flex-shrink:0; text-align:right; margin-left:20px;'>" &
+                                        "<div style='font-size:11px; color:#605E5C; margin-bottom:4px;'>PREV QTY</div>" &
+                                        "<div style='font-size:18px; font-weight:600; color:#605E5C;'>" &
+                                            ThisItem.OriginalQuantity &
+                                        "</div>" &
+                                    "</div>" &
+
+                                    // Right: Scanned quantity this session
+                                    "<div style='flex-shrink:0; text-align:right; margin-left:20px; background-color: #E6F2FF; padding: 4px 8px; border-radius: 4px;'>" &
+                                        "<div style='font-size:11px; color:#005A9E; margin-bottom:4px;'>SCANNED</div>" &
+                                        "<div style='font-size:18px; font-weight:700; color:#005A9E;'>" & ThisItem.ScannedQuantity & "</div>" &
+                                    "</div>" &
+                                "</div>"
+                              OnSelect: =Select(Parent)
+                              Size: =10.5
+                              Width: =Parent.TemplateWidth/3
+            - FooterContainer1_1:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =75
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =16
+                  LayoutJustifyContent: =LayoutJustifyContent.End
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  PaddingBottom: =16
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =16
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  X: =40
+                  Y: =40
+                Children:
+                  - ClearSessionButton:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ='ButtonCanvas.Appearance'.Secondary
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: |
+                          =// OnSelect property of ClearSessionButton
+                          Clear(colScannedItems);
+                          Notify("Current scanning session has been cleared.", NotificationType.Warning);
+                        Text: ="Clear Session"
+                        Width: =150
+                  - SubmitAllButton:
+                      Control: Button@0.0.45
+                      Properties:
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: |
+                          =// OnSelect property of SubmitAllButton
+
+                          Set(varIsSubmitting, true);
+                          Notify("Submitting inventory updates...", NotificationType.Information);
+
+                          ForAll(
+                              colScannedItems As ScannedItem,
+                              With(
+                                  {
+                                      existingInventoryItem: LookUp(
+                                          Inventories,
+                                          cr31c_barcode = ScannedItem.OriginalBarcode
+                                      )
+                                  },
+                                  If(
+                                      IsBlank(existingInventoryItem),
+                                      // --- CREATE new inventory record ---
+                                      Patch(
+                                          Inventories,
+                                          Defaults(Inventories),
+                                          {
+                                              Barcode: ScannedItem.OriginalBarcode,
+                                              ItemID: ScannedItem.ItemID,
+                                              Name: ScannedItem.ProductName,
+                                              Manufacturer_Lookup: ScannedItem.Manufacturer,
+                                              Batch: ScannedItem.Batch,
+                                              Expiration: ScannedItem.Expiration,
+                                              Quantity: ScannedItem.ScannedQuantity,
+                                              CleanedBarcode: ScannedItem.ItemID & ScannedItem.Batch
+                                          }
+                                      ),
+                                      // --- UPDATE existing inventory record ---
+                                      Patch(
+                                          Inventories,
+                                          existingInventoryItem,
+                                          {
+                                              Quantity: existingInventoryItem.Quantity + ScannedItem.ScannedQuantity
+                                          }
+                                      )
+                                  )
+                              )
+                          );
+
+                          // --- CLEANUP AND NOTIFY ---
+                          Clear(colScannedItems);
+                          Set(varIsSubmitting, false);
+                          Notify("Inventory count successfully updated!", NotificationType.Success);
+                        Text: ="Submit All Scans"
+                        Width: =150
