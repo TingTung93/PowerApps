@@ -16,6 +16,13 @@ Screens:
         Set(varRawBarcode, "");
         Set(isAwaitingSecondScan, false);
         Set(varMatchedGTIN, Blank());
+        UpdateContext({
+            varShowRegistrationPopup: false,
+            ctxRegGTIN: Blank(),
+            ctxRegBatch: Blank(),
+            ctxRegExpiry: Blank(),
+            ctxRegBarcode: Blank()
+        });
 
         // Reset the form and barcode input
         NewForm(InventoryForm_1);
@@ -197,12 +204,17 @@ Screens:
                                     OnSelect: |+
                                       =// OnSelect property of RegisterNewItemButton
                                       UpdateContext({
-                                          varRegistrationGTIN: gblBarcodeResult.gtin_out,
-                                          varRegistrationBatch: gblBarcodeResult.batch_out,
-                                          varRegistrationExpiry: gblBarcodeResult.expiry_out,
-                                          varRegistrationBarcode: BarcodeInput_Fallback.Text
+                                          ctxRegGTIN: gblBarcodeResult.gtin_out,
+                                          ctxRegBatch: gblBarcodeResult.batch_out,
+                                          ctxRegExpiry: gblBarcodeResult.expiry_out,
+                                          ctxRegBarcode: BarcodeInput_Fallback.Text,
+                                          varShowRegistrationPopup: true,
+                                          CurrentItem: Blank(),
+                                          newMode: true,
+                                          editMode: false,
+                                          isItemSelected: false
                                       });
-                                      Navigate(Registration, ScreenTransition.None);
+                                      NewForm(Form1_3_QP);
                                     Text: ="Register New Item"
                                     Visible: |+
                                       =// Visible property of RegisterNewItemButton
@@ -235,7 +247,7 @@ Screens:
                                     HoverBorderColor: =RGBA(243, 242, 241, 1)
                                     HoverColor: =RGBA(37, 36, 35, 1)
                                     HoverFill: =RGBA(243, 242, 241, 1)
-                                    OnChange: "=// Guard: skip if suppressed or if text is blank/too short (reset artifact)\r\nIf(\r\n    varSuppressOnChange || IsBlank(Self.Text) || Len(Trim(Self.Text)) < 5,\r\n    Blank(),\r\n\r\n    If(\r\n        Len(Self.Text) > 25,\r\n\r\n        // --- PATH 1: BARCODE IS LONG ENOUGH TO BE COMPLETE ---\r\n        Set(gblIsProcessing, true);\r\n\r\n        Set(varRawBarcode, Trim(Self.Text));\r\n\r\n        // Call flow & perform lookups CONCURRENTLY for performance\r\n        Concurrent(\r\n            Set(gblBarcodeResult, GTIN_Parse_V3.Run(Self.Text)),\r\n            Set(existingInventory, LookUp(Inventories, cr31c_barcode = varRawBarcode))\r\n        );\r\n        \r\n        // Perform secondary lookup once the flow returns the GTIN\r\n        Set(varMatchedGTIN, LookUp(GTIN_Lookups, GTIN = gblBarcodeResult.gtin_out));\r\n        \r\n        // Set the form mode\r\n        If(\r\n            !IsBlank(existingInventory),\r\n            EditForm(InventoryForm_1);\r\n            Notify(\r\n                \"Existing record found: \" & gblBarcodeResult.batch_out & \" | Exp: \" & gblBarcodeResult.expiry_formatted,\r\n                NotificationType.Success\r\n            ),\r\n            If(\r\n                IsBlank(varMatchedGTIN) && !IsBlank(gblBarcodeResult.gtin_out),\r\n                Set(varRegistrationGTIN, gblBarcodeResult.gtin_out);\r\n                Set(varRegistrationBatch, gblBarcodeResult.batch_out);\r\n                Set(varRegistrationExpiry, gblBarcodeResult.expiry_out);\r\n                Set(varRegistrationBarcode, Self.Text);\r\n                Set(varReturnToQuickPick, true);\r\n                Navigate(Registration, ScreenTransition.None);\r\n                Notify(\"Unknown product - Please register it first\", NotificationType.Warning, 3000),\r\n\r\n                NewForm(InventoryForm_1);\r\n                Notify(\r\n                    \"New item — Batch: \" & gblBarcodeResult.batch_out \r\n                    & If(!IsBlank(gblBarcodeResult.serial_out), \" | Serial: \" & gblBarcodeResult.serial_out, \"\")\r\n                    & If(!IsBlank(gblBarcodeResult.count_out), \" | Count: \" & gblBarcodeResult.count_out, \"\")\r\n                    & If(!IsBlank(gblBarcodeResult.additional_id_out), \" | Addl ID: \" & gblBarcodeResult.additional_id_out, \"\"),\r\n                    NotificationType.Information\r\n                )\r\n            )\r\n        );\r\n        \r\n        Set(gblIsProcessing, false);\r\n        SetFocus(QuantityInput_1),\r\n        \r\n        // --- PATH 2: BARCODE IS TOO SHORT ---\r\n        Notify(\"GTIN captured. Please scan the Lot/Expiry barcode.\", NotificationType.Information)\r\n    )\r\n);\r\n"
+                                    OnChange: "=// Guard: skip if suppressed or if text is blank/too short (reset artifact)\r\nIf(\r\n    varSuppressOnChange || IsBlank(Self.Text) || Len(Trim(Self.Text)) < 5,\r\n    Blank(),\r\n\r\n    If(\r\n        Len(Self.Text) > 25,\r\n\r\n        // --- PATH 1: BARCODE IS LONG ENOUGH TO BE COMPLETE ---\r\n        Set(gblIsProcessing, true);\r\n\r\n        Set(varRawBarcode, Trim(Self.Text));\r\n\r\n        // Call flow & perform lookups CONCURRENTLY for performance\r\n        Concurrent(\r\n            Set(gblBarcodeResult, GTIN_Parse_V3.Run(Self.Text)),\r\n            Set(existingInventory, LookUp(Inventories, cr31c_barcode = varRawBarcode))\r\n        );\r\n        \r\n        // Perform secondary lookup once the flow returns the GTIN\r\n        Set(varMatchedGTIN, LookUp(GTIN_Lookups, GTIN = gblBarcodeResult.gtin_out));\r\n        \r\n        // Set the form mode\r\n        If(\r\n            !IsBlank(existingInventory),\r\n            EditForm(InventoryForm_1);\r\n            Notify(\r\n                \"Existing record found: \" & gblBarcodeResult.batch_out & \" | Exp: \" & gblBarcodeResult.expiry_formatted,\r\n                NotificationType.Success\r\n            ),\r\n            If(\r\n                IsBlank(varMatchedGTIN) && !IsBlank(gblBarcodeResult.gtin_out),\r\n                UpdateContext({\r\n                    ctxRegGTIN: gblBarcodeResult.gtin_out,\r\n                    ctxRegBatch: gblBarcodeResult.batch_out,\r\n                    ctxRegExpiry: gblBarcodeResult.expiry_out,\r\n                    ctxRegBarcode: Self.Text,\r\n                    varShowRegistrationPopup: true,\r\n                    CurrentItem: Blank(),\r\n                    newMode: true,\r\n                    editMode: false,\r\n                    isItemSelected: false\r\n                });\r\n                NewForm(Form1_3_QP);\r\n                Notify(\"Unknown product - Please register it here\", NotificationType.Warning, 3000),\r\n\r\n                NewForm(InventoryForm_1);\r\n                Notify(\r\n                    \"New item — Batch: \" & gblBarcodeResult.batch_out \r\n                    & If(!IsBlank(gblBarcodeResult.serial_out), \" | Serial: \" & gblBarcodeResult.serial_out, \"\")\r\n                    & If(!IsBlank(gblBarcodeResult.count_out), \" | Count: \" & gblBarcodeResult.count_out, \"\")\r\n                    & If(!IsBlank(gblBarcodeResult.additional_id_out), \" | Addl ID: \" & gblBarcodeResult.additional_id_out, \"\"),\r\n                    NotificationType.Information\r\n                )\r\n            )\r\n        );\r\n        \r\n        Set(gblIsProcessing, false);\r\n        SetFocus(QuantityInput_1),\r\n        \r\n        // --- PATH 2: BARCODE IS TOO SHORT ---\r\n        Notify(\"GTIN captured. Please scan the Lot/Expiry barcode.\", NotificationType.Information)\r\n    )\r\n);\r\n"
                                     PaddingBottom: =4
                                     PaddingRight: =12
                                     PaddingTop: =0
@@ -945,10 +957,17 @@ Screens:
                         NumberOfColumns: =2
                         OnFailure: =Notify("Cannot save. Please check if there are errors in the form.", NotificationType.Error)
                         OnSuccess: |-
-                          =UpdateContext({ CurrentItem: Self.LastSubmit, isItemSelected: false });
+                          =UpdateContext({
+                              CurrentItem: Self.LastSubmit,
+                              isItemSelected: false,
+                              varShowRegistrationPopup: false,
+                              ctxRegGTIN: Blank(),
+                              ctxRegBatch: Blank(),
+                              ctxRegExpiry: Blank(),
+                              ctxRegBarcode: Blank()
+                          });
                           Notify("Product registered! You can now add it to inventory.", NotificationType.Success);
                           ResetForm(Form1_3_QP);
-                          Set(varShowRegistrationPopup, false);
                           Set(varMatchedGTIN, Self.LastSubmit);
                           NewForm(InventoryForm_1);
                         Width: =Parent.Width
@@ -1033,7 +1052,7 @@ Screens:
                                       );
                                     Placeholder: ="Barcode for item to be registered"
                                     TriggerOutput: ='TextInputCanvas.TriggerOutput'.Keypress
-                                    Value: =If(!IsBlank(varRegistrationBarcode), varRegistrationBarcode, "")
+                                    Value: =If(!IsBlank(ctxRegBarcode), ctxRegBarcode, "")
                                     X: =28
                                     Y: =32
                               - TextCanvas3_1:
@@ -1198,7 +1217,7 @@ Screens:
                                     ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
                                     Value: |-
                                       =If(!IsBlank(ThisItem.GTIN), ThisItem.GTIN,
-                                          If(!IsBlank(varRegistrationGTIN), varRegistrationGTIN,
+                                          If(!IsBlank(ctxRegGTIN), ctxRegGTIN,
                                              varBarcodeData.ItemID))
                                     Width: =Parent.Width - 48
                                     X: =24
@@ -1476,7 +1495,14 @@ Screens:
                               Appearance: ='ButtonCanvas.Appearance'.Secondary
                               Text: ="Cancel"
                               OnSelect: |-
-                                =Set(varShowRegistrationPopup, false);
+                                =UpdateContext({
+                                    varShowRegistrationPopup: false,
+                                    ctxRegGTIN: Blank(),
+                                    ctxRegBatch: Blank(),
+                                    ctxRegExpiry: Blank(),
+                                    ctxRegBarcode: Blank()
+                                });
+                                ResetForm(Form1_3_QP);
                         - SubmitPopupBtn:
                             Control: Button@0.0.45
                             Properties:
