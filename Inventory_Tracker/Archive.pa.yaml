@@ -1,0 +1,142 @@
+Screens:
+  Archive:
+    Properties:
+      Fill: =RGBA(255, 255, 255, 1)
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+    Children:
+      - ScreenContainer3:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(245, 245, 245, 1)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =16
+            PaddingBottom: =16
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =16
+            Width: =Parent.Width
+          Children:
+            - NavBar_6:
+                Control: CanvasComponent
+                ComponentName: NavBar
+                Properties:
+                  ActiveFillColor: =App.Theme.Colors.Lighter80
+                  ActiveScreen: =App.ActiveScreen
+                  ActiveTextColor: =Color.Blue
+                  BaseFillColor: =App.Theme.Colors.Darker70
+                  Height: =75
+                  Items: |+
+                    =Table(
+                        {Label: "Inventory", Screen: Inventory},
+                        {Label: "Registration", Screen: Registration},
+                        {Label: "Quick Pick", Screen: QuickPick},
+                        {Label: "Rapid Scan", Screen: RapidScan},
+                        {Label: "Item List", Screen: ItemList},
+                        {Label: "Table View", Screen: 'Table View'},
+                        {Label: "Inventory Tool", Screen: InventoryTool},
+                        {Label: "Archive", Screen: Archive},
+                        {Label: "Settings", Screen: Settings}
+                    )
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  Width: =App.Width
+            - MainContainer4:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutWrap: =true
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =1000
+                Children:
+                  - Table2:
+                      Control: Table@1.0.278
+                      Properties:
+                        FillPortions: =1
+                        Items: =Expireds
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        ReflowBehavior: ='PowerAppsOneGrid.ReflowBehavior'.Reflow
+                      Children:
+                        - Name3:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="Name"
+                              FieldName: ="cr31c_name"
+                              FieldType: ="s"
+                              Order: =1
+                        - Archived_reason1:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="Archived_reason"
+                              FieldName: ="cr31c_archived_reason"
+                              FieldType: ="s"
+                              Order: =2
+                        - archived_date1:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="archived_date"
+                              FieldName: ="cr31c_archived_date"
+                              FieldType: ="d"
+                              Order: =3
+                        - Lot1:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="Lot"
+                              FieldName: ="cr31c_lot"
+                              FieldType: ="s"
+                              Order: =4
+                        - expiration1:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="expiration"
+                              FieldName: ="cr31c_expiration"
+                              FieldType: ="d"
+                              Order: =5
+                        - manufacturer1:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="manufacturer"
+                              FieldName: ="cr31c_manufacturer"
+                              FieldType: ="s"
+                              Order: =6
+                        - GTIN1:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="GTIN"
+                              FieldName: ="cr31c_gtin"
+                              FieldType: ="s"
+                              Order: =7
+                        - quantity1:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="quantity"
+                              FieldName: ="cr31c_quantity"
+                              FieldType: ="n"
+                              Order: =8
