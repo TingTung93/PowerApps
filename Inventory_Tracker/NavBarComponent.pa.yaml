@@ -34,6 +34,7 @@ ComponentDefinitions:
         DataType: Table
         Default: |+
           =Table(
+              {Label: "Action Center", Screen: ActionCenter},
               {Label: "Inventory", Screen: Inventory},
               {Label: "Registration", Screen: Registration},
               {Label: "Quick Pick", Screen: QuickPick},
@@ -59,7 +60,7 @@ ComponentDefinitions:
             Items: =NavBar.Items
             TemplatePadding: =5
             TemplateSize: |+
-              =If(CountRows(Self.AllItems) > 0, (Parent.Width - (CountRows(Self.AllItems) - 1) * 10) / CountRows(Self.AllItems), 0)
+              =If(CountRows(Self.AllItems) > 0, If(Parent.Width < 900, 132, Max(104, (Parent.Width - (CountRows(Self.AllItems) - 1) * 10) / CountRows(Self.AllItems))), 0)
             Width: =Parent.Width
             Y: |+
               =0
@@ -68,16 +69,16 @@ ComponentDefinitions:
                 Control: Button@0.0.45
                 Properties:
                   Align: =AlignInContainer.Stretch
-                  BasePaletteColor: =	If(ThisItem.Screen = NavBar.ActiveScreen, NavBar.ActiveFillColor, NavBar.BaseFillColor)
-                  BorderColor: =	If(ThisItem.Screen = NavBar.ActiveScreen, NavBar.ActiveFillColor, Color.Transparent)
+                  BasePaletteColor: =If(ThisItem.Screen = NavBar.ActiveScreen, NavBar.ActiveFillColor, NavBar.BaseFillColor)
+                  BorderColor: =If(ThisItem.Screen = NavBar.ActiveScreen, NavBar.ActiveFillColor, Color.Transparent)
                   BorderRadius: =4
-                  FontColor: =	If(ThisItem.Screen = NavBar.ActiveScreen, NavBar.ActiveTextColor, Color.White)
+                  FontColor: =If(ThisItem.Screen = NavBar.ActiveScreen, NavBar.ActiveTextColor, Color.White)
                   FontSize: |+
                     =Min(16, Max(10, Parent.TemplateWidth * 0.1))
                   Height: =Parent.TemplateHeight
                   OnSelect: =Navigate(ThisItem.Screen)
                   Text: =ThisItem.Label
                   Width: =Parent.TemplateWidth
-                  X: '=0  '
+                  X: =0
                   Y: |+
                     =0

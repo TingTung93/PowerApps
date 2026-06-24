@@ -28,21 +28,151 @@ Screens:
                   ActiveTextColor: =Color.Blue
                   BaseFillColor: =App.Theme.Colors.Darker70
                   Height: =75
-                  Items: |+
-                    =Table(
-                        {Label: "Inventory", Screen: Inventory},
-                        {Label: "Registration", Screen: Registration},
-                        {Label: "Quick Pick", Screen: QuickPick},
-                        {Label: "Rapid Scan", Screen: RapidScan},
-                        {Label: "Item List", Screen: ItemList},
-                        {Label: "Table View", Screen: 'Table View'},
-                        {Label: "Inventory Tool", Screen: InventoryTool},
-                        {Label: "Archive", Screen: Archive},
-                        {Label: "Settings", Screen: Settings}
-                    )
                   LayoutMaxHeight: =
                   LayoutMaxWidth: =
                   Width: =App.Width
+            - SummaryHeader_TableView:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =92
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =16
+                  LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                  LayoutWrap: =true
+                  PaddingBottom: =12
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =12
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Parent.Width
+                Children:
+                  - SummaryHtml_TableView:
+                      Control: HtmlViewer@2.1.0
+                      Properties:
+                        AutoHeight: =true
+                        DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        HtmlText: |-
+                          =With(
+                              {
+                                  totalCount: CountRows(Inventories),
+                                  expiredCount: CountRows(Filter(Inventories, !IsBlank(Expiration) And Expiration < Today()))
+                              },
+                              "<div style='font-family:Segoe UI,sans-serif; display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%;'>" &
+                                  "<div style='min-width:220px;'><div style='font-size:20px; font-weight:700; color:#201F1E;'>Table View</div><div style='font-size:12px; color:#605E5C;'>Browse active inventory in a compact grid.</div></div>" &
+                                  "<div style='display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end; flex:1;'>" &
+                                      "<div style='min-width:120px; padding:8px 10px; border-left:4px solid #2563EB; background:#EFF6FF; border-radius:6px;'><div style='font-size:11px; color:#1E40AF;'>ACTIVE</div><div style='font-size:20px; font-weight:700; color:#1D4ED8;'>" & totalCount & "</div></div>" &
+                                      "<div style='min-width:120px; padding:8px 10px; border-left:4px solid #DC2626; background:#FEF2F2; border-radius:6px;'><div style='font-size:11px; color:#7F1D1D;'>EXPIRED</div><div style='font-size:20px; font-weight:700; color:#991B1B;'>" & expiredCount & "</div></div>" &
+                                  "</div>" &
+                              "</div>"
+                          )
+                        Width: =Parent.Width - 132
+                  - HelpButton_TableView:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ='ButtonCanvas.Appearance'.Secondary
+                        OnSelect: |-
+                          =UpdateContext({ ctxShowHelp: true })
+                        Text: ="Help"
+                        Width: =84
+            - SearchContainer_TableView:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =64
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  PaddingBottom: =12
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =12
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Parent.Width
+                Children:
+                  - SearchInput_TableView:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        BorderColor: =RGBA(166, 166, 166, 1)
+                        BorderThickness: =1
+                        Color: =RGBA(37, 36, 35, 1)
+                        DelayOutput: =true
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Height: =40
+                        HintText: ="Search active inventory by name, item ID, batch, or category..."
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        Width: =Parent.Width - 32
+            - PreviewContainer_TableView:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =78
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =16
+                  LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                  LayoutWrap: =true
+                  PaddingBottom: =12
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =12
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Parent.Width
+                Children:
+                  - PreviewHtml_TableView:
+                      Control: HtmlViewer@2.1.0
+                      Properties:
+                        AutoHeight: =true
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        HtmlText: |-
+                          =If(
+                              IsBlank(varTableViewItem),
+                              "<div style='font-family:Segoe UI,sans-serif; color:#605E5C; font-size:13px;'>Select a row to preview it before opening the Inventory edit screen.</div>",
+                              "<div style='font-family:Segoe UI,sans-serif; display:flex; flex-wrap:wrap; gap:10px; align-items:center;'>" &
+                                  "<div style='font-weight:700; color:#201F1E; min-width:180px;'>" & Coalesce(varTableViewItem.Name, "Inventory item") & "</div>" &
+                                  "<div style='font-size:12px; color:#605E5C;'>Item ID: <strong>" & Coalesce(varTableViewItem.ItemID, "-") & "</strong></div>" &
+                                  "<div style='font-size:12px; color:#605E5C;'>Batch: <strong>" & Coalesce(varTableViewItem.Batch, "-") & "</strong></div>" &
+                                  "<div style='font-size:12px; color:#605E5C;'>Qty: <strong>" & Coalesce(Text(varTableViewItem.Quantity), "-") & "</strong></div>" &
+                                  "<div style='font-size:12px; color:#605E5C;'>Category: <strong>" & Coalesce(varTableViewItem.'Item Category', "-") & "</strong></div>" &
+                              "</div>"
+                          )
+                        Width: =Parent.Width - OpenInventoryButton_TableView.Width - 64
+                  - OpenInventoryButton_TableView:
+                      Control: Button@0.0.45
+                      Properties:
+                        DisplayMode: =If(IsBlank(varTableViewItem), DisplayMode.Disabled, DisplayMode.Edit)
+                        OnSelect: |-
+                          =If(
+                              !IsBlank(varTableViewItem),
+                              Set(varIsItemSelected, true);
+                              Set(varEditMode, true);
+                              Set(varCurrentItem, varTableViewItem);
+                              Navigate(Inventory, ScreenTransition.Fade),
+                              Notify("Please select a valid item", NotificationType.Warning)
+                          )
+                        Text: ="Open in Inventory"
+                        Width: =160
             - MainContainer1:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
@@ -57,37 +187,18 @@ Screens:
                   RadiusBottomRight: =8
                   RadiusTopLeft: =8
                   RadiusTopRight: =8
-                  Width: =1000
+                  Width: =Parent.Width
                 Children:
-                  - TextCanvas2:
-                      Control: Text@0.0.51
-                      Properties:
-                        Align: ='TextCanvas.Align'.Center
-                        AutoHeight: =true
-                        Fill: =RGBA(180, 214, 250, 1)
-                        LayoutMaxHeight: =
-                        LayoutMaxWidth: =
-                        Size: =24
-                        Text: ="On this screen, you can click on any item to navigate straight to the inventory page entry to edit information."
-                        VerticalAlign: =VerticalAlign.Middle
                   - Table1:
                       Control: Table@1.0.278
                       Properties:
                         DateTimeFormat: ='PowerAppsOneGrid.DateTimeFormat'.ShortDate
                         EnableRangeSelection: ='PowerAppsOneGrid.EnableRangeSelection'.Disable
                         FillPortions: =1
-                        Items: =SortByColumns(Inventories,"cr31c_name",SortOrder.Ascending)
+                        Items: =SortByColumns(Search(Inventories, SearchInput_TableView.Text, "cr31c_name", "cr31c_itemid", "cr31c_batch", "cr31c_itemcategory"), "cr31c_name", SortOrder.Ascending)
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
-                        OnSelect: |-
-                          =If(
-                                !IsBlank(Table1.Selected),
-                                Set(varIsItemSelected, true); 
-                                Set(varEditMode, true); 
-                                Set(varCurrentItem, Table1.Selected);
-                                Navigate(Inventory, ScreenTransition.Fade),
-                                Notify("Please select a valid item", NotificationType.Warning)
-                            )
+                        OnSelect: =Set(varTableViewItem, Table1.Selected)
                         ReflowBehavior: ='PowerAppsOneGrid.ReflowBehavior'.Reflow
                       Children:
                         - Name1:
@@ -170,3 +281,56 @@ Screens:
                               FieldName: ="cr31c_itemcategory"
                               FieldType: ="s"
                               Order: =9
+      - HelpOverlay_TableView:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(0, 0, 0, 0.55)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            Visible: =ctxShowHelp
+            Width: =Parent.Width
+            X: =0
+            Y: =0
+          Children:
+            - HelpPanel_TableView:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =270
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =14
+                  PaddingBottom: =20
+                  PaddingLeft: =20
+                  PaddingRight: =20
+                  PaddingTop: =20
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Min(Parent.Width - 32, 560)
+                Children:
+                  - HelpTitle_TableView:
+                      Control: Text@0.0.51
+                      Properties:
+                        Size: =20
+                        Text: ="Table View help"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width - 40
+                  - HelpBody_TableView:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        Text: ="Use this screen when you need a dense, spreadsheet-like view of active inventory. Search to narrow the grid, then select a row to open that record on the Inventory screen for editing. The table is optimized for quick lookup rather than detailed record maintenance."
+                        Width: =Parent.Width - 40
+                  - HelpClose_TableView:
+                      Control: Button@0.0.45
+                      Properties:
+                        AlignInContainer: =AlignInContainer.End
+                        OnSelect: |-
+                          =UpdateContext({ ctxShowHelp: false })
+                        Text: ="Close"

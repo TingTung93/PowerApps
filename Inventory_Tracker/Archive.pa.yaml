@@ -28,21 +28,172 @@ Screens:
                   ActiveTextColor: =Color.Blue
                   BaseFillColor: =App.Theme.Colors.Darker70
                   Height: =75
-                  Items: |+
-                    =Table(
-                        {Label: "Inventory", Screen: Inventory},
-                        {Label: "Registration", Screen: Registration},
-                        {Label: "Quick Pick", Screen: QuickPick},
-                        {Label: "Rapid Scan", Screen: RapidScan},
-                        {Label: "Item List", Screen: ItemList},
-                        {Label: "Table View", Screen: 'Table View'},
-                        {Label: "Inventory Tool", Screen: InventoryTool},
-                        {Label: "Archive", Screen: Archive},
-                        {Label: "Settings", Screen: Settings}
-                    )
                   LayoutMaxHeight: =
                   LayoutMaxWidth: =
                   Width: =App.Width
+            - SummaryHeader_Archive:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =92
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =16
+                  LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                  LayoutWrap: =true
+                  PaddingBottom: =12
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =12
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Parent.Width
+                Children:
+                  - SummaryHtml_Archive:
+                      Control: HtmlViewer@2.1.0
+                      Properties:
+                        AutoHeight: =true
+                        DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        HtmlText: |-
+                          =With(
+                              { archivedCount: CountRows(Expireds) },
+                              "<div style='font-family:Segoe UI,sans-serif; display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%;'>" &
+                                  "<div style='min-width:220px;'><div style='font-size:20px; font-weight:700; color:#201F1E;'>Archive</div><div style='font-size:12px; color:#605E5C;'>Review items moved out of active inventory.</div></div>" &
+                                  "<div style='display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end; flex:1;'>" &
+                                      "<div style='min-width:130px; padding:8px 10px; border-left:4px solid #475569; background:#F8FAFC; border-radius:6px;'><div style='font-size:11px; color:#334155;'>ARCHIVED</div><div style='font-size:20px; font-weight:700; color:#1E293B;'>" & archivedCount & "</div></div>" &
+                                      "<div style='min-width:130px; padding:8px 10px; border-left:4px solid #2563EB; background:#EFF6FF; border-radius:6px;'><div style='font-size:11px; color:#1E40AF;'>MODE</div><div style='font-size:18px; font-weight:700; color:#1D4ED8;'>Read-only</div></div>" &
+                                  "</div>" &
+                              "</div>"
+                          )
+                        Width: =Parent.Width - 132
+                  - HelpButton_Archive:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ='ButtonCanvas.Appearance'.Secondary
+                        OnSelect: |-
+                          =UpdateContext({ ctxShowHelp: true })
+                        Text: ="Help"
+                        Width: =84
+            - SearchContainer_Archive:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =64
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  PaddingBottom: =12
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =12
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Parent.Width
+                Children:
+                  - SearchInput_Archive:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        BorderColor: =RGBA(166, 166, 166, 1)
+                        BorderThickness: =1
+                        Color: =RGBA(37, 36, 35, 1)
+                        DelayOutput: =true
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Height: =40
+                        HintText: ="Search archive by name, lot, GTIN, or manufacturer..."
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        Width: =Parent.Width - 32
+            - RestoreContainer_Archive:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =78
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =16
+                  LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                  LayoutWrap: =true
+                  PaddingBottom: =12
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =12
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Parent.Width
+                Children:
+                  - RestoreSummaryHtml_Archive:
+                      Control: HtmlViewer@2.1.0
+                      Properties:
+                        AutoHeight: =true
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        HtmlText: |-
+                          =If(
+                              IsBlank(varArchivedItem),
+                              "<div style='font-family:Segoe UI,sans-serif; color:#605E5C; font-size:13px;'>Select an archived row to review restore details.</div>",
+                              "<div style='font-family:Segoe UI,sans-serif; display:flex; flex-wrap:wrap; gap:10px; align-items:center;'>" &
+                                  "<div style='font-weight:700; color:#201F1E; min-width:180px;'>" & Coalesce(varArchivedItem.Name, "Archived item") & "</div>" &
+                                  "<div style='font-size:12px; color:#605E5C;'>Lot: <strong>" & Coalesce(varArchivedItem.Lot, "-") & "</strong></div>" &
+                                  "<div style='font-size:12px; color:#605E5C;'>GTIN: <strong>" & Coalesce(varArchivedItem.GTIN, "-") & "</strong></div>" &
+                                  "<div style='font-size:12px; color:#605E5C;'>Qty: <strong>" & Coalesce(Text(varArchivedItem.quantity), "-") & "</strong></div>" &
+                              "</div>"
+                          )
+                        Width: =Parent.Width - RestoreButton_Archive.Width - 64
+                  - RestoreButton_Archive:
+                      Control: Button@0.0.45
+                      Properties:
+                        DisplayMode: =If(IsBlank(varArchivedItem), DisplayMode.Disabled, DisplayMode.Edit)
+                        OnSelect: |-
+                          =Clear(colArchiveRestoreErrors);
+                          Set(
+                              varRestoredInventoryItem,
+                              IfError(
+                                  Patch(
+                                      Inventories,
+                                      Defaults(Inventories),
+                                      {
+                                          Name: varArchivedItem.Name,
+                                          Batch: varArchivedItem.Lot,
+                                          Expiration: varArchivedItem.expiration,
+                                          Quantity: varArchivedItem.quantity,
+                                          Manufacturer_Lookup: varArchivedItem.manufacturer,
+                                          ItemID: varArchivedItem.GTIN
+                                      }
+                                  ),
+                                  Collect(
+                                      colArchiveRestoreErrors,
+                                      {
+                                          Name: varArchivedItem.Name,
+                                          Message: FirstError.Message
+                                      }
+                                  );
+                                  Defaults(Inventories)
+                              )
+                          );
+                          If(
+                              CountRows(colArchiveRestoreErrors) = 0,
+                              Remove(Expireds, varArchivedItem);
+                              Set(varArchivedItem, Blank());
+                              Notify("Archived item restored to active inventory.", NotificationType.Success, 3000),
+                              Notify("This item could not be restored. The archive record was not removed.", NotificationType.Error, 6000)
+                          )
+                        Text: ="Restore"
+                        Width: =112
             - MainContainer4:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
@@ -57,15 +208,16 @@ Screens:
                   RadiusBottomRight: =8
                   RadiusTopLeft: =8
                   RadiusTopRight: =8
-                  Width: =1000
+                  Width: =Parent.Width
                 Children:
                   - Table2:
                       Control: Table@1.0.278
                       Properties:
                         FillPortions: =1
-                        Items: =Expireds
+                        Items: =SortByColumns(Search(Expireds, SearchInput_Archive.Text, "cr31c_name", "cr31c_lot", "cr31c_gtin", "cr31c_manufacturer"), "cr31c_archived_date", SortOrder.Descending)
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
+                        OnSelect: =Set(varArchivedItem, Table2.Selected)
                         ReflowBehavior: ='PowerAppsOneGrid.ReflowBehavior'.Reflow
                       Children:
                         - Name3:
@@ -140,3 +292,56 @@ Screens:
                               FieldName: ="cr31c_quantity"
                               FieldType: ="n"
                               Order: =8
+      - HelpOverlay_Archive:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(0, 0, 0, 0.55)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            Visible: =ctxShowHelp
+            Width: =Parent.Width
+            X: =0
+            Y: =0
+          Children:
+            - HelpPanel_Archive:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =260
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =14
+                  PaddingBottom: =20
+                  PaddingLeft: =20
+                  PaddingRight: =20
+                  PaddingTop: =20
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Min(Parent.Width - 32, 560)
+                Children:
+                  - HelpTitle_Archive:
+                      Control: Text@0.0.51
+                      Properties:
+                        Size: =20
+                        Text: ="Archive help"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width - 40
+                  - HelpBody_Archive:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        Text: ="Use this screen to review records that were moved out of active inventory. Search by item name, lot, GTIN, or manufacturer to find archived records quickly. This screen is intended for reference, so restore or edit workflows should happen from the active inventory screens."
+                        Width: =Parent.Width - 40
+                  - HelpClose_Archive:
+                      Control: Button@0.0.45
+                      Properties:
+                        AlignInContainer: =AlignInContainer.End
+                        OnSelect: |-
+                          =UpdateContext({ ctxShowHelp: false })
+                        Text: ="Close"
