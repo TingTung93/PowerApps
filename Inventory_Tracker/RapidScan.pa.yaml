@@ -173,7 +173,7 @@ Screens:
                                 Set(varResetRapidScan, false);
 
                                 );
-                              Placeholder: ="Microsoft broke stuff so you need to click here each time to scan."
+                              Placeholder: ="Click here, then scan the next barcode."
                               Value: =If(varResetRapidScan, "", "")
                               Width: =Parent.Width
                               X: =40
@@ -189,7 +189,7 @@ Screens:
                         Items: =colScannedItems
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
-                        TemplateSize: =	If(Self.Width < 650, 130, 90)
+                        TemplateSize: =If(Self.Width < 650, 130, 90)
                         Width: =Parent.Width
                         WrapCount: =
                       Children:
@@ -252,7 +252,7 @@ Screens:
                                   Control: ModernNumberInput@1.1.0
                                   Properties:
                                     BorderStyle: =""
-                                    Default: =ThisItem.OriginalQuantity
+                                    Default: =ThisItem.ScannedQuantity
                                     Height: =38
                                     OnChange: |-
                                       =Patch(colScannedItems, ThisItem, { ScannedQuantity: Self.Value })
@@ -288,6 +288,7 @@ Screens:
                       Control: Button@0.0.45
                       Properties:
                         Appearance: ='ButtonCanvas.Appearance'.Secondary
+                        DisplayMode: =If(Or(varIsSubmitting, varIsProcessing, CountRows(colScannedItems) = 0), DisplayMode.Disabled, DisplayMode.Edit)
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
                         OnSelect: |
@@ -299,12 +300,14 @@ Screens:
                   - SubmitAllButton:
                       Control: Button@0.0.45
                       Properties:
+                        DisplayMode: =If(Or(varIsSubmitting, varIsProcessing, CountRows(colScannedItems) = 0), DisplayMode.Disabled, DisplayMode.Edit)
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
                         OnSelect: |
                           =// OnSelect property of SubmitAllButton
 
                           Set(varIsSubmitting, true);
+                          Clear(colSubmitErrors);
                           Notify("Submitting inventory updates...", NotificationType.Information);
 
                           ForAll(
@@ -319,35 +322,127 @@ Screens:
                                   If(
                                       IsBlank(existingInventoryItem),
                                       // --- CREATE new inventory record ---
-                                      Patch(
-                                          Inventories,
-                                          Defaults(Inventories),
-                                          {
-                                              Barcode: ScannedItem.OriginalBarcode,
-                                              ItemID: ScannedItem.ItemID,
-                                              Name: ScannedItem.ProductName,
-                                              Manufacturer_Lookup: ScannedItem.Manufacturer,
-                                              Batch: ScannedItem.Batch,
-                                              Expiration: ScannedItem.Expiration,
-                                              Quantity: ScannedItem.ScannedQuantity,
-                                              CleanedBarcode: ScannedItem.ItemID & ScannedItem.Batch
-                                          }
+                                      IfError(
+                                          Patch(
+                                              Inventories,
+                                              Defaults(Inventories),
+                                              {
+                                                  Barcode: ScannedItem.OriginalBarcode,
+                                                  ItemID: ScannedItem.ItemID,
+                                                  Name: ScannedItem.ProductName,
+                                                  Manufacturer_Lookup: ScannedItem.Manufacturer,
+                                                  Batch: ScannedItem.Batch,
+                                                  Expiration: ScannedItem.Expiration,
+                                                  Quantity: ScannedItem.ScannedQuantity,
+                                                  CleanedBarcode: ScannedItem.ItemID & ScannedItem.Batch
+                                              }
+                                          ),
+                                          Collect(
+                                              colSubmitErrors,
+                                              {
+                                                  Barcode: ScannedItem.OriginalBarcode,
+                                                  Name: ScannedItem.ProductName,
+                                                  Error: FirstError.Message
+                                              }
+                                          )
                                       ),
                                       // --- UPDATE existing inventory record ---
-                                      Patch(
-                                          Inventories,
-                                          existingInventoryItem,
-                                          {
-                                              Quantity: existingInventoryItem.Quantity + ScannedItem.ScannedQuantity
-                                          }
+                                      IfError(
+                                          Patch(
+                                              Inventories,
+                                              existingInventoryItem,
+                                              {
+                                                  Quantity: existingInventoryItem.Quantity + ScannedItem.ScannedQuantity
+                                              }
+                                          ),
+                                          Collect(
+                                              colSubmitErrors,
+                                              {
+                                                  Barcode: ScannedItem.OriginalBarcode,
+                                                  Name: ScannedItem.ProductName,
+                                                  Error: FirstError.Message
+                                              }
+                                          )
                                       )
                                   )
                               )
                           );
 
                           // --- CLEANUP AND NOTIFY ---
-                          Clear(colScannedItems);
                           Set(varIsSubmitting, false);
-                          Notify("Inventory count successfully updated!", NotificationType.Success);
+                          If(
+                              CountRows(colSubmitErrors) = 0,
+                              Clear(colScannedItems);
+                              Notify("Inventory count successfully updated!", NotificationType.Success),
+                              Notify(
+                                  CountRows(colSubmitErrors) & " scan update(s) failed. Review the session and try again.",
+                                  NotificationType.Error,
+                                  6000
+                              )
+                          );
                         Text: ="Submit All Scans"
                         Width: =150
+      - HelpButton_RapidScan:
+          Control: Button@0.0.45
+          Properties:
+            Appearance: ='ButtonCanvas.Appearance'.Secondary
+            Height: =36
+            OnSelect: |-
+              =UpdateContext({ ctxShowHelp: true })
+            Text: ="Help"
+            Width: =84
+            X: =Parent.Width - 108
+            Y: =24
+      - HelpOverlay_RapidScan:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(0, 0, 0, 0.55)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            Visible: =ctxShowHelp
+            Width: =Parent.Width
+            X: =0
+            Y: =0
+          Children:
+            - HelpPanel_RapidScan:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =260
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =14
+                  PaddingBottom: =20
+                  PaddingLeft: =20
+                  PaddingRight: =20
+                  PaddingTop: =20
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Min(Parent.Width - 32, 560)
+                Children:
+                  - HelpTitle_RapidScan:
+                      Control: Text@0.0.51
+                      Properties:
+                        Size: =20
+                        Text: ="Rapid Scan help"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width - 40
+                  - HelpBody_RapidScan:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        Text: ="Use this screen when you need to scan many items before posting inventory updates. Click the scan field, scan each barcode, then review the session list. Adjust the scanned quantity only when the count is different from the number of scans. Submit All Scans updates inventory; Clear Session discards the current scan list."
+                        Width: =Parent.Width - 40
+                  - HelpClose_RapidScan:
+                      Control: Button@0.0.45
+                      Properties:
+                        AlignInContainer: =AlignInContainer.End
+                        OnSelect: |-
+                          =UpdateContext({ ctxShowHelp: false })
+                        Text: ="Close"

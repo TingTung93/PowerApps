@@ -243,7 +243,7 @@ Screens:
                                     FocusedBorderThickness: =2
                                     Font: =Font.'Segoe UI'
                                     Height: =32
-                                    HintText: ="Click here and scan to begin adding/updating inventory. Microsoft broke so you need to click."
+                                    HintText: ="Click here, then scan to add or update inventory."
                                     HoverBorderColor: =RGBA(243, 242, 241, 1)
                                     HoverColor: =RGBA(37, 36, 35, 1)
                                     HoverFill: =RGBA(243, 242, 241, 1)
@@ -300,7 +300,7 @@ Screens:
                                     BorderColor: =RGBA(166, 166, 166, 1)
                                     BorderThickness: =1
                                     Color: =RGBA(37, 36, 35, 1)
-                                    Default: =If(!IsBlank(Parent.Default), Parent.Default, "1")
+                                    Default: =If(!IsBlank(Parent.Default), Parent.Default, Text(Coalesce(varDefaultQuantity, 1)))
                                     DelayOutput: =true
                                     DisabledBorderColor: =RGBA(0, 0, 0, 0)
                                     DisabledColor: =RGBA(200, 198, 196, 1)
@@ -368,7 +368,7 @@ Screens:
                                     Placeholder: ="This should auto-populate after you scan the barcode"
                                     Required: =Parent.Required
                                     Tooltip: =Parent.DisplayName
-                                    Value: =gblBarcodeResult.gtin_out
+                                    Value: =Coalesce(gblBarcodeResult.gtin_out, varMatchedGTIN.GTIN, Parent.Default)
                                     Width: =Parent.Width - 48
                                     X: =24
                                     Y: =ItemCodeLabel_1.Y + ItemCodeLabel_1.Height + 4
@@ -920,10 +920,11 @@ Screens:
                 Variant: AutoLayout
                 Properties:
                   Fill: =RGBA(255, 255, 255, 1)
-                  Width: =600
-                  Height: =800
+                  Width: =Min(Parent.Width - 32, 760)
+                  Height: =Min(Parent.Height - 32, 760)
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =16
+                  LayoutOverflowY: =LayoutOverflow.Scroll
                   PaddingTop: =24
                   PaddingBottom: =24
                   PaddingLeft: =24
@@ -954,7 +955,7 @@ Screens:
                         LayoutMaxWidth: =
                         LayoutMinHeight: =100
                         LayoutMinWidth: =300
-                        NumberOfColumns: =2
+                        NumberOfColumns: =If(Parent.Width < 640, 1, 2)
                         OnFailure: =Notify("Cannot save. Please check if there are errors in the form.", NotificationType.Error)
                         OnSuccess: |-
                           =UpdateContext({
@@ -970,6 +971,9 @@ Screens:
                           ResetForm(Form1_3_QP);
                           Set(varMatchedGTIN, Self.LastSubmit);
                           NewForm(InventoryForm_1);
+                          Reset(ItemCodeInput_1);
+                          Reset(ProductNameInput_1);
+                          Reset(ManufacturerInput_1);
                         Width: =Parent.Width
                       Children:
                         - DataCard1_1_QP:
@@ -979,7 +983,7 @@ Screens:
                               BorderColor: =RGBA(243, 242, 241, 1)
                               Fill: =RGBA(214, 221, 224, 1)
                               Height: =77
-                              Width: =459
+                              Width: =Parent.Width / Parent.NumberOfColumns
                               X: =0
                               Y: =0
                             Children:
@@ -1072,7 +1076,7 @@ Screens:
                               MaxLength: =DataSourceInfo([@GTIN_Lookups], DataSourceInfo.MaxLength, ItemName)
                               Required: =true
                               Update: =DataCardValue7_1.Value
-                              Width: =459
+                              Width: =Parent.Width / Parent.NumberOfColumns
                               X: =1
                               Y: =0
                             Children:
@@ -1132,7 +1136,7 @@ Screens:
                               MaxLength: =DataSourceInfo([@GTIN_Lookups], DataSourceInfo.MaxLength, ItemManufacturer)
                               Required: =false
                               Update: =DataCardValue8_1.Value
-                              Width: =459
+                              Width: =Parent.Width / Parent.NumberOfColumns
                               X: =0
                               Y: =1
                             Children:
@@ -1191,7 +1195,7 @@ Screens:
                               MaxLength: =DataSourceInfo([@GTIN_Lookups], DataSourceInfo.MaxLength, GTIN)
                               Required: =true
                               Update: =DataCardValue9_1.Value
-                              Width: =459
+                              Width: =Parent.Width / Parent.NumberOfColumns
                               X: =1
                               Y: =1
                             Children:
@@ -1253,7 +1257,7 @@ Screens:
                               DisplayName: =DataSourceInfo([@GTIN_Lookups],DataSourceInfo.DisplayName,UnitPrice)
                               Required: =false
                               Update: =Value(DataCardValue1.Value)
-                              Width: =459
+                              Width: =Parent.Width / Parent.NumberOfColumns
                               X: =0
                               Y: =2
                             Children:
@@ -1310,7 +1314,7 @@ Screens:
                               DisplayName: =DataSourceInfo([@GTIN_Lookups],DataSourceInfo.DisplayName,ItemCategory)
                               Required: =false
                               Update: =DataCardValue2_QP.SelectedItems.Value
-                              Width: =459
+                              Width: =Parent.Width / Parent.NumberOfColumns
                               X: =1
                               Y: =2
                             Children:
@@ -1371,7 +1375,7 @@ Screens:
                               DisplayName: =DataSourceInfo([@GTIN_Lookups],DataSourceInfo.DisplayName,cr31c_par)
                               Required: =false
                               Update: =Value(DataCardValue3_QP.Value)
-                              Width: =459
+                              Width: =Parent.Width / Parent.NumberOfColumns
                               X: =0
                               Y: =3
                             Children:
@@ -1431,7 +1435,7 @@ Screens:
                               MaxLength: =DataSourceInfo([@GTIN_Lookups], DataSourceInfo.MaxLength, cr31c_notes)
                               Required: =false
                               Update: =DataCardValue5_QP.Value
-                              Width: =459
+                              Width: =Parent.Width / Parent.NumberOfColumns
                               X: =1
                               Y: =3
                             Children:
@@ -1510,3 +1514,67 @@ Screens:
                               Text: ="Register & Continue"
                               OnSelect: |-
                                 =SubmitForm(Form1_3_QP);
+      - HelpButton_QuickPick:
+          Control: Button@0.0.45
+          Properties:
+            Appearance: ='ButtonCanvas.Appearance'.Secondary
+            Height: =36
+            OnSelect: |-
+              =UpdateContext({ ctxShowHelp: true })
+            Text: ="Help"
+            Width: =84
+            X: =Parent.Width - 108
+            Y: =24
+      - HelpOverlay_QuickPick:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(0, 0, 0, 0.55)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            Visible: =ctxShowHelp
+            Width: =Parent.Width
+            X: =0
+            Y: =0
+          Children:
+            - HelpPanel_QuickPick:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =280
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =14
+                  PaddingBottom: =20
+                  PaddingLeft: =20
+                  PaddingRight: =20
+                  PaddingTop: =20
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Min(Parent.Width - 32, 560)
+                Children:
+                  - HelpTitle_QuickPick:
+                      Control: Text@0.0.51
+                      Properties:
+                        Size: =20
+                        Text: ="Quick Pick help"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width - 40
+                  - HelpBody_QuickPick:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        Text: ="Use this screen for one item at a time. Click the barcode field, scan the barcode, confirm or edit the quantity, then submit. If the product is unknown, register it in the popup first, then continue adding it to inventory. Cancel clears the current scan and form values."
+                        Width: =Parent.Width - 40
+                  - HelpClose_QuickPick:
+                      Control: Button@0.0.45
+                      Properties:
+                        AlignInContainer: =AlignInContainer.End
+                        OnSelect: |-
+                          =UpdateContext({ ctxShowHelp: false })
+                        Text: ="Close"

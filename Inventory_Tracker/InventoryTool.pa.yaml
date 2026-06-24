@@ -257,3 +257,68 @@ Screens:
                   PaddingTop: =0
                   Size: =8
                   Width: =Parent.TemplateWidth
+      - HelpButton_InventoryTool:
+          Control: Button@0.0.45
+          Properties:
+            Appearance: ='ButtonCanvas.Appearance'.Secondary
+            Height: =32
+            OnSelect: |-
+              =UpdateContext({ ctxShowHelp: true })
+            Text: ="Help"
+            Visible: =Not(InventoryTool.Printing)
+            Width: =80
+            X: =Parent.Width - 96
+            Y: =2
+      - HelpOverlay_InventoryTool:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(0, 0, 0, 0.55)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            Visible: =And(ctxShowHelp, Not(InventoryTool.Printing))
+            Width: =Parent.Width
+            X: =0
+            Y: =0
+          Children:
+            - HelpPanel_InventoryTool:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =255
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =14
+                  PaddingBottom: =20
+                  PaddingLeft: =20
+                  PaddingRight: =20
+                  PaddingTop: =20
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Min(Parent.Width - 32, 540)
+                Children:
+                  - HelpTitle_InventoryTool:
+                      Control: Text@0.0.51
+                      Properties:
+                        Size: =20
+                        Text: ="Inventory Tool help"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width - 40
+                  - HelpBody_InventoryTool:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        Text: ="Use this screen to print compact inventory labels with QR codes. Filter by category before printing when you only need a subset. The layout automatically changes row height and column count to fit the current item set on the print page. The toolbar is hidden during printing."
+                        Width: =Parent.Width - 40
+                  - HelpClose_InventoryTool:
+                      Control: Button@0.0.45
+                      Properties:
+                        AlignInContainer: =AlignInContainer.End
+                        OnSelect: |-
+                          =UpdateContext({ ctxShowHelp: false })
+                        Text: ="Close"

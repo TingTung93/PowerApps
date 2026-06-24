@@ -798,8 +798,72 @@ Screens:
                   Appearance: ='ButtonCanvas.Appearance'.Primary
                   LayoutMaxHeight: =
                   LayoutMaxWidth: =
-                  OnSelect: =Notify("Settings saved successfully", NotificationType.Success, 2000)
+                  OnSelect: =Notify("Settings applied for the current session", NotificationType.Success, 2000)
                   Text: ="Save Settings"
                   Width: =200
                   X: =40
                   Y: =40
+      - HelpButton_Settings:
+          Control: Button@0.0.45
+          Properties:
+            Appearance: ='ButtonCanvas.Appearance'.Secondary
+            Height: =36
+            OnSelect: |-
+              =UpdateContext({ ctxShowHelp: true })
+            Text: ="Help"
+            Width: =84
+            X: =Parent.Width - 108
+            Y: =24
+      - HelpOverlay_Settings:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(0, 0, 0, 0.55)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            Visible: =ctxShowHelp
+            Width: =Parent.Width
+            X: =0
+            Y: =0
+          Children:
+            - HelpPanel_Settings:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =260
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =14
+                  PaddingBottom: =20
+                  PaddingLeft: =20
+                  PaddingRight: =20
+                  PaddingTop: =20
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Min(Parent.Width - 32, 560)
+                Children:
+                  - HelpTitle_Settings:
+                      Control: Text@0.0.51
+                      Properties:
+                        Size: =20
+                        Text: ="Settings help"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width - 40
+                  - HelpBody_Settings:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        Text: ="Use this screen to adjust scanner and inventory preferences for the current app session. Default quantity affects new Quick Pick entries when the scanned item does not already have a quantity. Database statistics show current inventory, registered products, expired items, and upcoming expiration warnings."
+                        Width: =Parent.Width - 40
+                  - HelpClose_Settings:
+                      Control: Button@0.0.45
+                      Properties:
+                        AlignInContainer: =AlignInContainer.End
+                        OnSelect: |-
+                          =UpdateContext({ ctxShowHelp: false })
+                        Text: ="Close"

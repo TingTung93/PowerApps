@@ -453,25 +453,7 @@ Screens:
                                                 LayoutMaxHeight: =
                                                 LayoutMaxWidth: =
                                                 OnSelect: |-
-                                                  =ForAll(
-                                                      Filter(Inventories, Expiration < Today() || Quantity <= 0),
-                                                      Patch(
-                                                          Expireds,
-                                                          Defaults(Expireds),
-                                                          {
-                                                              Name: Name,
-                                                              Lot: Batch,
-                                                              expiration: Expiration,
-                                                              quantity: Quantity,
-                                                              manufacturer: Manufacturer_Lookup,
-                                                              GTIN: ItemID,
-                                                              archived_date: Today(),
-                                                              Archived_reason: If(Expiration < Today(), "Expired", "Zero Quantity")
-                                                          }
-                                                      )
-                                                  );
-                                                  RemoveIf(Inventories, Expiration < Today() || Quantity <= 0);
-                                                  Notify("Expired and zero quantity items archived successfully", NotificationType.Success)
+                                                  =UpdateContext({ varShowArchiveConfirm: true })
                                                 Text: ="Archive Expired Items"
                                                 VerticalAlign: =
                                                 Width: =150
@@ -1522,3 +1504,172 @@ Screens:
                                     LayoutMaxWidth: =
                                     OnSelect: =Set(varDeleteMode, false)
                                     Text: ="Cancel"
+      - ArchiveConfirmOverlay_Inventory:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(0, 0, 0, 0.55)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            Visible: =varShowArchiveConfirm
+            Width: =Parent.Width
+            X: =0
+            Y: =0
+          Children:
+            - ArchiveConfirmPanel_Inventory:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =230
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =16
+                  PaddingBottom: =20
+                  PaddingLeft: =20
+                  PaddingRight: =20
+                  PaddingTop: =20
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Min(Parent.Width - 32, 540)
+                Children:
+                  - ArchiveConfirmTitle_Inventory:
+                      Control: Text@0.0.51
+                      Properties:
+                        Size: =20
+                        Text: ="Archive inactive items?"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width - 40
+                  - ArchiveConfirmText_Inventory:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        Text: ="This will move " & CountRows(Filter(Inventories, Expiration < Today() || Quantity <= 0)) & " expired or zero-quantity item(s) to the archive table and remove them from active inventory."
+                        Width: =Parent.Width - 40
+                  - ArchiveConfirmActions_Inventory:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =44
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =12
+                        LayoutJustifyContent: =LayoutJustifyContent.End
+                        Width: =Parent.Width - 40
+                      Children:
+                        - ArchiveCancelButton_Inventory:
+                            Control: Button@0.0.45
+                            Properties:
+                              Appearance: ='ButtonCanvas.Appearance'.Secondary
+                              OnSelect: |-
+                                =UpdateContext({ varShowArchiveConfirm: false })
+                              Text: ="Cancel"
+                        - ArchiveConfirmButton_Inventory:
+                            Control: Button@0.0.45
+                            Properties:
+                              DisplayMode: =If(CountRows(Filter(Inventories, Expiration < Today() || Quantity <= 0)) = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                              OnSelect: |-
+                                =ClearCollect(colArchiveCandidates, Filter(Inventories, Expiration < Today() || Quantity <= 0));
+                                Clear(colArchiveErrors);
+                                ForAll(
+                                    colArchiveCandidates As ArchiveItem,
+                                    IfError(
+                                        Patch(
+                                            Expireds,
+                                            Defaults(Expireds),
+                                            {
+                                                Name: ArchiveItem.Name,
+                                                Lot: ArchiveItem.Batch,
+                                                expiration: ArchiveItem.Expiration,
+                                                quantity: ArchiveItem.Quantity,
+                                                manufacturer: ArchiveItem.Manufacturer_Lookup,
+                                                GTIN: ArchiveItem.ItemID,
+                                                archived_date: Today(),
+                                                Archived_reason: If(ArchiveItem.Expiration < Today(), "Expired", "Zero Quantity")
+                                            }
+                                        ),
+                                        Collect(
+                                            colArchiveErrors,
+                                            {
+                                                Name: ArchiveItem.Name,
+                                                Error: FirstError.Message
+                                            }
+                                        )
+                                    )
+                                );
+                                If(
+                                    CountRows(colArchiveErrors) = 0,
+                                    RemoveIf(Inventories, Expiration < Today() || Quantity <= 0);
+                                    UpdateContext({ varShowArchiveConfirm: false });
+                                    Notify(CountRows(colArchiveCandidates) & " item(s) archived successfully.", NotificationType.Success, 3000),
+                                    Notify(CountRows(colArchiveErrors) & " item(s) could not be archived. Active inventory was not removed.", NotificationType.Error, 6000)
+                                )
+                              Text: ="Archive selected items"
+      - HelpButton_Inventory:
+          Control: Button@0.0.45
+          Properties:
+            Appearance: ='ButtonCanvas.Appearance'.Secondary
+            Height: =36
+            OnSelect: |-
+              =UpdateContext({ ctxShowHelp: true })
+            Text: ="Help"
+            Width: =84
+            X: =Parent.Width - 108
+            Y: =24
+      - HelpOverlay_Inventory:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(0, 0, 0, 0.55)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            Visible: =ctxShowHelp
+            Width: =Parent.Width
+            X: =0
+            Y: =0
+          Children:
+            - HelpPanel_Inventory:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =285
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =14
+                  PaddingBottom: =20
+                  PaddingLeft: =20
+                  PaddingRight: =20
+                  PaddingTop: =20
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Min(Parent.Width - 32, 580)
+                Children:
+                  - HelpTitle_Inventory:
+                      Control: Text@0.0.51
+                      Properties:
+                        Size: =20
+                        Text: ="Inventory help"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width - 40
+                  - HelpBody_Inventory:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        Text: ="Use this screen for detailed inventory maintenance. Filter by manufacturer, search by item details, and select a row to view or edit the record. Expired and soon-expiring items are highlighted. Archive Expired Items moves expired or zero-quantity records out of active inventory after confirmation."
+                        Width: =Parent.Width - 40
+                  - HelpClose_Inventory:
+                      Control: Button@0.0.45
+                      Properties:
+                        AlignInContainer: =AlignInContainer.End
+                        OnSelect: |-
+                          =UpdateContext({ ctxShowHelp: false })
+                        Text: ="Close"
