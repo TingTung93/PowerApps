@@ -1,0 +1,172 @@
+Screens:
+  Table View:
+    Properties:
+      Fill: =RGBA(255, 255, 255, 1)
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+    Children:
+      - ScreenContainer1:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(245, 245, 245, 1)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =16
+            PaddingBottom: =16
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =16
+            Width: =Parent.Width
+          Children:
+            - NavBar_9:
+                Control: CanvasComponent
+                ComponentName: NavBar
+                Properties:
+                  ActiveFillColor: =App.Theme.Colors.Lighter80
+                  ActiveScreen: =App.ActiveScreen
+                  ActiveTextColor: =Color.Blue
+                  BaseFillColor: =App.Theme.Colors.Darker70
+                  Height: =75
+                  Items: |+
+                    =Table(
+                        {Label: "Inventory", Screen: Inventory},
+                        {Label: "Registration", Screen: Registration},
+                        {Label: "Quick Pick", Screen: QuickPick},
+                        {Label: "Rapid Scan", Screen: RapidScan},
+                        {Label: "Item List", Screen: ItemList},
+                        {Label: "Table View", Screen: 'Table View'},
+                        {Label: "Inventory Tool", Screen: InventoryTool},
+                        {Label: "Archive", Screen: Archive},
+                        {Label: "Settings", Screen: Settings}
+                    )
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  Width: =App.Width
+            - MainContainer1:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutWrap: =true
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =1000
+                Children:
+                  - TextCanvas2:
+                      Control: Text@0.0.51
+                      Properties:
+                        Align: ='TextCanvas.Align'.Center
+                        AutoHeight: =true
+                        Fill: =RGBA(180, 214, 250, 1)
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Size: =24
+                        Text: ="On this screen, you can click on any item to navigate straight to the inventory page entry to edit information."
+                        VerticalAlign: =VerticalAlign.Middle
+                  - Table1:
+                      Control: Table@1.0.278
+                      Properties:
+                        DateTimeFormat: ='PowerAppsOneGrid.DateTimeFormat'.ShortDate
+                        EnableRangeSelection: ='PowerAppsOneGrid.EnableRangeSelection'.Disable
+                        FillPortions: =1
+                        Items: =SortByColumns(Inventories,"cr31c_name",SortOrder.Ascending)
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: |-
+                          =If(
+                                !IsBlank(Table1.Selected),
+                                Set(varIsItemSelected, true); 
+                                Set(varEditMode, true); 
+                                Set(varCurrentItem, Table1.Selected);
+                                Navigate(Inventory, ScreenTransition.Fade),
+                                Notify("Please select a valid item", NotificationType.Warning)
+                            )
+                        ReflowBehavior: ='PowerAppsOneGrid.ReflowBehavior'.Reflow
+                      Children:
+                        - Name1:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="Name"
+                              FieldName: ="cr31c_name"
+                              FieldType: ="s"
+                              Order: =1
+                        - ItemID2:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="ItemID"
+                              FieldName: ="cr31c_itemid"
+                              FieldType: ="s"
+                              Order: =3
+                        - Batch1:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="Batch"
+                              FieldName: ="cr31c_batch"
+                              FieldType: ="s"
+                              Order: =4
+                        - Quantity1:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="Quantity"
+                              FieldName: ="cr31c_quantity"
+                              FieldType: ="n"
+                              Order: =5
+                        - Expiration1:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="Expiration"
+                              FieldName: ="cr31c_expiration"
+                              FieldType: ="d"
+                              Order: =7
+                        - Manufacturer_Lookup2:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="Manufacturer_Lookup"
+                              FieldName: ="cr31c_manufacturer_lookup"
+                              FieldType: ="s"
+                              Order: =8
+                        - Created On1:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="Created On"
+                              FieldName: ="createdon"
+                              FieldType: ="d"
+                              Order: =8
+                        - Modified By1:
+                            Control: TableDataField@1.5.0
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="Modified By"
+                              FieldName: ="modifiedby"
+                              FieldType: ="E"
+                              Order: =9
+                        - Item Category1:
+                            Control: TableDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="Item Category"
+                              FieldName: ="cr31c_itemcategory"
+                              FieldType: ="s"
+                              Order: =9
