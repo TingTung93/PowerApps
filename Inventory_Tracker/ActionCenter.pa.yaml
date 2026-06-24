@@ -1,0 +1,365 @@
+Screens:
+  ActionCenter:
+    Properties:
+      Fill: =RGBA(255, 255, 255, 1)
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+    Children:
+      - ActionCenterRoot:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(245, 245, 245, 1)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =16
+            PaddingBottom: =16
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =16
+            Width: =Parent.Width
+          Children:
+            - NavBar_ActionCenter:
+                Control: CanvasComponent
+                ComponentName: NavBar
+                Properties:
+                  ActiveFillColor: =App.Theme.Colors.Lighter80
+                  ActiveScreen: =App.ActiveScreen
+                  ActiveTextColor: =Color.Blue
+                  BaseFillColor: =App.Theme.Colors.Darker70
+                  Height: =75
+                  Items: |+
+                    =Table(
+                        {Label: "Action Center", Screen: ActionCenter},
+                        {Label: "Inventory", Screen: Inventory},
+                        {Label: "Registration", Screen: Registration},
+                        {Label: "Quick Pick", Screen: QuickPick},
+                        {Label: "Rapid Scan", Screen: RapidScan},
+                        {Label: "Item List", Screen: ItemList},
+                        {Label: "Table View", Screen: 'Table View'},
+                        {Label: "Inventory Tool", Screen: InventoryTool},
+                        {Label: "Archive", Screen: Archive},
+                        {Label: "Settings", Screen: Settings}
+                    )
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  Width: =App.Width
+            - ActionHeader:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =82
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =16
+                  LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                  PaddingBottom: =16
+                  PaddingLeft: =20
+                  PaddingRight: =20
+                  PaddingTop: =16
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                Children:
+                  - HeaderText_ActionCenter:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        FillPortions: =1
+                        Size: =22
+                        Text: ="Action Center"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                  - HelpButton_ActionCenter:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ='ButtonCanvas.Appearance'.Secondary
+                        OnSelect: |-
+                          =UpdateContext({ ctxShowHelp: true })
+                        Text: ="Help"
+                        Width: =84
+            - QuickActions_ActionCenter:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =64
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =12
+                  LayoutWrap: =true
+                  PaddingBottom: =12
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =12
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                Children:
+                  - QuickPickButton_ActionCenter:
+                      Control: Button@0.0.45
+                      Properties:
+                        Icon: ="Add"
+                        OnSelect: =Navigate(QuickPick, ScreenTransition.Fade)
+                        Text: ="Quick Pick"
+                        Width: =128
+                  - RapidScanButton_ActionCenter:
+                      Control: Button@0.0.45
+                      Properties:
+                        OnSelect: =Navigate(RapidScan, ScreenTransition.Fade)
+                        Text: ="Rapid Scan"
+                        Width: =128
+                  - InventoryButton_ActionCenter:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ='ButtonCanvas.Appearance'.Secondary
+                        OnSelect: =Navigate(Inventory, ScreenTransition.Fade)
+                        Text: ="Inventory"
+                        Width: =124
+                  - RegistrationButton_ActionCenter:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ='ButtonCanvas.Appearance'.Secondary
+                        Icon: ="Add"
+                        OnSelect: =Navigate(Registration, ScreenTransition.Fade)
+                        Text: ="Registration"
+                        Width: =140
+                  - PrintButton_ActionCenter:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ='ButtonCanvas.Appearance'.Secondary
+                        OnSelect: =Navigate(InventoryTool, ScreenTransition.Fade)
+                        Text: ="Print Labels"
+                        Width: =132
+            - DashboardScroll_ActionCenter:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =16
+                  LayoutOverflowY: =LayoutOverflow.Scroll
+                Children:
+                  - SummaryHtml_ActionCenter:
+                      Control: HtmlViewer@2.1.0
+                      Properties:
+                        AutoHeight: =true
+                        DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =150
+                        HtmlText: |-
+                          =With(
+                              {
+                                  warningDays: Coalesce(varDaysBeforeExpiryWarning, 30),
+                                  expiredCount: CountRows(Filter(Inventories, !IsBlank(Expiration) And Expiration < Today())),
+                                  expiringCount: CountRows(Filter(Inventories, !IsBlank(Expiration) And Expiration >= Today() And Expiration <= DateAdd(Today(), Coalesce(varDaysBeforeExpiryWarning, 30), TimeUnit.Days))),
+                                  zeroCount: CountRows(Filter(Inventories, Quantity <= 0)),
+                                  lowCount: CountRows(Filter(Inventories, Quantity > 0 And Quantity < Coalesce(LookUp(GTIN_Lookups, GTIN = Text(ItemID), PAR), 5))),
+                                  staleCount: CountRows(Filter(Inventories, !IsBlank('Modified On') And 'Modified On' < DateAdd(Today(), -30, TimeUnit.Days)))
+                              },
+                              "<div style='font-family:Segoe UI,sans-serif; padding:18px; background:#FFFFFF; border-radius:8px;'>" &
+                                  "<div style='font-size:13px; color:#605E5C; margin-bottom:12px;'>Inventory work needing attention, using a " & warningDays & "-day expiration window.</div>" &
+                                  "<div style='display:flex; flex-wrap:wrap; gap:12px;'>" &
+                                      "<div style='flex:1; min-width:140px; border-left:5px solid #DC2626; background:#FEF2F2; padding:12px; border-radius:6px;'><div style='font-size:12px; color:#7F1D1D;'>EXPIRED</div><div style='font-size:28px; font-weight:700; color:#991B1B;'>" & expiredCount & "</div></div>" &
+                                      "<div style='flex:1; min-width:140px; border-left:5px solid #D97706; background:#FFFBEB; padding:12px; border-radius:6px;'><div style='font-size:12px; color:#92400E;'>EXPIRING SOON</div><div style='font-size:28px; font-weight:700; color:#92400E;'>" & expiringCount & "</div></div>" &
+                                      "<div style='flex:1; min-width:140px; border-left:5px solid #B91C1C; background:#FEF2F2; padding:12px; border-radius:6px;'><div style='font-size:12px; color:#7F1D1D;'>ZERO STOCK</div><div style='font-size:28px; font-weight:700; color:#991B1B;'>" & zeroCount & "</div></div>" &
+                                      "<div style='flex:1; min-width:140px; border-left:5px solid #2563EB; background:#EFF6FF; padding:12px; border-radius:6px;'><div style='font-size:12px; color:#1E40AF;'>LOW STOCK</div><div style='font-size:28px; font-weight:700; color:#1D4ED8;'>" & lowCount & "</div></div>" &
+                                      "<div style='flex:1; min-width:140px; border-left:5px solid #6B7280; background:#F9FAFB; padding:12px; border-radius:6px;'><div style='font-size:12px; color:#374151;'>STALE CHECKS</div><div style='font-size:28px; font-weight:700; color:#374151;'>" & staleCount & "</div></div>" &
+                                  "</div>" &
+                              "</div>"
+                          )
+                        Width: =Parent.Width
+                  - MainDashboardRow_ActionCenter:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =470
+                        LayoutDirection: =If(ActionCenter.Size = ScreenSize.Small, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =16
+                      Children:
+                        - PriorityHtml_ActionCenter:
+                            Control: HtmlViewer@2.1.0
+                            Properties:
+                              DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                              Fill: =RGBA(255, 255, 255, 1)
+                              FillPortions: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =Parent.Height
+                              HtmlText: |-
+                                =With(
+                                    {
+                                        expiredItems: FirstN(SortByColumns(Filter(Inventories, !IsBlank(Expiration) And Expiration < Today()), "cr31c_expiration", SortOrder.Ascending), 5),
+                                        zeroItems: FirstN(SortByColumns(Filter(Inventories, Quantity <= 0), "cr31c_name", SortOrder.Ascending), 5),
+                                        soonItems: FirstN(SortByColumns(Filter(Inventories, !IsBlank(Expiration) And Expiration >= Today() And Expiration <= DateAdd(Today(), Coalesce(varDaysBeforeExpiryWarning, 30), TimeUnit.Days)), "cr31c_expiration", SortOrder.Ascending), 5)
+                                    },
+                                    "<div style='font-family:Segoe UI,sans-serif; padding:18px; background:#FFFFFF; border-radius:8px; height:100%; box-sizing:border-box;'>" &
+                                        "<div style='font-size:18px; font-weight:700; color:#201F1E; margin-bottom:12px;'>Priority queue</div>" &
+                                        If(
+                                            CountRows(expiredItems) + CountRows(zeroItems) + CountRows(soonItems) = 0,
+                                            "<div style='padding:14px; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; color:#166534;'>No urgent inventory issues found.</div>",
+                                            "<div style='display:flex; flex-direction:column; gap:8px;'>" &
+                                                Concat(
+                                                    expiredItems,
+                                                    "<div style='border-left:5px solid #DC2626; background:#FEF2F2; padding:10px 12px; border-radius:5px;'><b style='color:#991B1B;'>Expired</b><div style='font-weight:600; color:#201F1E;'>" & Name & "</div><div style='font-size:12px; color:#605E5C;'>Lot " & Batch & " | Qty " & Quantity & " | Exp " & Text(Expiration, "mm/dd/yy") & "</div></div>"
+                                                ) &
+                                                Concat(
+                                                    zeroItems,
+                                                    "<div style='border-left:5px solid #B91C1C; background:#FEF2F2; padding:10px 12px; border-radius:5px;'><b style='color:#991B1B;'>Zero stock</b><div style='font-weight:600; color:#201F1E;'>" & Name & "</div><div style='font-size:12px; color:#605E5C;'>Lot " & Batch & " | Item " & ItemID & "</div></div>"
+                                                ) &
+                                                Concat(
+                                                    soonItems,
+                                                    "<div style='border-left:5px solid #D97706; background:#FFFBEB; padding:10px 12px; border-radius:5px;'><b style='color:#92400E;'>Expiring soon</b><div style='font-weight:600; color:#201F1E;'>" & Name & "</div><div style='font-size:12px; color:#605E5C;'>Lot " & Batch & " | Qty " & Quantity & " | Exp " & Text(Expiration, "mm/dd/yy") & "</div></div>"
+                                                ) &
+                                            "</div>"
+                                        ) &
+                                    "</div>"
+                                )
+                              Width: =Parent.Width
+                        - RestockHtml_ActionCenter:
+                            Control: HtmlViewer@2.1.0
+                            Properties:
+                              DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                              Fill: =RGBA(255, 255, 255, 1)
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              Height: =Parent.Height
+                              HtmlText: |-
+                                =With(
+                                    {
+                                        restockItems: FirstN(SortByColumns(Filter(Inventories, Quantity < Coalesce(LookUp(GTIN_Lookups, GTIN = Text(ItemID), PAR), 5)), "cr31c_name", SortOrder.Ascending), 8)
+                                    },
+                                    "<div style='font-family:Segoe UI,sans-serif; padding:18px; background:#FFFFFF; border-radius:8px; height:100%; box-sizing:border-box;'>" &
+                                        "<div style='font-size:18px; font-weight:700; color:#201F1E; margin-bottom:12px;'>Needs restock</div>" &
+                                        If(
+                                            CountRows(restockItems) = 0,
+                                            "<div style='color:#166534; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; padding:12px;'>No low-stock items found.</div>",
+                                            Concat(
+                                                restockItems,
+                                                "<div style='padding:9px 0; border-bottom:1px solid #E5E7EB;'><div style='font-weight:600; color:#201F1E;'>" & Name & "</div><div style='font-size:12px; color:#605E5C;'>Qty " & Quantity & " | PAR " & Coalesce(LookUp(GTIN_Lookups, GTIN = Text(ItemID), PAR), 5) & "</div></div>"
+                                            )
+                                        ) &
+                                    "</div>"
+                                )
+                              Width: =Parent.Width
+                  - SecondaryDashboardRow_ActionCenter:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =330
+                        LayoutDirection: =If(ActionCenter.Size = ScreenSize.Small, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: =16
+                      Children:
+                        - ReviewHtml_ActionCenter:
+                            Control: HtmlViewer@2.1.0
+                            Properties:
+                              DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                              Fill: =RGBA(255, 255, 255, 1)
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              Height: =Parent.Height
+                              HtmlText: |-
+                                =With(
+                                    {
+                                        reviewItems: FirstN(SortByColumns(Filter(Inventories, !IsBlank('Modified On') And 'Modified On' < DateAdd(Today(), -30, TimeUnit.Days)), "modifiedon", SortOrder.Ascending), 6)
+                                    },
+                                    "<div style='font-family:Segoe UI,sans-serif; padding:18px; background:#FFFFFF; border-radius:8px; height:100%; box-sizing:border-box;'>" &
+                                        "<div style='font-size:18px; font-weight:700; color:#201F1E; margin-bottom:12px;'>Needs review</div>" &
+                                        If(
+                                            CountRows(reviewItems) = 0,
+                                            "<div style='color:#166534; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; padding:12px;'>No stale checks found.</div>",
+                                            Concat(
+                                                reviewItems,
+                                                "<div style='padding:9px 0; border-bottom:1px solid #E5E7EB;'><div style='font-weight:600; color:#201F1E;'>" & Name & "</div><div style='font-size:12px; color:#605E5C;'>Last checked " & Text('Modified On', "mm/dd/yy") & " | Qty " & Quantity & "</div></div>"
+                                            )
+                                        ) &
+                                    "</div>"
+                                )
+                              Width: =Parent.Width
+                        - RecentHtml_ActionCenter:
+                            Control: HtmlViewer@2.1.0
+                            Properties:
+                              DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                              Fill: =RGBA(255, 255, 255, 1)
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              Height: =Parent.Height
+                              HtmlText: |-
+                                =With(
+                                    {
+                                        recentItems: FirstN(SortByColumns(Inventories, "modifiedon", SortOrder.Descending), 6)
+                                    },
+                                    "<div style='font-family:Segoe UI,sans-serif; padding:18px; background:#FFFFFF; border-radius:8px; height:100%; box-sizing:border-box;'>" &
+                                        "<div style='font-size:18px; font-weight:700; color:#201F1E; margin-bottom:12px;'>Recently updated</div>" &
+                                        If(
+                                            CountRows(recentItems) = 0,
+                                            "<div style='color:#605E5C; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:6px; padding:12px;'>No recent updates found.</div>",
+                                            Concat(
+                                                recentItems,
+                                                "<div style='padding:9px 0; border-bottom:1px solid #E5E7EB;'><div style='font-weight:600; color:#201F1E;'>" & Name & "</div><div style='font-size:12px; color:#605E5C;'>Updated " & Text('Modified On', "mm/dd/yy") & " | Qty " & Quantity & "</div></div>"
+                                            )
+                                        ) &
+                                    "</div>"
+                                )
+                              Width: =Parent.Width
+      - HelpOverlay_ActionCenter:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(0, 0, 0, 0.55)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            Visible: =ctxShowHelp
+            Width: =Parent.Width
+            X: =0
+            Y: =0
+          Children:
+            - HelpPanel_ActionCenter:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =285
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =14
+                  PaddingBottom: =20
+                  PaddingLeft: =20
+                  PaddingRight: =20
+                  PaddingTop: =20
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Min(Parent.Width - 32, 580)
+                Children:
+                  - HelpTitle_ActionCenter:
+                      Control: Text@0.0.51
+                      Properties:
+                        Size: =20
+                        Text: ="Action Center help"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width - 40
+                  - HelpBody_ActionCenter:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        Text: ="Use Action Center as the landing screen for daily inventory work. The dashboard is read-only and highlights expired, expiring, low-stock, and stale inventory records. Use the quick action buttons to open the task screen you need for scanning, editing, registering products, or printing labels."
+                        Width: =Parent.Width - 40
+                  - HelpClose_ActionCenter:
+                      Control: Button@0.0.45
+                      Properties:
+                        AlignInContainer: =AlignInContainer.End
+                        OnSelect: |-
+                          =UpdateContext({ ctxShowHelp: false })
+                        Text: ="Close"

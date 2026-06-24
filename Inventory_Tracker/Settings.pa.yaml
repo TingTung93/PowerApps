@@ -38,6 +38,7 @@ Screens:
                   Height: =75
                   Items: |+
                     =Table(
+                        {Label: "Action Center", Screen: ActionCenter},
                         {Label: "Inventory", Screen: Inventory},
                         {Label: "Registration", Screen: Registration},
                         {Label: "Quick Pick", Screen: QuickPick},
