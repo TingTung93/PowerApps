@@ -1,0 +1,83 @@
+ComponentDefinitions:
+  NavBar:
+    DefinitionType: CanvasComponent
+    AccessAppScope: true
+    CustomProperties:
+      ActiveFillColor:
+        PropertyKind: Input
+        DisplayName: ActiveFillColor
+        Description: A custom property
+        DataType: Color
+        Default: =App.Theme.Colors.Lighter80
+      ActiveScreen:
+        PropertyKind: Input
+        DisplayName: ActiveScreen
+        Description: A custom property
+        DataType: Screen
+        Default: =App.ActiveScreen
+      ActiveTextColor:
+        PropertyKind: Input
+        DisplayName: ActiveTextColor
+        Description: A custom property
+        DataType: Color
+        Default: =Color.Blue
+      BaseFillColor:
+        PropertyKind: Input
+        DisplayName: BaseFillColor
+        Description: A custom property
+        DataType: Color
+        Default: =App.Theme.Colors.Darker70
+      Items:
+        PropertyKind: Input
+        DisplayName: Items
+        Description: A custom property
+        DataType: Table
+        Default: |+
+          =Table(
+              {Label: "Inventory", Screen: Inventory},
+              {Label: "Registration", Screen: Registration},
+              {Label: "Quick Pick", Screen: QuickPick},
+              {Label: "Rapid Scan", Screen: RapidScan},
+              {Label: "Item List", Screen: ItemList},
+              {Label: "Table View", Screen: 'Table View'},
+              {Label: "Inventory Tool", Screen: InventoryTool},
+              {Label: "Archive", Screen: Archive},
+              {Label: "Settings", Screen: Settings}
+          )
+    Properties:
+      Height: =75
+      Width: =App.Width
+    Children:
+      - Gallery6:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Horizontal_TwoTextOneImageVariant_pcfCore
+          Properties:
+            BorderColor: =RGBA(243, 242, 241, 1)
+            FocusedBorderColor: =RGBA(98, 100, 167, 1)
+            FocusedBorderThickness: =2
+            Height: =Parent.Height
+            Items: =NavBar.Items
+            TemplatePadding: =5
+            TemplateSize: |+
+              =If(CountRows(Self.AllItems) > 0, (Parent.Width - (CountRows(Self.AllItems) - 1) * 10) / CountRows(Self.AllItems), 0)
+            Width: =Parent.Width
+            Y: |+
+              =0
+          Children:
+            - ButtonCanvas1:
+                Control: Button@0.0.45
+                Properties:
+                  Align: =AlignInContainer.Stretch
+                  BasePaletteColor: =	If(ThisItem.Screen = NavBar.ActiveScreen, NavBar.ActiveFillColor, NavBar.BaseFillColor)
+                  BorderColor: =	If(ThisItem.Screen = NavBar.ActiveScreen, NavBar.ActiveFillColor, Color.Transparent)
+                  BorderRadius: =4
+                  FontColor: =	If(ThisItem.Screen = NavBar.ActiveScreen, NavBar.ActiveTextColor, Color.White)
+                  FontSize: |+
+                    =Min(16, Max(10, Parent.TemplateWidth * 0.1))
+                  Height: =Parent.TemplateHeight
+                  OnSelect: =Navigate(ThisItem.Screen)
+                  Text: =ThisItem.Label
+                  Width: =Parent.TemplateWidth
+                  X: '=0  '
+                  Y: |+
+                    =0
