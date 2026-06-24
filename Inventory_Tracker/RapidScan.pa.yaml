@@ -345,7 +345,8 @@ Screens:
                                                   Name: ScannedItem.ProductName,
                                                   Error: FirstError.Message
                                               }
-                                          )
+                                          );
+                                          Defaults(Inventories)
                                       ),
                                       // --- UPDATE existing inventory record ---
                                       IfError(
@@ -363,7 +364,8 @@ Screens:
                                                   Name: ScannedItem.ProductName,
                                                   Error: FirstError.Message
                                               }
-                                          )
+                                          );
+                                          existingInventoryItem
                                       )
                                   )
                               )

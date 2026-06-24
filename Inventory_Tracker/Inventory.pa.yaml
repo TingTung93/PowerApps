@@ -1599,7 +1599,8 @@ Screens:
                                                 Name: ArchiveItem.Name,
                                                 Error: FirstError.Message
                                             }
-                                        )
+                                        );
+                                        Defaults(Expireds)
                                     )
                                 );
                                 If(
