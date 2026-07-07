@@ -90,23 +90,60 @@ Screens:
                                 );
                                 Set(varCleanedBarcode, Substitute(First(colTempBarcode).Result, " ", ""));
 
-                                // --- 2. DECODE GS1 & GET PRODUCT INFO (with Error Handling) ---
-                                Set(varBarcodeDetails, 'DecodeAlternate'.Run(Self.Value));
+                                // --- 2. DECODE GS1 & GET PRODUCT INFO NATIVELY ---
+                                With(
+                                    {
+                                        rawScan: Self.Value,
+                                        hasParens: Find("(", Self.Value) > 0,
+                                        cleanPrefix: Substitute(Substitute(Substitute(Self.Value, "]d2", ""), "]C1", ""), "]Q1", "")
+                                    },
+                                    Set(varBarcodeDetails,
+                                        If(hasParens,
+                                            With({
+                                                gtinIdx: Find("(01)", rawScan),
+                                                expIdx: Find("(17)", rawScan),
+                                                batchIdx: Find("(10)", rawScan),
+                                                serialIdx: Find("(21)", rawScan)
+                                            },
+                                            {
+                                                gtin_out: If(gtinIdx > 0, Mid(rawScan, gtinIdx + 4, 14), ""),
+                                                expiry_out: If(expIdx > 0, Mid(rawScan, expIdx + 4, 6), ""),
+                                                batch_out: If(batchIdx > 0, 
+                                                    With({
+                                                        rem: Mid(rawScan, batchIdx + 4),
+                                                        nParen: Find("(", Mid(rawScan, batchIdx + 4))
+                                                    }, If(nParen > 0, Left(rem, nParen - 1), rem)), ""),
+                                                serial_out: If(serialIdx > 0, 
+                                                    With({
+                                                        rem: Mid(rawScan, serialIdx + 4),
+                                                        nParen: Find("(", Mid(rawScan, serialIdx + 4))
+                                                    }, If(nParen > 0, Left(rem, nParen - 1), rem)), "")
+                                            }),
+                                            // No parentheses fallback
+                                            {
+                                                gtin_out: If(StartsWith(cleanPrefix, "01"), Mid(cleanPrefix, 3, 14), ""),
+                                                expiry_out: With({eIdx: Find("17", cleanPrefix, 15)}, If(eIdx > 0, Mid(cleanPrefix, eIdx + 2, 6), "")),
+                                                batch_out: With({bIdx: Find("10", cleanPrefix, 15)}, If(bIdx > 0, 
+                                                    With({
+                                                        rem: Mid(cleanPrefix, bIdx + 2), 
+                                                        gsIdx: Find(Char(29), Mid(cleanPrefix, bIdx + 2))
+                                                    },
+                                                    If(gsIdx > 0, Left(rem, gsIdx - 1), rem)), "")),
+                                                serial_out: With({sIdx: Find("21", cleanPrefix, 15)}, If(sIdx > 0, 
+                                                    With({
+                                                        rem: Mid(cleanPrefix, sIdx + 2), 
+                                                        gsIdx: Find(Char(29), Mid(cleanPrefix, sIdx + 2))
+                                                    },
+                                                    If(gsIdx > 0, Left(rem, gsIdx - 1), rem)), ""))
+                                            }
+                                        )
+                                    )
+                                );
 
-                                // *** MODIFICATION START: Use IfError to handle potential flow failures ***
-                                Set(
-                                    varSafeGTIN,
-                                    IfError(varBarcodeDetails.gtin_out, "") // If gtin_out is an error, use ""
-                                );
-                                Set(
-                                    varSafeBatch,
-                                    IfError(varBarcodeDetails.batch_out, "") // If batch_out is an error, use ""
-                                );
-                                Set(
-                                    varSafeExpiry,
-                                    IfError(varBarcodeDetails.expiry_out, "") // If expiry_out is an error, use ""
-                                );
-                                // *** MODIFICATION END ***
+                                // Map to safe variables
+                                Set(varSafeGTIN, Coalesce(varBarcodeDetails.gtin_out, ""));
+                                Set(varSafeBatch, Coalesce(varBarcodeDetails.batch_out, ""));
+                                Set(varSafeExpiry, Coalesce(varBarcodeDetails.expiry_out, ""));
 
                                 // Check if the primary identifier was found. If not, stop and notify the user.
                                 If(IsBlank(varSafeGTIN),
