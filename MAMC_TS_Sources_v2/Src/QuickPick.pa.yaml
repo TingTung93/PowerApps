@@ -150,7 +150,243 @@ Screens:
                                   Properties:
                                     DisplayMode: =Parent.DisplayMode
                                     Fill: =RGBA(152, 208, 70, 1)
-                                    OnChange: "=// --- Enhanced Barcode Logic for Stacked Barcodes (v3) ---\r\n\r\n// This variable will hold the complete barcode string, whether from one scan or two.\r\nUpdateContext({localCompleteBarcode: \"\"});\r\n\r\n// If we are waiting for the second part of a stacked barcode...\r\nIf(\r\n    isWaitingForSecondScan,\r\n    \r\n    // --- THIS IS THE SECOND SCAN ---\r\n    \r\n    // 1. Reconstruct the full barcode string.\r\n    UpdateContext({localCompleteBarcode: ctxFirstScanValue & Self.Value});\r\n    \r\n    // 2. Parse the COMBINED barcode string natively.\r\n    With(\r\n        {\r\n            hasParens: Find(\"(\", localCompleteBarcode) > 0,\r\n            gtinIdx: Find(\"(01)\", localCompleteBarcode),\r\n            expIdx: Find(\"(17)\", localCompleteBarcode),\r\n            batchIdx: Find(\"(10)\", localCompleteBarcode)\r\n        },\r\n        Set(\r\n            gblBarcodeResult,\r\n            If(hasParens,\r\n                {\r\n                    gtin_out: If(gtinIdx > 0, Mid(localCompleteBarcode, gtinIdx + 4, 14), \"\"),\r\n                    expiry_out: If(expIdx > 0, Mid(localCompleteBarcode, expIdx + 4, 6), \"\"),\r\n                    batch_out: If(batchIdx > 0, \r\n                        With({\r\n                            rem: Mid(localCompleteBarcode, batchIdx + 4),\r\n                            nParen: Find(\"(\", Mid(localCompleteBarcode, batchIdx + 4))\r\n                        },\r\n                        If(nParen > 0, Left(rem, nParen - 1), rem)\r\n                        ), \r\n                    \"\")\r\n                },\r\n                {\r\n                    gtin_out: If(StartsWith(localCompleteBarcode, \"01\"), Mid(localCompleteBarcode, 3, 14), \"\"),\r\n                    expiry_out: With({eIdx: Find(\"17\", localCompleteBarcode, 15)}, If(eIdx > 0, Mid(localCompleteBarcode, eIdx + 2, 6), \"\")),\r\n                    batch_out: With({bIdx: Find(\"10\", localCompleteBarcode, 15)}, If(bIdx > 0, Mid(localCompleteBarcode, bIdx + 2), \"\"))\r\n                }\r\n            )\r\n        )\r\n    );\r\n    \r\n    // 3. Reset the state flag.\r\n    UpdateContext({isWaitingForSecondScan: false});\r\n    \r\n,\r\n    // --- THIS IS THE FIRST (or a complete) SCAN ---\r\n    \r\n    // 1. Start processing and parse the initial scan.\r\n    Set(gblIsProcessing, true);\r\n    UpdateContext({localCompleteBarcode: Self.Value});\r\n    Set(\r\n        gblBarcodeResult,\r\n        With(\r\n        {\r\n            hasParens: Find(\"(\", localCompleteBarcode) > 0,\r\n            gtinIdx: Find(\"(01)\", localCompleteBarcode),\r\n            expIdx: Find(\"(17)\", localCompleteBarcode),\r\n            batchIdx: Find(\"(10)\", localCompleteBarcode)\r\n        },\r\n        If(hasParens,\r\n            {\r\n                gtin_out: If(gtinIdx > 0, Mid(localCompleteBarcode, gtinIdx + 4, 14), \"\"),\r\n                expiry_out: If(expIdx > 0, Mid(localCompleteBarcode, expIdx + 4, 6), \"\"),\r\n                batch_out: If(batchIdx > 0, \r\n                    With({\r\n                        rem: Mid(localCompleteBarcode, batchIdx + 4),\r\n                        nParen: Find(\"(\", Mid(localCompleteBarcode, batchIdx + 4))\r\n                    },\r\n                    If(nParen > 0, Left(rem, nParen - 1), rem)\r\n                    ), \r\n                \"\")\r\n            },\r\n            {\r\n                gtin_out: If(StartsWith(localCompleteBarcode, \"01\"), Mid(localCompleteBarcode, 3, 14), \"\"),\r\n                expiry_out: With({eIdx: Find(\"17\", localCompleteBarcode, 15)}, If(eIdx > 0, Mid(localCompleteBarcode, eIdx + 2, 6), \"\")),\r\n                batch_out: With({bIdx: Find(\"10\", localCompleteBarcode, 15)}, If(bIdx > 0, Mid(localCompleteBarcode, bIdx + 2), \"\"))\r\n            }\r\n        )\r\n    )\r\n    );\r\n    \r\n    // 2. Check if the scan was partial (only GTIN was found).\r\n    If(\r\n        !IsBlank(gblBarcodeResult.gtin_out) && IsBlank(gblBarcodeResult.batch_out) && IsBlank(gblBarcodeResult.expiry_out),\r\n        \r\n        // --- PARTIAL SCAN DETECTED ---\r\n        \r\n        // a. Store the value of the first scan.\r\n        Set(ctxFirstScanValue, Self.Value);\r\n        \r\n        // b. Set the app to a \"waiting\" state.\r\n        UpdateContext({isWaitingForSecondScan: true});\r\n        \r\n        // c. Set focus back to the input for the second scan.\r\n        SetFocus(BarcodeInput_1);\r\n        \r\n        ,\r\n        \r\n        // --- COMPLETE SCAN DETECTED ---\r\n        UpdateContext({isWaitingForSecondScan: false})\r\n    )\r\n);\r\n\r\n\r\n// =====[ SHARED LOGIC - RUNS AFTER A COMPLETE SCAN IS ASSEMBLED ]=====\r\n\r\nIf(\r\n    !isWaitingForSecondScan,\r\n    \r\n    // Use the parsed GTIN to check if the product is registered.\r\n    With(\r\n        {\r\n            registeredItem: LookUp(GTIN_Lookups, GTIN = gblBarcodeResult.gtin_out)\r\n        },\r\n        If(\r\n            IsBlank(registeredItem) && !IsBlank(gblBarcodeResult.gtin_out),\r\n            \r\n            // --- ITEM NOT REGISTERED ---\r\n            Notify(\"This item is not registered. Please register it now.\", NotificationType.Warning);\r\n            Navigate(\r\n                Registration,\r\n                ScreenTransition.None,\r\n                {\r\n                    varRegistrationBarcode: localCompleteBarcode,\r\n                    varRegistrationGTIN: gblBarcodeResult.gtin_out,\r\n                    varRegistrationBatch: gblBarcodeResult.batch_out,\r\n                    varRegistrationExpiry: gblBarcodeResult.expiry_out\r\n                }\r\n            ),\r\n            \r\n            // --- ITEM IS ALREADY REGISTERED ---\r\n\r\n            // **KEY FIX:** Use the original, complete barcode string for the inventory lookup.\r\n            Set(\r\n                existingInventory,\r\n                LookUp(Inventories, Barcode = localCompleteBarcode)\r\n            );\r\n            \r\n            // Set the gblCleanedBarcode for saving later, if needed.\r\n            Set(gblCleanedBarcode, gblBarcodeResult.gtin_out & gblBarcodeResult.batch_out);\r\n\r\n            If(\r\n                !IsBlank(existingInventory),\r\n                EditForm(InventoryForm_1),\r\n                NewForm(InventoryForm_1)\r\n            );\r\n            \r\n            SetFocus(QuantityInput_1)\r\n        )\r\n    );\r\n    \r\n    Set(gblIsProcessing, false);\r\n)\r\n"
+                                    OnChange: |+
+                                      =// --- Enhanced Barcode Logic for Stacked Barcodes (v3) ---
+
+                                      // This variable will hold the complete barcode string, whether from one scan or two.
+                                      UpdateContext({localCompleteBarcode: ""});
+
+                                      // If we are waiting for the second part of a stacked barcode...
+                                      If(
+                                          isWaitingForSecondScan,
+                                          
+                                          // --- THIS IS THE SECOND SCAN ---
+                                          
+                                          // 1. Reconstruct the full barcode string.
+                                          UpdateContext({localCompleteBarcode: ctxFirstScanValue & Self.Value});
+                                          
+                                          // 2. Parse the COMBINED barcode string natively.
+                                          With(
+                                              {
+                                                  hasParens: Find("(", localCompleteBarcode) > 0,
+                                                  cleanPrefix: Substitute(Substitute(Substitute(localCompleteBarcode, "]d2", ""), "]C1", ""), "]Q1", "")
+                                              },
+                                              Set(
+                                                  gblBarcodeResult,
+                                                  If(hasParens,
+                                                      With({
+                                                          gtinIdx: Find("(01)", localCompleteBarcode),
+                                                          expIdx: Find("(17)", localCompleteBarcode),
+                                                          batchIdx: Find("(10)", localCompleteBarcode),
+                                                          serialIdx: Find("(21)", localCompleteBarcode)
+                                                      },
+                                                      {
+                                                          gtin_out: If(gtinIdx > 0, Mid(localCompleteBarcode, gtinIdx + 4, 14), ""),
+                                                          expiry_out: If(expIdx > 0, Mid(localCompleteBarcode, expIdx + 4, 6), ""),
+                                                          batch_out: If(batchIdx > 0, 
+                                                              With({
+                                                                  rem: Mid(localCompleteBarcode, batchIdx + 4),
+                                                                  nParen: Find("(", Mid(localCompleteBarcode, batchIdx + 4))
+                                                              },
+                                                              If(nParen > 0, Left(rem, nParen - 1), rem)
+                                                              ), 
+                                                          ""),
+                                                          serial_out: If(serialIdx > 0, 
+                                                              With({
+                                                                  rem: Mid(localCompleteBarcode, serialIdx + 4),
+                                                                  nParen: Find("(", Mid(localCompleteBarcode, serialIdx + 4))
+                                                              },
+                                                              If(nParen > 0, Left(rem, nParen - 1), rem)
+                                                              ), 
+                                                          "")
+                                                      }),
+                                                      {
+                                                          gtin_out: If(StartsWith(cleanPrefix, "01"), Mid(cleanPrefix, 3, 14), ""),
+                                                          expiry_out: Coalesce(
+                                                              If(Find("17", cleanPrefix) = 1, Mid(cleanPrefix, 3, 6), Blank()),
+                                                              If(Find("17", cleanPrefix) = 17, Mid(cleanPrefix, 19, 6), Blank()),
+                                                              If(Find("17", cleanPrefix) = 25, Mid(cleanPrefix, 27, 6), Blank()),
+                                                              With({idx: Find(Char(29) & "17", cleanPrefix)}, If(idx > 0, Mid(cleanPrefix, idx + 3, 6), Blank())),
+                                                              ""
+                                                          ),
+                                                          batch_out: With({
+                                                              bStart: Coalesce(
+                                                                  If(Find("10", cleanPrefix) = 1, 3, Blank()),
+                                                                  If(Find("10", cleanPrefix) = 17, 19, Blank()),
+                                                                  If(Find("10", cleanPrefix) = 25, 27, Blank()),
+                                                                  With({idx: Find(Char(29) & "10", cleanPrefix)}, If(idx > 0, idx + 3, Blank()))
+                                                              )
+                                                          }, If(!IsBlank(bStart), 
+                                                              With({rem: Mid(cleanPrefix, bStart), gsIdx: Find(Char(29), Mid(cleanPrefix, bStart))}, 
+                                                                  If(gsIdx > 0, Left(rem, gsIdx - 1), rem)), 
+                                                          "")),
+                                                          serial_out: With({
+                                                              sStart: Coalesce(
+                                                                  If(Find("21", cleanPrefix) = 1, 3, Blank()),
+                                                                  If(Find("21", cleanPrefix) = 17, 19, Blank()),
+                                                                  If(Find("21", cleanPrefix) = 25, 27, Blank()),
+                                                                  With({idx: Find(Char(29) & "21", cleanPrefix)}, If(idx > 0, idx + 3, Blank()))
+                                                              )
+                                                          }, If(!IsBlank(sStart), 
+                                                              With({rem: Mid(cleanPrefix, sStart), gsIdx: Find(Char(29), Mid(cleanPrefix, sStart))}, 
+                                                                  If(gsIdx > 0, Left(rem, gsIdx - 1), rem)), 
+                                                          ""))
+                                                      }
+                                                  )
+                                              )
+                                          );
+                                          
+                                          // 3. Reset the state flag.
+                                          UpdateContext({isWaitingForSecondScan: false});
+                                          
+                                      ,
+                                          // --- THIS IS THE FIRST (or a complete) SCAN ---
+                                          
+                                          // 1. Start processing and parse the initial scan.
+                                          Set(gblIsProcessing, true);
+                                          UpdateContext({localCompleteBarcode: Self.Value});
+                                          With(
+                                              {
+                                                  hasParens: Find("(", localCompleteBarcode) > 0,
+                                                  cleanPrefix: Substitute(Substitute(Substitute(localCompleteBarcode, "]d2", ""), "]C1", ""), "]Q1", "")
+                                              },
+                                              Set(
+                                                  gblBarcodeResult,
+                                                  If(hasParens,
+                                                      With({
+                                                          gtinIdx: Find("(01)", localCompleteBarcode),
+                                                          expIdx: Find("(17)", localCompleteBarcode),
+                                                          batchIdx: Find("(10)", localCompleteBarcode),
+                                                          serialIdx: Find("(21)", localCompleteBarcode)
+                                                      },
+                                                      {
+                                                          gtin_out: If(gtinIdx > 0, Mid(localCompleteBarcode, gtinIdx + 4, 14), ""),
+                                                          expiry_out: If(expIdx > 0, Mid(localCompleteBarcode, expIdx + 4, 6), ""),
+                                                          batch_out: If(batchIdx > 0, 
+                                                              With({
+                                                                  rem: Mid(localCompleteBarcode, batchIdx + 4),
+                                                                  nParen: Find("(", Mid(localCompleteBarcode, batchIdx + 4))
+                                                              },
+                                                              If(nParen > 0, Left(rem, nParen - 1), rem)
+                                                              ), 
+                                                          ""),
+                                                          serial_out: If(serialIdx > 0, 
+                                                              With({
+                                                                  rem: Mid(localCompleteBarcode, serialIdx + 4),
+                                                                  nParen: Find("(", Mid(localCompleteBarcode, serialIdx + 4))
+                                                              },
+                                                              If(nParen > 0, Left(rem, nParen - 1), rem)
+                                                              ), 
+                                                          "")
+                                                      }),
+                                                      {
+                                                          gtin_out: If(StartsWith(cleanPrefix, "01"), Mid(cleanPrefix, 3, 14), ""),
+                                                          expiry_out: Coalesce(
+                                                              If(Find("17", cleanPrefix) = 1, Mid(cleanPrefix, 3, 6), Blank()),
+                                                              If(Find("17", cleanPrefix) = 17, Mid(cleanPrefix, 19, 6), Blank()),
+                                                              If(Find("17", cleanPrefix) = 25, Mid(cleanPrefix, 27, 6), Blank()),
+                                                              With({idx: Find(Char(29) & "17", cleanPrefix)}, If(idx > 0, Mid(cleanPrefix, idx + 3, 6), Blank())),
+                                                              ""
+                                                          ),
+                                                          batch_out: With({
+                                                              bStart: Coalesce(
+                                                                  If(Find("10", cleanPrefix) = 1, 3, Blank()),
+                                                                  If(Find("10", cleanPrefix) = 17, 19, Blank()),
+                                                                  If(Find("10", cleanPrefix) = 25, 27, Blank()),
+                                                                  With({idx: Find(Char(29) & "10", cleanPrefix)}, If(idx > 0, idx + 3, Blank()))
+                                                              )
+                                                          }, If(!IsBlank(bStart), 
+                                                              With({rem: Mid(cleanPrefix, bStart), gsIdx: Find(Char(29), Mid(cleanPrefix, bStart))}, 
+                                                                  If(gsIdx > 0, Left(rem, gsIdx - 1), rem)), 
+                                                          "")),
+                                                          serial_out: With({
+                                                              sStart: Coalesce(
+                                                                  If(Find("21", cleanPrefix) = 1, 3, Blank()),
+                                                                  If(Find("21", cleanPrefix) = 17, 19, Blank()),
+                                                                  If(Find("21", cleanPrefix) = 25, 27, Blank()),
+                                                                  With({idx: Find(Char(29) & "21", cleanPrefix)}, If(idx > 0, idx + 3, Blank()))
+                                                              )
+                                                          }, If(!IsBlank(sStart), 
+                                                              With({rem: Mid(cleanPrefix, sStart), gsIdx: Find(Char(29), Mid(cleanPrefix, sStart))}, 
+                                                                  If(gsIdx > 0, Left(rem, gsIdx - 1), rem)), 
+                                                          ""))
+                                                      }
+                                                  )
+                                              )
+                                          );
+                                          
+                                          // 2. Check if the scan was partial (only GTIN was found).
+                                          If(
+                                              !IsBlank(gblBarcodeResult.gtin_out) && IsBlank(gblBarcodeResult.batch_out) && IsBlank(gblBarcodeResult.expiry_out),
+                                              
+                                              // --- PARTIAL SCAN DETECTED ---
+                                              
+                                              // a. Store the value of the first scan.
+                                              Set(ctxFirstScanValue, Self.Value);
+                                              
+                                              // b. Set the app to a "waiting" state.
+                                              UpdateContext({isWaitingForSecondScan: true});
+                                              
+                                              // c. Set focus back to the input for the second scan.
+                                              SetFocus(BarcodeInput_1);
+                                              
+                                              ,
+                                              
+                                              // --- COMPLETE SCAN DETECTED ---
+                                              UpdateContext({isWaitingForSecondScan: false})
+                                          )
+                                      );
+
+
+                                      // =====[ SHARED LOGIC - RUNS AFTER A COMPLETE SCAN IS ASSEMBLED ]=====
+
+                                      If(
+                                          !isWaitingForSecondScan,
+                                          
+                                          // Use the parsed GTIN to check if the product is registered.
+                                          With(
+                                              {
+                                                  registeredItem: LookUp(GTIN_Lookups, GTIN = gblBarcodeResult.gtin_out)
+                                              },
+                                              If(
+                                                  IsBlank(registeredItem) && !IsBlank(gblBarcodeResult.gtin_out),
+                                                  
+                                                  // --- ITEM NOT REGISTERED ---
+                                                  Notify("This item is not registered. Please register it now.", NotificationType.Warning);
+                                                  Navigate(
+                                                      Registration,
+                                                      ScreenTransition.None,
+                                                      {
+                                                          varRegistrationBarcode: localCompleteBarcode,
+                                                          varRegistrationGTIN: gblBarcodeResult.gtin_out,
+                                                          varRegistrationBatch: gblBarcodeResult.batch_out,
+                                                          varRegistrationExpiry: gblBarcodeResult.expiry_out
+                                                      }
+                                                  ),
+                                                  
+                                                  // --- ITEM IS ALREADY REGISTERED ---
+
+                                                  // **KEY FIX:** Use the original, complete barcode string for the inventory lookup.
+                                                  Set(
+                                                      existingInventory,
+                                                      LookUp(Inventories, Barcode = localCompleteBarcode)
+                                                  );
+                                                  
+                                                  // Set the gblCleanedBarcode for saving later, if needed.
+                                                  Set(gblCleanedBarcode, gblBarcodeResult.gtin_out & gblBarcodeResult.batch_out);
+
+                                                  If(
+                                                      !IsBlank(existingInventory),
+                                                      EditForm(InventoryForm_1),
+                                                      NewForm(InventoryForm_1)
+                                                  );
+                                                  
+                                                  SetFocus(QuantityInput_1)
+                                              )
+                                          );
+                                          
+                                          Set(gblIsProcessing, false);
+                                      )
                                     Placeholder: ="Click here and scan to begin adding/updating inventory"
                                     TriggerOutput: ='TextInputCanvas.TriggerOutput'.Delayed
                                     Value: =Parent.Default
