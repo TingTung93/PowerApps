@@ -1,0 +1,395 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  InventoryTool:
+    Properties:
+      Fill: =RGBA(255, 255, 255, 1)
+      Height: =1123
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      Width: =794
+    Children:
+      - PrintContainer1:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Height: =36
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Horizontal
+            LayoutGap: '=10  '
+            LayoutJustifyContent: =LayoutJustifyContent.End
+            PaddingRight: =20
+            Visible: =Not(InventoryTool.Printing)
+            Width: =794
+          Children:
+            - NavBarControl_7:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Height: =Parent.Height
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =10
+                  LayoutJustifyContent: =LayoutJustifyContent.Center
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinHeight: =10
+                  Width: =Parent.Width/2
+                  X: =Parent.X
+                  Y: =Parent.Y
+                Children:
+                  - ButtonCanvas1_60:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        FontSize: =8
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(Inventory)
+                        Text: ="Inventory"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_64.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_61:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        FontSize: =8
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(Registration)
+                        Text: ="Registration"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_64.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_62:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        FontSize: =8
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(QuickPick)
+                        Text: ="Quick Pick"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_64.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_Settings_11:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        FontSize: =8
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(Settings)
+                        Text: ="Settings"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_64.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_63:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        FontSize: =8
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(ItemList)
+                        Text: ="Item List"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_64.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_64:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        FontSize: =8
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate('Table View')
+                        Text: ="Table View"
+                        Visible: =Not(InventoryTool.Printing)
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_64.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_65:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        FontSize: =8
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(InventoryTool)
+                        Text: ="Inventory Tool"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_64.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+            - PrintButton1:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ='ButtonCanvas.Appearance'.Secondary
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  OnSelect: =Print()
+                  Text: ="Print"
+                  Visible: =Not(InventoryTool.Printing)
+                  Width: =50
+                  X: =404
+                  Y: =368
+            - CATEGORY:
+                Control: ComboBox@0.0.51
+                Properties:
+                  DefaultSelectedItems: |-
+                    =// No change needed here if you're okay with it resetting on its own.
+                    // The original formula is a bit complex; we can simplify or remove it.
+                    Table()
+                  Height: =Parent.Height - 2
+                  InputTextPlaceholder: ="All CATEGORIES"
+                  Items: =Sort(Distinct(Inventories, 'Item Category'), Value)
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  SelectMultiple: =true
+                  Visible: =Not(InventoryTool.Printing)
+                  Width: =(Parent.Width - Parent.LayoutGap) / 4
+                  X: =50
+                  Y: =40
+      - Gallery3:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
+          Properties:
+            BorderColor: =RGBA(243, 242, 241, 1)
+            FocusedBorderColor: =RGBA(98, 100, 167, 1)
+            FocusedBorderThickness: =2
+            Height: =1086
+            Items: |-
+              =SortByColumns(
+                  If(
+                      IsEmpty(CATEGORY.SelectedItems),
+                      Inventories,
+                      Filter(
+                          Inventories,
+                          'Item Category' in CATEGORY.SelectedItems.Value
+                      )
+                  ),
+                  "cr31c_name",
+                  SortOrder.Ascending,
+                  "cr31c_expiration",
+                  SortOrder.Ascending,
+                  "cr31c_manufacturer_lookup",
+                  SortOrder.Ascending
+              )
+            TemplateSize: |-
+              =With({
+                                FilteredCount: CountRows(If(IsEmpty(CATEGORY.SelectedItems), Inventories, Filter(Inventories, 'Item Category' in CATEGORY.SelectedItems.Value)))
+                            }, If(FilteredCount <= 30, 140, FilteredCount <= 60, 72, 70))
+            Width: =767
+            WrapCount: |-
+              =With(
+                  {
+                      FilteredCount: CountRows(
+                          If(
+                              IsEmpty(CATEGORY.SelectedItems),
+                              Inventories,
+                              Filter(
+                                  Inventories,
+                                  'Item Category' in CATEGORY.SelectedItems.Value
+                              )
+                          )
+                      )
+                  },
+                  If(
+                      FilteredCount <= 45,
+                      3,
+                      FilteredCount <= 75,
+                      4,
+                      6
+                  )
+              )
+            X: =27
+            Y: =36
+          Children:
+            - Container3:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Height: =Parent.TemplateHeight
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  PaddingBottom: =8
+                  PaddingLeft: =8
+                  PaddingRight: =8
+                  PaddingTop: =8
+                  Width: =Parent.TemplateWidth
+                Children:
+                  - Image1:
+                      Control: Image@2.2.3
+                      Properties:
+                        BorderColor: =RGBA(0, 0, 0, 1)
+                        BorderStyle: =BorderStyle.None
+                        BorderThickness: =2
+                        DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                        DisabledFill: =RGBA(0, 0, 0, 0)
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FillPortions: =1
+                        Height: =Self.Width
+                        HoverBorderColor: =RGBA(0, 0, 0, 0)
+                        HoverFill: =RGBA(0, 0, 0, 0)
+                        Image: ="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=" & ThisItem.Barcode
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        PressedBorderColor: =RGBA(0, 0, 0, 0)
+                        PressedFill: =RGBA(0, 0, 0, 0)
+                        RadiusBottomLeft: =3
+                        RadiusBottomRight: =3
+                        RadiusTopLeft: =3
+                        RadiusTopRight: =3
+                        Width: =Parent.Width/3
+                  - Container1:
+                      Control: GroupContainer@1.5.0
+                      Variant: GridLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Center
+                        BorderThickness: =1
+                        FillPortions: =5
+                        Height: =Gallery3.TemplateHeight
+                        LayoutGap: =2
+                        LayoutGridColumns: =2
+                        LayoutGridRows: =3
+                        LayoutMinHeight: =50
+                        LayoutMinWidth: =50
+                        PaddingBottom: =5
+                        PaddingLeft: =
+                        PaddingRight: =
+                        PaddingTop: =
+                        Width: =Parent.Width
+                      Children:
+                        - Title1:
+                            Control: FluentV8/Label@1.8.6
+                            Properties:
+                              Alignment: =Align.Center
+                              AutoHeight: =true
+                              FontSize: =Min(8, Max(12, Parent.Height * 0.16))
+                              FontWeight: =FontWeight.Semibold
+                              Height: =
+                              Overflow: ='Label.Overflow'.Hidden
+                              TabIndex: =-1
+                              Text: =ThisItem.Name
+                              VerticalAlignment: =VerticalAlign.Middle
+                              Width: =Parent.LayoutMaxWidth
+                              Wrap: =false
+                        - Expiration:
+                            Control: Text@0.0.51
+                            Properties:
+                              Align: ='TextCanvas.Align'.Center
+                              Fill: |-
+                                =Switch(
+                                    true,
+                                    ThisItem.Expiration < Today(),
+                                    RGBA(220, 38, 38, 1),     // Red for expired
+                                    ThisItem.Expiration <= DateAdd(Today(), 7),
+                                    RGBA(234, 88, 12, .2),     // Orange for expiring soon
+                                    ThisItem.Expiration <= DateAdd(Today(), 30),
+                                    RGBA(251, 191, 36, .2),    // Yellow for caution
+                                    RGBA(68, 68, 68, .2)       // Dark gray for normal
+                                )
+                              Height: =Gallery3.TemplateHeight/5
+                              Size: =Min(8, Max(12, Parent.Height * 0.11))
+                              Text: |-
+                                ="Exp: " & Text(ThisItem.Expiration, "mm/dd/yy")
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =Gallery3.TemplateWidth/3
+                              Wrap: =false
+                              X: =Title1.X
+                              Y: =Lot.Y+Lot.Height
+                        - Quantity:
+                            Control: FluentV8/Label@1.8.6
+                            Properties:
+                              AutoHeight: =true
+                              FontSize: =Min(8, Max(12, Parent.Height * 0.12))
+                              FontWeight: =FontWeight.Normal
+                              Height: =Gallery3.TemplateHeight/5
+                              OnSelect: =
+                              TabIndex: =-1
+                              Text: |-
+                                ="Qty: " & ThisItem.Quantity& " "&ThisItem.Units
+                              VerticalAlignment: =VerticalAlign.Middle
+                              Width: =Gallery3.TemplateWidth/3
+                              Wrap: =false
+                              X: =Title1.X
+                              Y: =Expiration.Y+Expiration.Height
+                        - Lot:
+                            Control: FluentV8/Label@1.8.6
+                            Properties:
+                              Alignment: =Align.Center
+                              AutoHeight: =true
+                              FontSize: =Min(8, Max(12, Parent.Height * 0.12))
+                              FontWeight: =FontWeight.Normal
+                              Height: =Gallery3.TemplateHeight/5
+                              OnSelect: =
+                              TabIndex: =-1
+                              Text: |-
+                                ="Lot: " & ThisItem.Batch
+                              VerticalAlignment: =VerticalAlign.Top
+                              Width: =Gallery3.TemplateWidth/3
+                              Wrap: =false
+                              X: =Title1.X
+                              Y: =Title1.Y + Title1.Height
+                        - TextCanvas5:
+                            Control: Text@0.0.51
+                            Properties:
+                              Align: ='TextCanvas.Align'.Center
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              BorderStyle: =BorderStyle.Solid
+                              BorderThickness: =0.5
+                              Fill: |-
+                                =Switch(
+                                    true,
+                                    ThisItem.'Modified On' < Today() - 28,
+                                    RGBA(220, 38, 38, 1),     // Red for expired
+                                    ThisItem.'Modified On' <= DateAdd(Today(), -14),
+                                    RGBA(234, 88, 12, .2),     // Orange for expiring soon
+                                    ThisItem.'Modified On' <= DateAdd(Today(), -7),
+                                    RGBA(251, 191, 36, .2),    // Yellow for caution
+                                    RGBA(68, 68, 68, .2)       // Dark gray for normal
+                                )
+                              Height: =Lot.Height
+                              Size: =7
+                              Text: |-
+                                ="Last Modified: " & ThisItem.'Modified On'
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =Gallery3.TemplateWidth/3
+                              X: =Lot.X+Lot.Width
+                              Y: =Lot.Y

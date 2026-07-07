@@ -1,0 +1,30 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+App:
+  Properties:
+    OnStart: |+
+      =Set(varShowExpired, false);
+      Set(varIsItemSelected, false);
+      Set(varNewMode, false);
+      Set(varEditMode, false);
+      Set(varDeleteMode, false);
+      Set(varCurrentItem, Blank());
+      Set(varSelectedRecord, Blank());
+      Set(varDefaultMan, Table());
+      Set(gblAppIsRunning, true);
+      ClearCollect(
+          colStringsToRemove,
+          {Value: "]d2"},      // GS1-128 AIM Code
+          {Value: "]C1"},      // Code 128 AIM Code
+          {Value: Char(29)},
+          {Value: "]Q1"}
+             // The true FNC1 / Group Separator character
+          // -> To add another, just add a new line like: {Value: "]A0"}
+      );
+    Theme: =PowerAppsTheme
