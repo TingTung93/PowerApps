@@ -1,0 +1,10 @@
+[
+  {
+    "ApiId": "/providers/microsoft.powerapps/apis/shared_logicflows",
+    "FlowNameId": "82564045-25f8-9d47-58b1-bf300457fbb6",
+    "Name": "Decode",
+    "ServiceKind": "ConnectedWadl",
+    "Type": "ServiceInfo",
+    "WorkflowEntityId": "bc6ea359-e594-f011-b4cc-001dd805afeb"
+  }
+]

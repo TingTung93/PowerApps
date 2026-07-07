@@ -1,0 +1,154 @@
+{
+  "67050f95-b87f-4b1d-bfcf-8a0aaf915277": {
+    "appActions": [
+      "Run"
+    ],
+    "connectionRef": {
+      "apiTier": "Standard",
+      "displayName": "Logic flows",
+      "iconUri": "https://connectorsiconsfairfax.z5.web.core.usgovcloudapi.net/v1.0.1774/1.0.1774.4397/logicflows/icon.png",
+      "id": "/providers/microsoft.powerapps/apis/shared_logicflows",
+      "parameterHints": {
+        "workflowDisplayName": {
+          "value": "DecodeAlternate"
+        },
+        "workflowEntityId": {
+          "value": "9e61ddae-6099-f011-b4cc-001dd805afeb"
+        },
+        "workflowName": {
+          "value": "8702f09a-93e6-b872-9770-103439a892ac"
+        }
+      },
+      "parameterHintsV2": {
+        "workflowDisplayName": {
+          "value": "DecodeAlternate"
+        },
+        "workflowEntityId": {
+          "value": "9e61ddae-6099-f011-b4cc-001dd805afeb"
+        },
+        "workflowName": {
+          "value": "8702f09a-93e6-b872-9770-103439a892ac"
+        }
+      }
+    },
+    "datasets": {},
+    "dataSources": [
+      "DecodeAlternate"
+    ],
+    "dependencies": {},
+    "dependents": [],
+    "id": "67050f95-b87f-4b1d-bfcf-8a0aaf915277"
+  },
+  "9a0e4741-c73c-4251-b4f7-5d16fa556627": {
+    "appActions": [],
+    "connectionRef": {
+      "apiTier": "Standard",
+      "displayName": "SharePoint",
+      "iconUri": "https://connectorsiconsfairfax.z5.web.core.usgovcloudapi.net/releases/v1.0.1769/1.0.1769.4361/sharepointonline/icon.png",
+      "id": "/providers/microsoft.powerapps/apis/shared_sharepointonline",
+      "parameterHints": {},
+      "parameterHintsV2": {}
+    },
+    "datasets": {
+      "https://militaryhealth.sharepoint-mil.us/teams/MAMCMicrobiology": {
+        "dataSources": {
+          "Documents": {
+            "tableName": "12930677-1a5b-4801-a2b7-212489069479"
+          }
+        }
+      }
+    },
+    "dataSources": [
+      "Documents"
+    ],
+    "dependencies": {},
+    "dependents": [
+      "a0d32a64-01eb-4bc2-b29e-b16a05900100"
+    ],
+    "id": "9a0e4741-c73c-4251-b4f7-5d16fa556627"
+  },
+  "9dfa9524-e9db-4f55-92b4-49d8b5783ccb": {
+    "appActions": [],
+    "connectionRef": {
+      "apiTier": "Standard",
+      "displayName": "Logic flows",
+      "iconUri": "https://connectorsiconsfairfax.z5.web.core.usgovcloudapi.net/v1.0.1774/1.0.1774.4397/logicflows/icon.png",
+      "id": "/providers/microsoft.powerapps/apis/shared_logicflows",
+      "parameterHints": {
+        "workflowDisplayName": {
+          "value": "Decode"
+        },
+        "workflowEntityId": {
+          "value": "bc6ea359-e594-f011-b4cc-001dd805afeb"
+        },
+        "workflowName": {
+          "value": "1fccaaf2-d67b-404b-9d35-fdb310766872"
+        }
+      },
+      "parameterHintsV2": {
+        "workflowDisplayName": {
+          "value": "Decode"
+        },
+        "workflowEntityId": {
+          "value": "bc6ea359-e594-f011-b4cc-001dd805afeb"
+        },
+        "workflowName": {
+          "value": "1fccaaf2-d67b-404b-9d35-fdb310766872"
+        }
+      }
+    },
+    "datasets": {},
+    "dataSources": [
+      "Decode"
+    ],
+    "dependencies": {},
+    "dependents": [],
+    "id": "9dfa9524-e9db-4f55-92b4-49d8b5783ccb"
+  },
+  "a0d32a64-01eb-4bc2-b29e-b16a05900100": {
+    "appActions": [],
+    "connectionRef": {
+      "apiTier": "Standard",
+      "displayName": "Logic flows",
+      "iconUri": "https://connectorsiconsfairfax.z5.web.core.usgovcloudapi.net/v1.0.1774/1.0.1774.4397/logicflows/icon.png",
+      "id": "/providers/microsoft.powerapps/apis/shared_logicflows",
+      "parameterHints": {
+        "9a0e4741-c73c-4251-b4f7-5d16fa556627": {
+          "value": "shared_sharepointonline"
+        },
+        "workflowDisplayName": {
+          "value": "PowerAppV2 -> Send an HTTP request to SharePoint"
+        },
+        "workflowEntityId": {
+          "value": "d3a6e99d-fe97-f011-b4cc-001dd805afeb"
+        },
+        "workflowName": {
+          "value": "c0528528-8191-4539-b923-a3f322bf7339"
+        }
+      },
+      "parameterHintsV2": {
+        "shared_sharepointonline": {
+          "value": "9a0e4741-c73c-4251-b4f7-5d16fa556627"
+        },
+        "workflowDisplayName": {
+          "value": "PowerAppV2 -> Send an HTTP request to SharePoint"
+        },
+        "workflowEntityId": {
+          "value": "d3a6e99d-fe97-f011-b4cc-001dd805afeb"
+        },
+        "workflowName": {
+          "value": "c0528528-8191-4539-b923-a3f322bf7339"
+        }
+      }
+    },
+    "datasets": {},
+    "dataSources": [
+      "PowerAppV2->SendanHTTPrequesttoSharePoint"
+    ],
+    "dependencies": {
+      "shared_sharepointonline": "9a0e4741-c73c-4251-b4f7-5d16fa556627"
+    },
+    "dependents": [],
+    "id": "a0d32a64-01eb-4bc2-b29e-b16a05900100"
+  }
+}

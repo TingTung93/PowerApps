@@ -1,0 +1,10 @@
+[
+  {
+    "ApiId": "/providers/microsoft.powerapps/apis/shared_logicflows",
+    "FlowNameId": "b1dd66bc-194a-aaaa-27ed-bf41d2ef9c80",
+    "Name": "PowerAppV2->SendanHTTPrequesttoSharePoint",
+    "ServiceKind": "ConnectedWadl",
+    "Type": "ServiceInfo",
+    "WorkflowEntityId": "d3a6e99d-fe97-f011-b4cc-001dd805afeb"
+  }
+]

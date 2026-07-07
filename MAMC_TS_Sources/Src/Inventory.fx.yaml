@@ -1,0 +1,3501 @@
+Inventory As screen:
+    ContentLanguage: =""
+    LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+    OnVisible: =Set(varDefaultMan, Table());
+
+    ScreenContainer1_2 As groupContainer.horizontalAutoLayoutContainer:
+        DropShadow: =DropShadow.Light
+        Fill: =RGBA(245, 245, 245, 1)
+        Height: =Parent.Height
+        LayoutAlignItems: =LayoutAlignItems.Stretch
+        LayoutDirection: =LayoutDirection.Vertical
+        LayoutGap: =10
+        LayoutGridColumnMinWidth: =0
+        LayoutGridColumns: =6
+        LayoutGridRowMinHeight: =0
+        LayoutGridRows: =6
+        LayoutMode: =LayoutMode.Auto
+        PaddingBottom: =16
+        PaddingLeft: =16
+        PaddingRight: =16
+        PaddingTop: =16
+        RadiusBottomLeft: =4
+        RadiusBottomRight: =4
+        RadiusTopLeft: =4
+        RadiusTopRight: =4
+        Width: =Parent.Width
+        ZIndex: =2
+
+        HeaderContainer1_2 As groupContainer.horizontalAutoLayoutContainer:
+            DropShadow: =DropShadow.Light
+            Fill: =RGBA(98, 100, 167, 1)
+            FillPortions: =0
+            Height: =68
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGap: =5
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =100
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            PaddingRight: =6
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            ZIndex: =1
+
+            Header1_2 As Header:
+                Align: =""
+                BasePaletteColor: =
+                BorderColor: =
+                BorderStyle: =""
+                ContentLanguage: =""
+                DisplayMode: =DisplayMode.Edit
+                Fill: =
+                Font: =""
+                FontColor: =
+                Height: =75
+                IsLogoVisible: =true
+                IsProfilePictureVisible: =true
+                IsTitleVisible: =true
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =75
+                LayoutMinWidth: =Parent.Width
+                LogoMaxHeight: =70
+                LogoTooltip: ="The logo image"
+                OnSelectLogo: =false
+                Style: ="Primary"
+                TabIndex: =0
+                Title: =App.ActiveScreen.Name
+                TitleFontSize: =20
+                TitleRole: =""
+                Tooltip: =""
+                UserEmail: =User().Email
+                UserImage: =User().Image
+                UserImageAltText: =User().FullName &" profile picture"
+                UserName: =User().FullName
+                Visible: =true
+                Width: =Parent.Width
+                X: =0
+                Y: =0
+                ZIndex: =1
+
+            NavBarControl_9 As groupContainer.horizontalAutoLayoutContainer:
+                DropShadow: =DropShadow.Light
+                Height: =Parent.Height
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =10
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutJustifyContent: =LayoutJustifyContent.Center
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =10
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                RadiusBottomLeft: =4
+                RadiusBottomRight: =4
+                RadiusTopLeft: =4
+                RadiusTopRight: =4
+                Width: =Parent.Width/2
+                X: =Parent.X
+                Y: =Parent.Y
+                ZIndex: =10
+
+                ButtonCanvas1_72 As Button:
+                    AcceptsFocus: =true
+                    AccessibleLabel: =""
+                    Align: =""
+                    Appearance: ="Primary"
+                    BasePaletteColor: =RGBA(249, 83, 109, 1)
+                    BorderColor: =
+                    BorderStyle: =""
+                    ContentLanguage: =""
+                    DisplayMode: =DisplayMode.Edit
+                    Font: =""
+                    FontColor: =
+                    FontItalic: =false
+                    FontSize: =8
+                    FontStrikethrough: =false
+                    FontUnderline: =false
+                    FontWeight: =""
+                    Height: =32
+                    Icon: =""
+                    IconRotation: =0
+                    IconStyle: ="Outline"
+                    Layout: ="Icon before"
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =32
+                    LayoutMinWidth: =96
+                    OnSelect: =Navigate(Inventory)
+                    TabIndex: =0
+                    Text: ="Inventory"
+                    Tooltip: =""
+                    VerticalAlign: =""
+                    Visible: =true
+                    Width: |-
+                        =With(
+                                          {
+                                              VisibleButtons: 6 + If(ButtonCanvas1_76.Visible, 1, 0)
+                                          },
+                                          (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                      )
+                    X: =0
+                    Y: =0
+                    ZIndex: =1
+
+                ButtonCanvas1_73 As Button:
+                    AcceptsFocus: =true
+                    AccessibleLabel: =""
+                    Align: =""
+                    Appearance: ="Primary"
+                    BasePaletteColor: =RGBA(249, 83, 109, 1)
+                    BorderColor: =
+                    BorderStyle: =""
+                    ContentLanguage: =""
+                    DisplayMode: =DisplayMode.Edit
+                    Font: =""
+                    FontColor: =
+                    FontItalic: =false
+                    FontSize: =8
+                    FontStrikethrough: =false
+                    FontUnderline: =false
+                    FontWeight: =""
+                    Height: =32
+                    Icon: =""
+                    IconRotation: =0
+                    IconStyle: ="Outline"
+                    Layout: ="Icon before"
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =32
+                    LayoutMinWidth: =96
+                    OnSelect: =Navigate(Registration)
+                    TabIndex: =0
+                    Text: ="Registration"
+                    Tooltip: =""
+                    VerticalAlign: =""
+                    Visible: =true
+                    Width: |-
+                        =With(
+                                          {
+                                              VisibleButtons: 6 + If(ButtonCanvas1_76.Visible, 1, 0)
+                                          },
+                                          (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                      )
+                    X: =0
+                    Y: =0
+                    ZIndex: =2
+
+                ButtonCanvas1_74 As Button:
+                    AcceptsFocus: =true
+                    AccessibleLabel: =""
+                    Align: =""
+                    Appearance: ="Primary"
+                    BasePaletteColor: =RGBA(249, 83, 109, 1)
+                    BorderColor: =
+                    BorderStyle: =""
+                    ContentLanguage: =""
+                    DisplayMode: =DisplayMode.Edit
+                    Font: =""
+                    FontColor: =
+                    FontItalic: =false
+                    FontSize: =8
+                    FontStrikethrough: =false
+                    FontUnderline: =false
+                    FontWeight: =""
+                    Height: =32
+                    Icon: =""
+                    IconRotation: =0
+                    IconStyle: ="Outline"
+                    Layout: ="Icon before"
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =32
+                    LayoutMinWidth: =96
+                    OnSelect: =Navigate(QuickPick)
+                    TabIndex: =0
+                    Text: ="Quick Pick"
+                    Tooltip: =""
+                    VerticalAlign: =""
+                    Visible: =true
+                    Width: |-
+                        =With(
+                                          {
+                                              VisibleButtons: 6 + If(ButtonCanvas1_76.Visible, 1, 0)
+                                          },
+                                          (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                      )
+                    X: =0
+                    Y: =0
+                    ZIndex: =3
+
+                ButtonCanvas1_Settings_13 As Button:
+                    AcceptsFocus: =true
+                    AccessibleLabel: =""
+                    Align: =""
+                    Appearance: ="Primary"
+                    BasePaletteColor: =RGBA(249, 83, 109, 1)
+                    BorderColor: =
+                    BorderStyle: =""
+                    ContentLanguage: =""
+                    DisplayMode: =DisplayMode.Edit
+                    Font: =""
+                    FontColor: =
+                    FontItalic: =false
+                    FontSize: =8
+                    FontStrikethrough: =false
+                    FontUnderline: =false
+                    FontWeight: =""
+                    Height: =32
+                    Icon: =""
+                    IconRotation: =0
+                    IconStyle: ="Outline"
+                    Layout: ="Icon before"
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =32
+                    LayoutMinWidth: =96
+                    OnSelect: =Navigate(Settings)
+                    TabIndex: =0
+                    Text: ="Settings"
+                    Tooltip: =""
+                    VerticalAlign: =""
+                    Visible: =true
+                    Width: |-
+                        =With(
+                                          {
+                                              VisibleButtons: 6 + If(ButtonCanvas1_76.Visible, 1, 0)
+                                          },
+                                          (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                      )
+                    X: =0
+                    Y: =0
+                    ZIndex: =4
+
+                ButtonCanvas1_75 As Button:
+                    AcceptsFocus: =true
+                    AccessibleLabel: =""
+                    Align: =""
+                    Appearance: ="Primary"
+                    BasePaletteColor: =RGBA(249, 83, 109, 1)
+                    BorderColor: =
+                    BorderStyle: =""
+                    ContentLanguage: =""
+                    DisplayMode: =DisplayMode.Edit
+                    Font: =""
+                    FontColor: =
+                    FontItalic: =false
+                    FontSize: =8
+                    FontStrikethrough: =false
+                    FontUnderline: =false
+                    FontWeight: =""
+                    Height: =32
+                    Icon: =""
+                    IconRotation: =0
+                    IconStyle: ="Outline"
+                    Layout: ="Icon before"
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =32
+                    LayoutMinWidth: =96
+                    OnSelect: =Navigate(ItemList)
+                    TabIndex: =0
+                    Text: ="Item List"
+                    Tooltip: =""
+                    VerticalAlign: =""
+                    Visible: =true
+                    Width: |-
+                        =With(
+                                          {
+                                              VisibleButtons: 6 + If(ButtonCanvas1_76.Visible, 1, 0)
+                                          },
+                                          (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                      )
+                    X: =0
+                    Y: =0
+                    ZIndex: =5
+
+                ButtonCanvas1_76 As Button:
+                    AcceptsFocus: =true
+                    AccessibleLabel: =""
+                    Align: =""
+                    Appearance: ="Primary"
+                    BasePaletteColor: =RGBA(249, 83, 109, 1)
+                    BorderColor: =
+                    BorderStyle: =""
+                    ContentLanguage: =""
+                    DisplayMode: =DisplayMode.Edit
+                    Font: =""
+                    FontColor: =
+                    FontItalic: =false
+                    FontSize: =8
+                    FontStrikethrough: =false
+                    FontUnderline: =false
+                    FontWeight: =""
+                    Height: =32
+                    Icon: =""
+                    IconRotation: =0
+                    IconStyle: ="Outline"
+                    Layout: ="Icon before"
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =32
+                    LayoutMinWidth: =96
+                    OnSelect: =Navigate('Table View')
+                    TabIndex: =0
+                    Text: ="Table View"
+                    Tooltip: =""
+                    VerticalAlign: =""
+                    Visible: =Not(InventoryTool.Printing)
+                    Width: |-
+                        =With(
+                                          {
+                                              VisibleButtons: 6 + If(ButtonCanvas1_76.Visible, 1, 0)
+                                          },
+                                          (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                      )
+                    X: =0
+                    Y: =0
+                    ZIndex: =6
+
+                ButtonCanvas1_77 As Button:
+                    AcceptsFocus: =true
+                    AccessibleLabel: =""
+                    Align: =""
+                    Appearance: ="Primary"
+                    BasePaletteColor: =RGBA(249, 83, 109, 1)
+                    BorderColor: =
+                    BorderStyle: =""
+                    ContentLanguage: =""
+                    DisplayMode: =DisplayMode.Edit
+                    Font: =""
+                    FontColor: =
+                    FontItalic: =false
+                    FontSize: =8
+                    FontStrikethrough: =false
+                    FontUnderline: =false
+                    FontWeight: =""
+                    Height: =32
+                    Icon: =""
+                    IconRotation: =0
+                    IconStyle: ="Outline"
+                    Layout: ="Icon before"
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =32
+                    LayoutMinWidth: =96
+                    OnSelect: =Navigate(InventoryTool)
+                    TabIndex: =0
+                    Text: ="Inventory Tool"
+                    Tooltip: =""
+                    VerticalAlign: =""
+                    Visible: =true
+                    Width: |-
+                        =With(
+                                          {
+                                              VisibleButtons: 6 + If(ButtonCanvas1_76.Visible, 1, 0)
+                                          },
+                                          (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                      )
+                    X: =0
+                    Y: =0
+                    ZIndex: =7
+
+        BodyContainer1_2 As groupContainer.horizontalAutoLayoutContainer:
+            LayoutGap: =16
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =100
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            PaddingBottom: =2
+            PaddingTop: =4
+            ZIndex: =2
+
+            SidebarContainer1_2 As groupContainer.horizontalAutoLayoutContainer:
+                DropShadow: =DropShadow.Light
+                Fill: =RGBA(255, 255, 255, 1)
+                FillPortions: =If(And(Inventory.Size = ScreenSize.Small, Or(newMode, isItemSelected)), 0, 5)
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutDirection: =LayoutDirection.Vertical
+                LayoutGap: =10
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutJustifyContent: =LayoutJustifyContent.Center
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =100
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                PaddingBottom: =10
+                PaddingLeft: =10
+                PaddingRight: =10
+                PaddingTop: =10
+                RadiusBottomLeft: =4
+                RadiusBottomRight: =4
+                RadiusTopLeft: =4
+                RadiusTopRight: =4
+                Visible: |-
+                    =If(
+                        Or(
+                            varDeleteMode,
+                            And(
+                                Inventory.Size = ScreenSize.Small,
+                                Or(
+                                    varNewMode,
+                                    varIsItemSelected
+                                )
+                            )
+                        ),
+                        false,
+                        true
+                    )
+                ZIndex: =1
+
+                Container5_4 As groupContainer.horizontalAutoLayoutContainer:
+                    AlignInContainer: =AlignInContainer.SetByContainer
+                    DropShadow: =DropShadow.Light
+                    FillPortions: =0
+                    Height: =32
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutGap: =5
+                    LayoutGridColumnMinWidth: =0
+                    LayoutGridColumns: =6
+                    LayoutGridRowMinHeight: =0
+                    LayoutGridRows: =6
+                    LayoutJustifyContent: =LayoutJustifyContent.Center
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =100
+                    LayoutMinWidth: =250
+                    LayoutMode: =LayoutMode.Auto
+                    LayoutWrap: =true
+                    RadiusBottomLeft: =4
+                    RadiusBottomRight: =4
+                    RadiusTopLeft: =4
+                    RadiusTopRight: =4
+                    Width: =Parent.Width-30
+                    X: =40
+                    Y: =40
+                    ZIndex: =1
+
+                    ManufacturerDropdown As Combobox.pcfdataset:
+                        AccessibleLabel: =""
+                        Appearance: ="FilledDarker"
+                        BorderStyle: =""
+                        ContentLanguage: =""
+                        DefaultSelectedItems: =Sort(Distinct(Inventories, Manufacturer_Lookup), Value)
+                        DisplayMode: =DisplayMode.Edit
+                        Font: =""
+                        FontItalic: =false
+                        FontSize: =0
+                        FontStrikethrough: =false
+                        FontUnderline: =false
+                        FontWeight: =""
+                        Height: =Parent.Height - 2
+                        InputTextPlaceholder: ="All Manufacturers"
+                        IsSearchable: =true
+                        Items: =Sort(Distinct(Inventories, Manufacturer_Lookup), Value)
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =32
+                        LayoutMinWidth: =320
+                        MultiValueDelimiter: =", "
+                        OnChange: =Set(wSelectedManufacturers, ManufacturerDropdown.SelectedItems);
+                        Required: =false
+                        SelectMultiple: =true
+                        TabIndex: =0
+                        Tooltip: =""
+                        TriggerOutput: ="Keypress"
+                        ValidationState: ="None"
+                        Visible: =true
+                        Width: =(Parent.Width - Parent.LayoutGap) / 2
+                        X: =50
+                        Y: =40
+                        ZIndex: =1
+
+                    ButtonCanvas1_4 As Button:
+                        AcceptsFocus: =true
+                        AccessibleLabel: =""
+                        Align: =Align.Center
+                        Appearance: ="Primary"
+                        BasePaletteColor: =
+                        BorderColor: =
+                        BorderStyle: =""
+                        ContentLanguage: =""
+                        DisplayMode: =DisplayMode.Edit
+                        Font: =""
+                        FontColor: =
+                        FontItalic: =false
+                        FontSize: =0
+                        FontStrikethrough: =false
+                        FontUnderline: =false
+                        FontWeight: =""
+                        Height: =Parent.Height - 2
+                        Icon: =""
+                        IconRotation: =0
+                        IconStyle: ="Outline"
+                        Layout: ="Icon before"
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =32
+                        LayoutMinWidth: =96
+                        OnSelect: |+
+                            =Set(varShowExpired, !varShowExpired);
+                            If(
+                                varShowExpired,
+                                Notify("Showing expired items only", NotificationType.Information),
+                                Notify("Showing all items", NotificationType.Information)
+                            )
+                            
+                        TabIndex: =0
+                        Text: =If(varShowExpired, "Show All", "Expired Only")
+                        Tooltip: =""
+                        VerticalAlign: =Align.Center
+                        Visible: =true
+                        Width: =(Parent.Width - Parent.LayoutGap) / 2
+                        X: =40
+                        Y: =40
+                        ZIndex: =2
+
+                SearchContainer1_2 As groupContainer.horizontalAutoLayoutContainer:
+                    AlignInContainer: =AlignInContainer.SetByContainer
+                    Fill: =RGBA(245, 245, 245, 1)
+                    FillPortions: =0
+                    Height: =44
+                    LayoutGridColumnMinWidth: =0
+                    LayoutGridColumns: =6
+                    LayoutGridRowMinHeight: =0
+                    LayoutGridRows: =6
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =100
+                    LayoutMinWidth: =250
+                    LayoutMode: =LayoutMode.Auto
+                    PaddingRight: =5
+                    RadiusBottomLeft: =4
+                    RadiusBottomRight: =4
+                    RadiusTopLeft: =4
+                    RadiusTopRight: =4
+                    ZIndex: =2
+
+                    "SearchInput1_2 As 'Text input'":
+                        AccessibleLabel: =""
+                        Align: =""
+                        Appearance: ="FilledDarker"
+                        BasePaletteColor: =
+                        BorderColor: =
+                        BorderStyle: =""
+                        ContentLanguage: =""
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FillPortions: =1
+                        Font: =""
+                        FontColor: =
+                        FontItalic: =false
+                        FontSize: =0
+                        FontStrikethrough: =false
+                        FontUnderline: =false
+                        FontWeight: =""
+                        Height: =44
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =32
+                        LayoutMinWidth: =200
+                        MaxLength: =-1
+                        Mode: ="SingleLine"
+                        OnChange: =false
+                        Placeholder: ="Search"
+                        Required: =false
+                        TabIndex: =0
+                        Tooltip: =""
+                        TriggerOutput: ='TextInputCanvas.TriggerOutput'.Keypress
+                        Type: ="Text"
+                        ValidationState: ="None"
+                        Value: =""
+                        Visible: =true
+                        Width: =Parent.Width-50
+                        X: =0
+                        Y: =0
+                        ZIndex: =1
+
+                AddNewContainer1_2 As groupContainer.horizontalAutoLayoutContainer:
+                    AlignInContainer: =AlignInContainer.SetByContainer
+                    FillPortions: =0
+                    Height: =44
+                    LayoutGridColumnMinWidth: =0
+                    LayoutGridColumns: =6
+                    LayoutGridRowMinHeight: =0
+                    LayoutGridRows: =6
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =100
+                    LayoutMinWidth: =250
+                    LayoutMode: =LayoutMode.Auto
+                    Visible: =If(Inventory.Size = ScreenSize.Small,true,false)
+                    ZIndex: =3
+
+                    AddNewButton1_2 As Button:
+                        AcceptsFocus: =true
+                        AccessibleLabel: =""
+                        Align: =Align.Left
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Appearance: ='ButtonCanvas.Appearance'.Transparent
+                        BasePaletteColor: =
+                        BorderColor: =
+                        BorderStyle: =""
+                        ContentLanguage: =""
+                        DisplayMode: =DisplayMode.Edit
+                        FillPortions: =1
+                        Font: =""
+                        FontColor: =
+                        FontItalic: =false
+                        FontSize: =14
+                        FontStrikethrough: =false
+                        FontUnderline: =false
+                        FontWeight: =""
+                        Height: =44
+                        Icon: ="Add"
+                        IconRotation: =0
+                        IconStyle: ="Outline"
+                        Layout: ="Icon before"
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =32
+                        LayoutMinWidth: =60
+                        OnSelect: |-
+                            =NewForm(Form1_2); UpdateContext({ newMode: true })
+                        TabIndex: =0
+                        Text: ="New"
+                        Tooltip: =""
+                        VerticalAlign: =VerticalAlign.Middle
+                        Visible: =true
+                        Width: =80
+                        X: =0
+                        Y: =0
+                        ZIndex: =1
+
+                Gallery2 As gallery.BrowseLayout_Vertical_ThreeTextVariant_pcfCore:
+                    BorderColor: =RGBA(243, 242, 241, 1)
+                    DelayItemLoading: =true
+                    FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                    FocusedBorderThickness: =2
+                    Items: |-
+                        =With(
+                            {
+                                // Input values from controls
+                                wSearchText: Trim(SearchInput1_2.Value),
+                                wSelectedManufacturers: ManufacturerDropdown.SelectedItems,
+                                wShowExpired: varShowExpired
+                            },
+                            With(
+                                {
+                                    // Step 1: Start with the base data and apply the Search function.
+                                    // NOTE: The Search() function requires column names to be text strings in quotes.
+                                    FilteredData: If(
+                                        IsBlank(wSearchText),
+                                        Inventories,
+                                        Search(
+                                            Inventories,
+                                            wSearchText,
+                                            Name, 
+                                            Barcode, 
+                                            Batch, 
+                                            ItemID, 
+                                            'Item Category'
+                                        )
+                                    )
+                                },
+                                
+                                // Step 2: Apply conditional filters on top of the searched data.
+                                // NOTE: The Filter() function uses direct column references WITHOUT quotes.
+                                SortByColumns(
+                                    Filter(
+                                        FilteredData,
+                                        
+                                        // Manufacturer Filter: This logic correctly handles a multi-select ComboBox.
+                                        (IsEmpty(wSelectedManufacturers) || Manufacturer_Lookup in wSelectedManufacturers.Value),
+                                        
+                                        // Expired Filter: Applies only if the toggle is on.
+                                        (Not(wShowExpired) || Expiration < Today())
+                                    ),
+                                    
+                                    // Step 3: Sort the final results.
+                                    // NOTE: The SortByColumns() function also requires column names in quotes.
+                                    "cr31c_name", SortOrder.Ascending,
+                                    "cr31c_expiration", SortOrder.Ascending
+                                )
+                            )
+                        )
+                    Layout: =Layout.Vertical
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =287
+                    LayoutMinWidth: =320
+                    LoadingSpinner: =LoadingSpinner.Data
+                    OnSelect: |-
+                        =// Screens.Inventory.BodyContainer1_2.SidebarContainer1_2.Table1_2.Properties.OnSelect
+                        If(
+                            !IsBlank(Gallery2.Selected), // Ensure an item is actually selected
+                            Set(varIsItemSelected, true);
+                            Set(varNewMode, false);
+                            Set(varEditMode, true);
+                            Set(varCurrentItem, Gallery2.Selected); // Set the selected item to varCurrentItem
+                            Navigate(Inventory, ScreenTransition.None), // Force a full screen refresh by navigating to itself
+                            Notify("Please select an item to view/edit.", NotificationType.Warning, 3000) // User feedback if no item is selected
+                        )
+                    TemplatePadding: =0
+                    TemplateSize: =74
+                    Width: =Parent.Width
+                    X: =Parent.X
+                    Y: =Parent.Y
+                    ZIndex: =4
+
+                    Title4 As Label:
+                        AutoHeight: =false
+                        Color: =
+                        DisplayMode: =DisplayMode.Edit
+                        FontSize: =10.5
+                        FontWeight: =FontWeight.Semibold
+                        Height: =24
+                        OnChange: =false
+                        OnSelect: =Select(Parent)
+                        PCFTeamsTheme: ="default"
+                        TabIndex: =-1
+                        Text: =ThisItem.Name
+                        VerticalAlignment: =VerticalAlign.Top
+                        Width: =328
+                        X: =12
+                        Y: =2
+                        ZIndex: =2
+
+                    Subtitle2 As Label:
+                        Color: =
+                        DisplayMode: =DisplayMode.Edit
+                        FontSize: =9
+                        FontWeight: =FontWeight.Normal
+                        Height: =24
+                        OnChange: =false
+                        OnSelect: =Select(Parent)
+                        PCFTeamsTheme: ="default"
+                        TabIndex: =-1
+                        Text: |-
+                            ="Man: "& ThisItem.Manufacturer_Lookup
+                        VerticalAlignment: =VerticalAlign.Top
+                        Width: =Title4.Width
+                        X: =Title4.X
+                        Y: =Title4.Y + Title4.Height - 6
+                        ZIndex: =3
+
+                    TextCanvas4 As Text:
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: |-
+                            =Switch(
+                                true,
+                                ThisItem.Quantity < 1,
+                                RGBA(220, 38, 38, 1),     // Red for expired
+                                RGBA(68, 68, 68, .0)       // Dark gray for normal
+                            )
+                        FontColor: =
+                        Height: =28
+                        PCFTeamsTheme: ="default"
+                        Text: |-
+                            ="Quantity: " & ThisItem.Quantity&" "&LookUp(GTIN_Lookups,ThisItem.ItemID=GTIN, 'Unit Quantities')
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =96
+                        X: =340
+                        Y: =3
+                        ZIndex: =4
+
+                    TextCanvas4_1 As Text:
+                        Align: ="Start"
+                        AutoHeight: =false
+                        BorderColor: =
+                        BorderStyle: =""
+                        ContentLanguage: =""
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        Font: =""
+                        FontColor: =
+                        FontItalic: =false
+                        FontStrikethrough: =false
+                        FontUnderline: =false
+                        Height: =23
+                        Size: =14
+                        TabIndex: =0
+                        Text: |-
+                            ="Category: " & ThisItem.'Item Category'
+                        Tooltip: =""
+                        VerticalAlign: =""
+                        Visible: =true
+                        Weight: ="Regular"
+                        Width: =197
+                        Wrap: =true
+                        X: =340
+                        Y: =51
+                        ZIndex: =5
+
+                    TextCanvas4_2 As Text:
+                        Align: ="Start"
+                        AutoHeight: =false
+                        BorderColor: =
+                        BorderStyle: =""
+                        ContentLanguage: =""
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: |-
+                            =Switch(
+                                true,
+                                ThisItem.Expiration < Today(),
+                                RGBA(220, 38, 38, 1),     // Red for expired
+                                ThisItem.Expiration <= DateAdd(Today(), 7),
+                                RGBA(234, 88, 12, .2),     // Orange for expiring soon
+                                ThisItem.Expiration <= DateAdd(Today(), 30),
+                                RGBA(251, 191, 36, .2),    // Yellow for caution
+                                RGBA(68, 68, 68, .2)       // Dark gray for normal
+                            )
+                        Font: =""
+                        FontColor: =
+                        FontItalic: =false
+                        FontStrikethrough: =false
+                        FontUnderline: =false
+                        Height: =23
+                        Size: =14
+                        TabIndex: =0
+                        Text: |-
+                            ="Exp: " & DateValue(ThisItem.Expiration,"en")
+                        Tooltip: =""
+                        VerticalAlign: =""
+                        Visible: =true
+                        Weight: ="Regular"
+                        Width: =115
+                        Wrap: =true
+                        X: =12
+                        Y: =51
+                        ZIndex: =6
+
+                    TextCanvas4_3 As Text:
+                        Align: ="Start"
+                        AutoHeight: =false
+                        BorderColor: =
+                        BorderStyle: =""
+                        ContentLanguage: =""
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        Font: =""
+                        FontColor: =
+                        FontItalic: =false
+                        FontStrikethrough: =false
+                        FontUnderline: =false
+                        Height: =23
+                        Size: =14
+                        TabIndex: =0
+                        Text: |-
+                            ="Last Modified: " & DateValue(ThisItem.'Modified On', "en")
+                        Tooltip: =""
+                        VerticalAlign: =""
+                        Visible: =true
+                        Weight: ="Regular"
+                        Width: =168
+                        Wrap: =true
+                        X: =161
+                        Y: =51
+                        ZIndex: =7
+
+                    TextCanvas4_4 As Text:
+                        Align: ="Start"
+                        AutoHeight: =true
+                        BorderColor: =
+                        BorderStyle: =""
+                        ContentLanguage: =""
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        Font: =""
+                        FontColor: =
+                        FontItalic: =false
+                        FontStrikethrough: =false
+                        FontUnderline: =false
+                        Height: =18
+                        Size: =14
+                        TabIndex: =0
+                        Text: |-
+                            ="Lot: " & ThisItem.Batch
+                        Tooltip: =""
+                        VerticalAlign: =VerticalAlign.Middle
+                        Visible: =true
+                        Weight: ="Regular"
+                        Width: =275
+                        Wrap: =true
+                        X: =161
+                        Y: =31
+                        ZIndex: =8
+
+                    Rectangle3 As rectangle:
+                        BorderColor: =RGBA(53, 61, 63, 1)
+                        BorderThickness: =1
+                        DisabledFill: =RGBA(0,0,0,0)
+                        Fill: =If(ThisItem.IsSelected, RGBA(98, 100, 167, 0.2), RGBA(0, 0, 0, 0))
+                        FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                        Height: =Parent.TemplateHeight
+                        HoverFill: =RGBA(98, 100, 167, 0.2)
+                        OnSelect: =Select(Parent)
+                        PressedFill: =RGBA(98, 130, 167, 0.1)
+                        TabIndex: =0
+                        Width: =Parent.TemplateWidth
+                        ZIndex: =9
+
+            RightContainer1_2 As groupContainer.horizontalAutoLayoutContainer:
+                FillPortions: =7
+                LayoutAlignItems: =LayoutAlignItems.Stretch
+                LayoutDirection: =LayoutDirection.Vertical
+                LayoutGap: =16
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =100
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                PaddingBottom: =2
+                PaddingLeft: =2
+                PaddingRight: =2
+                Visible: =If(Or(varDeleteMode, And(Inventory.Size = ScreenSize.Small, !varNewMode, !varIsItemSelected)), false, true)
+                Width: =0
+                ZIndex: =3
+
+                Container1_2 As groupContainer.horizontalAutoLayoutContainer:
+                    DropShadow: =DropShadow.Light
+                    Fill: =RGBA(255, 255, 255, 1)
+                    FillPortions: =0
+                    Height: =60
+                    LayoutGridColumnMinWidth: =0
+                    LayoutGridColumns: =6
+                    LayoutGridRowMinHeight: =0
+                    LayoutGridRows: =6
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =40
+                    LayoutMinWidth: =250
+                    LayoutMode: =LayoutMode.Auto
+                    RadiusBottomLeft: =4
+                    RadiusBottomRight: =4
+                    RadiusTopLeft: =4
+                    RadiusTopRight: =4
+                    ZIndex: =1
+
+                    Container21_2 As groupContainer.horizontalAutoLayoutContainer:
+                        LayoutGap: =10
+                        LayoutGridColumnMinWidth: =0
+                        LayoutGridColumns: =6
+                        LayoutGridRowMinHeight: =0
+                        LayoutGridRows: =6
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =60
+                        LayoutMinWidth: =250
+                        LayoutMode: =LayoutMode.Auto
+                        PaddingLeft: =If(Inventory.Size = ScreenSize.Small,8,12)
+                        ZIndex: =1
+
+                        BackIcon1_2 As Button:
+                            AcceptsFocus: =true
+                            AccessibleLabel: =""
+                            Align: =""
+                            AlignInContainer: =AlignInContainer.Center
+                            Appearance: ='ButtonCanvas.Appearance'.Transparent
+                            BasePaletteColor: =
+                            BorderColor: =
+                            BorderStyle: =""
+                            ContentLanguage: =""
+                            DisplayMode: =DisplayMode.Edit
+                            Font: =""
+                            FontColor: =
+                            FontItalic: =false
+                            FontSize: =0
+                            FontStrikethrough: =false
+                            FontUnderline: =false
+                            FontWeight: =""
+                            Height: =32
+                            Icon: ="ArrowLeft"
+                            IconRotation: =0
+                            IconStyle: ="Outline"
+                            Layout: ='ButtonCanvas.Layout'.IconBefore
+                            LayoutMaxHeight: =
+                            LayoutMaxWidth: =
+                            LayoutMinHeight: =32
+                            LayoutMinWidth: =96
+                            OnSelect: |-
+                                =ResetForm(Form1_2); UpdateContext({ newMode: false, editMode: false, CurrentItem: First(Gallery2.AllItems), isItemSelected:false });
+                            TabIndex: =0
+                            Text: ="Back"
+                            Tooltip: =""
+                            VerticalAlign: =""
+                            Visible: =If(And(Inventory.Size = ScreenSize.Small, !varDeleteMode), true, false)
+                            Width: =If(Inventory.Size = ScreenSize.Small, 75, 96)
+                            X: =0
+                            Y: =0
+                            ZIndex: =1
+
+                        NewRecordButton1_2 As Button:
+                            AcceptsFocus: =true
+                            AccessibleLabel: =""
+                            Align: =""
+                            AlignInContainer: =AlignInContainer.Center
+                            Appearance: ='ButtonCanvas.Appearance'.Primary
+                            BasePaletteColor: =
+                            BorderColor: =
+                            BorderStyle: =""
+                            ContentLanguage: =""
+                            DisplayMode: =DisplayMode.Edit
+                            Font: =""
+                            FontColor: =
+                            FontItalic: =false
+                            FontSize: =0
+                            FontStrikethrough: =false
+                            FontUnderline: =false
+                            FontWeight: =""
+                            Height: =32
+                            Icon: ="Add"
+                            IconRotation: =0
+                            IconStyle: ="Outline"
+                            Layout: ="Icon before"
+                            LayoutMaxHeight: =
+                            LayoutMaxWidth: =
+                            LayoutMinHeight: =32
+                            LayoutMinWidth: =96
+                            OnSelect: =NewForm(Form1_2); Set( varNewMode, true )
+                            TabIndex: =0
+                            Text: ="New"
+                            Tooltip: =""
+                            VerticalAlign: =""
+                            Visible: =If(Inventory.Size = ScreenSize.Small, false, And(!newMode, !varDeleteMode))
+                            Width: =If(Inventory.Size = ScreenSize.Small, 75, 96)
+                            X: =0
+                            Y: =0
+                            ZIndex: =2
+
+                        EditButton1_2 As Button:
+                            AcceptsFocus: =true
+                            AccessibleLabel: =""
+                            Align: =""
+                            AlignInContainer: =AlignInContainer.Center
+                            Appearance: ='ButtonCanvas.Appearance'.Transparent
+                            BasePaletteColor: =
+                            BorderColor: =
+                            BorderStyle: =""
+                            ContentLanguage: =""
+                            DisplayMode: =DisplayMode.Edit
+                            Font: =""
+                            FontColor: =
+                            FontItalic: =false
+                            FontSize: =0
+                            FontStrikethrough: =false
+                            FontUnderline: =false
+                            FontWeight: =""
+                            Height: =32
+                            Icon: ="Edit"
+                            IconRotation: =0
+                            IconStyle: ="Outline"
+                            Layout: ="Icon before"
+                            LayoutMaxHeight: =
+                            LayoutMaxWidth: =
+                            LayoutMinHeight: =32
+                            LayoutMinWidth: =96
+                            OnSelect: =Set(varEditMode, true); Set(varSelectedRecord, Gallery2.Selected)
+                            TabIndex: =0
+                            Text: ="Edit"
+                            Tooltip: =""
+                            VerticalAlign: =""
+                            Visible: =And(!newMode, !varDeleteMode)
+                            Width: =If(Inventory.Size = ScreenSize.Small, 75, 90)
+                            X: =0
+                            Y: =0
+                            ZIndex: =3
+
+                        DeleteButton1_2 As Button:
+                            AcceptsFocus: =true
+                            AccessibleLabel: =""
+                            Align: =""
+                            AlignInContainer: =AlignInContainer.Center
+                            Appearance: ='ButtonCanvas.Appearance'.Transparent
+                            BasePaletteColor: =
+                            BorderColor: =
+                            BorderStyle: =""
+                            ContentLanguage: =""
+                            DisplayMode: =DisplayMode.Edit
+                            Font: =""
+                            FontColor: =
+                            FontItalic: =false
+                            FontSize: =0
+                            FontStrikethrough: =false
+                            FontUnderline: =false
+                            FontWeight: =""
+                            Height: =32
+                            Icon: ="Delete"
+                            IconRotation: =0
+                            IconStyle: ="Outline"
+                            Layout: ="Icon before"
+                            LayoutMaxHeight: =
+                            LayoutMaxWidth: =
+                            LayoutMinHeight: =32
+                            LayoutMinWidth: =96
+                            OnSelect: =Set(varDeleteMode, true); Set(varSelectedRecord, Gallery2.Selected)
+                            TabIndex: =0
+                            Text: ="Delete"
+                            Tooltip: =""
+                            VerticalAlign: =""
+                            Visible: =And(!newMode, !varDeleteMode)
+                            Width: =If(Inventory.Size = ScreenSize.Small, 75, 70)
+                            X: =0
+                            Y: =0
+                            ZIndex: =4
+
+                        ArchiveExpiredButton As Button:
+                            AcceptsFocus: =true
+                            AccessibleLabel: =""
+                            Align: =""
+                            AlignInContainer: =AlignInContainer.Center
+                            Appearance: ="Primary"
+                            BasePaletteColor: =
+                            BorderColor: =
+                            BorderStyle: =""
+                            ContentLanguage: =""
+                            DisplayMode: =DisplayMode.Edit
+                            Font: =""
+                            FontColor: =
+                            FontItalic: =false
+                            FontSize: =0
+                            FontStrikethrough: =false
+                            FontUnderline: =false
+                            FontWeight: =""
+                            Height: =32
+                            Icon: =""
+                            IconRotation: =0
+                            IconStyle: ="Outline"
+                            Layout: ="Icon before"
+                            LayoutMaxHeight: =
+                            LayoutMaxWidth: =
+                            LayoutMinHeight: =32
+                            LayoutMinWidth: =96
+                            OnSelect: |-
+                                =ForAll(
+                                    Filter(Inventories, Expiration < Today() || Quantity <= 0),
+                                    Patch(
+                                        Expireds,
+                                        Defaults(Expireds),
+                                        {
+                                            Name: Name,
+                                            Lot: Batch,
+                                            expiration: Expiration,
+                                            quantity: Quantity,
+                                            manufacturer: Manufacturer_Lookup,
+                                            GTIN: ItemID,
+                                            archived_date: Today(),
+                                            Archived_reason: If(Expiration < Today(), "Expired", "Zero Quantity")
+                                        }
+                                    )
+                                );
+                                RemoveIf(Inventories, Expiration < Today() || Quantity <= 0);
+                                Notify("Expired and zero quantity items archived successfully", NotificationType.Success)
+                            TabIndex: =0
+                            Text: ="Archive Expired/Depleted Items"
+                            Tooltip: =""
+                            VerticalAlign: =
+                            Visible: =true
+                            Width: =200
+                            X: =0
+                            Y: =0
+                            ZIndex: =5
+
+                MainContainer1_2 As groupContainer.horizontalAutoLayoutContainer:
+                    DropShadow: =DropShadow.Light
+                    Fill: =RGBA(255, 255, 255, 1)
+                    LayoutDirection: =LayoutDirection.Vertical
+                    LayoutGap: =16
+                    LayoutGridColumnMinWidth: =0
+                    LayoutGridColumns: =6
+                    LayoutGridRowMinHeight: =0
+                    LayoutGridRows: =6
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =150
+                    LayoutMinWidth: =300
+                    LayoutMode: =LayoutMode.Auto
+                    LayoutOverflowY: =LayoutOverflow.Scroll
+                    PaddingTop: =8
+                    RadiusBottomLeft: =4
+                    RadiusBottomRight: =4
+                    RadiusTopLeft: =4
+                    RadiusTopRight: =4
+                    ZIndex: =2
+
+                    TextCanvas3 As Text:
+                        Align: ="Center"
+                        AlignInContainer: =AlignInContainer.Center
+                        AutoHeight: =true
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: |-
+                            =If(
+                                        varDeleteMode,
+                                        RGBA(255, 235, 238, 1), // Light Red for Delete
+                                        Switch(
+                                            Form1_2.Mode,
+                                            FormMode.Edit, RGBA(255, 253, 224, 1), // Light Yellow for Edit
+                                            FormMode.New, RGBA(226, 255, 239, 1),  // Light Green for New
+                                            RGBA(255, 255, 255, 1)                 // Default White for View
+                                        )
+                                    )
+                        FontColor: =
+                        Height: =32
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =32
+                        LayoutMinWidth: =96
+                        Size: =20
+                        Text: |-
+                            =Switch(
+                                Form1_2.Mode,
+                                FormMode.View,
+                                "View Mode",
+                                FormMode.Edit,
+                                "Edit Mode",
+                                FormMode.New,
+                                "New Record"
+                            )
+                        Width: =110
+                        X: =40
+                        Y: =40
+                        ZIndex: =1
+
+                    Form1_2 As form.PowerApps_CoreControls_Form:
+                        AcceptsFocus: =false
+                        BorderColor: =RGBA(243, 242, 241, 1)
+                        BorderStyle: =BorderStyle.None
+                        DataSource: =Inventories
+                        DefaultMode: =If(varNewMode, FormMode.New, varEditMode, FormMode.Edit, FormMode.View)
+                        FillPortions: =0.85
+                        Item: =varCurrentItem
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =100
+                        LayoutMinWidth: =300
+                        NumberOfColumns: =2
+                        OnFailure: |-
+                            =Notify(
+                                        "Error: " & If(
+                                            varNewMode,
+                                            "Failed to create item: ",
+                                            "Failed to update item: "
+                                        ) & Self.Error,
+                                        NotificationType.Error,
+                                        5000
+                                    )
+                        OnSuccess: |-
+                            =// Screens.Inventory.BodyContainer1_2.RightContainer1_2.MainContainer1_2.Form1_2.Properties.OnSuccess
+                            Set(varCurrentItem, Self.LastSubmit);
+                                    // REMOVED: Set(varIsItemSelected, false); // This was causing the issue
+                                    Set(varNewMode, false);
+                                    Set(varEditMode, false);
+                                    Notify(
+                                        If(varNewMode, "New item created successfully", "Item updated successfully"),
+                                        NotificationType.Success,
+                                        3000
+                                    );
+                                    ResetForm(Form1_2);
+                                    Set(varBarcodeData, Blank())
+                        UseFluentV9Cards: =true
+                        Width: =Parent.Width
+                        ZIndex: =2
+
+                        Name_DataCard1_1 As typedDataCard.fluentV9TextualEditCard:
+                            AutoHeight: =true
+                            BorderColor: =RGBA(243, 242, 241, 1)
+                            BorderStyle: =BorderStyle.Solid
+                            BorderThickness: =0
+                            ContentLanguage: =""
+                            DataField: ="cr31c_name"
+                            Default: =ThisItem.Name
+                            DisplayMode: =Parent.DisplayMode
+                            DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,Name)
+                            Fill: =RGBA(0, 0, 0, 0)
+                            Height: =70
+                            LayoutHeight: =0
+                            LayoutWidth: =0
+                            LayoutX: =0
+                            LayoutY: =0
+                            maximumHeight: =7680
+                            maximumWidth: =1366
+                            MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, Name)
+                            minimumHeight: =20
+                            minimumWidth: =20
+                            Required: =false
+                            Update: =DataCardValue1_1.Value
+                            Visible: =true
+                            Width: =459
+                            WidthFit: =false
+                            X: =0
+                            Y: =0
+                            ZIndex: =1
+
+                            DataCardKey1_1 As Text:
+                                Align: ="Start"
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =22
+                                Size: =14
+                                TabIndex: =0
+                                Text: =Parent.DisplayName
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =true
+                                Weight: ='TextCanvas.Weight'.Semibold
+                                Width: =Parent.Width - 48
+                                Wrap: =false
+                                X: =24
+                                Y: =10
+                                ZIndex: =1
+
+                            "DataCardValue1_1 As 'Text input'":
+                                AccessibleLabel: =Parent.DisplayName
+                                Align: =""
+                                Appearance: ="FilledDarker"
+                                BasePaletteColor: =
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =Parent.DisplayMode
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontSize: =0
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                FontWeight: =""
+                                Height: =32
+                                MaxLength: =-1
+                                Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                                OnChange: =false
+                                Placeholder: =""
+                                Required: =Parent.Required
+                                TabIndex: =0
+                                Tooltip: =""
+                                TriggerOutput: ="FocusOut"
+                                Type: ="Text"
+                                ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                Value: =Parent.Default
+                                Visible: =true
+                                Width: =Parent.Width - 48
+                                X: =24
+                                Y: =DataCardKey1_1.Y + DataCardKey1_1.Height + 4
+                                ZIndex: =2
+
+                            ErrorMessage1_1 As Text:
+                                Align: ="Start"
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =30
+                                Size: =14
+                                TabIndex: =0
+                                Text: =Parent.Error
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                                Weight: ="Regular"
+                                Width: =Parent.Width - 48
+                                Wrap: =true
+                                X: =24
+                                Y: =DataCardValue1_1.Y + DataCardValue1_1.Height
+                                ZIndex: =3
+
+                            StarVisible1_1 As Text:
+                                Align: ='TextCanvas.Align'.Center
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =30
+                                Size: =14
+                                TabIndex: =0
+                                Text: ="*"
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                                Weight: ="Regular"
+                                Width: =30
+                                Wrap: =true
+                                X: =0
+                                Y: =DataCardKey1_1.Y
+                                ZIndex: =4
+
+                        "'Item Category_DataCard1' As typedDataCard.fluentV9TextualEditCard":
+                            BorderColor: =RGBA(243, 242, 241, 1)
+                            BorderStyle: =BorderStyle.Solid
+                            DataField: ="cr31c_itemcategory"
+                            Default: =ThisItem.'Item Category'
+                            DisplayMode: =Parent.DisplayMode
+                            DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Item Category')
+                            Fill: =RGBA(0, 0, 0, 0)
+                            Height: =70
+                            MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, 'Item Category')
+                            Required: =false
+                            Update: =DropdownCanvas1.Selected.Value
+                            Width: =382
+                            X: =1
+                            Y: =3
+                            ZIndex: =1
+
+                            DataCardKey3 As Text:
+                                BorderColor: =
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                FontColor: =
+                                Height: =22
+                                PCFTeamsTheme: ="default"
+                                Text: =Parent.DisplayName
+                                Weight: ='TextCanvas.Weight'.Semibold
+                                Width: =Parent.Width - 48
+                                Wrap: =false
+                                X: =24
+                                Y: =10
+                                ZIndex: =1
+
+                            "DataCardValue3 As 'Text input'":
+                                AccessibleLabel: =Parent.DisplayName
+                                BasePaletteColor: =
+                                BorderColor: =
+                                DisplayMode: =Parent.DisplayMode
+                                Fill: =
+                                FontColor: =
+                                Height: =32
+                                Mode: ='TextInputCanvas.Mode'.SingleLine
+                                PCFTeamsTheme: ="default"
+                                Required: =Parent.Required
+                                TriggerOutput: ='TextInputCanvas.TriggerOutput'.FocusOut
+                                Type: ='TextInputCanvas.Type'.Text
+                                ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                Value: |-
+                                    =LookUp(
+                                        GTIN_Lookups,
+                                        GTIN = Text(ThisItem.ItemID),// Compare text column directly to a text value
+                                        First(ItemCategory).Value
+                                    )
+                                Visible: =false
+                                Width: =Parent.Width - 48
+                                X: =24
+                                Y: =DataCardKey3.Y + DataCardKey3.Height + 4
+                                ZIndex: =2
+
+                            ErrorMessage3 As Text:
+                                BorderColor: =
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                FontColor: =
+                                Height: =30
+                                PCFTeamsTheme: ="default"
+                                Text: =Parent.Error
+                                Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                                Width: =Parent.Width - 48
+                                Wrap: =true
+                                X: =24
+                                Y: =DataCardValue3.Y + DataCardValue3.Height
+                                ZIndex: =3
+
+                            StarVisible3 As Text:
+                                Align: ='TextCanvas.Align'.Center
+                                BorderColor: =
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                FontColor: =
+                                Height: =30
+                                PCFTeamsTheme: ="default"
+                                Text: ="*"
+                                Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                                Width: =30
+                                X: =0
+                                Y: =DataCardKey3.Y
+                                ZIndex: =4
+
+                            DropdownCanvas1 As Dropdown.pcfdataset:
+                                DefaultSelectedItems: |+
+                                    =If(
+                                        !IsBlank(ThisItem.'Item Category'),
+                                        [ThisItem.'Item Category'],
+                                        If(
+                                            !IsBlank(ThisItem.ItemID),
+                                            // CORRECTED: This now returns the full Choice record
+                                            [LookUp(GTIN_Lookups, GTIN = Text(ThisItem.ItemID)).ItemCategory],
+                                            []
+                                        )
+                                    )
+                                    
+                                DisplayMode: =DisplayMode.Edit
+                                Height: =36
+                                Items: =Sort(Distinct(Inventories, 'Item Category'), Value)
+                                PCFTeamsTheme: ="default"
+                                Width: =334
+                                X: =24
+                                Y: =32
+                                ZIndex: =5
+
+                        "'Modified By_DataCard1' As typedDataCard.fluentV9ComboBoxViewCard":
+                            BorderColor: =RGBA(243, 242, 241, 1)
+                            BorderStyle: =BorderStyle.Solid
+                            DataField: ="modifiedby"
+                            Default: =ThisItem.'Modified By'
+                            DisplayMode: =DisplayMode.View
+                            DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Modified By')
+                            Fill: =RGBA(0, 0, 0, 0)
+                            Height: =70
+                            Required: =false
+                            Width: =382
+                            X: =0
+                            Y: =4
+                            ZIndex: =1
+
+                            DataCardKey5 As Text:
+                                BorderColor: =
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                FontColor: =
+                                Height: =22
+                                PCFTeamsTheme: ="default"
+                                Text: =Parent.DisplayName
+                                Weight: ='TextCanvas.Weight'.Semibold
+                                Width: =Parent.Width - 48
+                                Wrap: =false
+                                X: =24
+                                Y: =10
+                                ZIndex: =1
+
+                            DataCardValue5 As Combobox.pcfdataset:
+                                DefaultSelectedItems: =[Parent.Default]
+                                DisplayMode: =DisplayMode.View
+                                Height: =32
+                                Items: =Choices([@Inventories].'Modified By')
+                                PCFTeamsTheme: ="default"
+                                ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                Width: =Parent.Width - 48
+                                X: =24
+                                Y: =DataCardKey5.Y + DataCardKey5.Height + 4
+                                ZIndex: =2
+
+                                "'First Name1' As PowerApps_CoreControls_ComboboxCanvasTemplate_dataField.textualColumn":
+                                    FieldDisplayName: ="First Name"
+                                    FieldName: ="firstname"
+                                    FieldType: ="s"
+                                    FieldVariantName: ="textualColumn"
+                                    Order: =1
+                                    ZIndex: =11
+
+                                "'Last Name1' As PowerApps_CoreControls_ComboboxCanvasTemplate_dataField.textualColumn":
+                                    FieldDisplayName: ="Last Name"
+                                    FieldName: ="lastname"
+                                    FieldType: ="s"
+                                    FieldVariantName: ="textualColumn"
+                                    Order: =2
+                                    ZIndex: =12
+
+                                "'Full Name1' As PowerApps_CoreControls_ComboboxCanvasTemplate_dataField.textualColumn":
+                                    FieldDisplayName: ="Full Name"
+                                    FieldName: ="fullname"
+                                    FieldType: ="s"
+                                    FieldVariantName: ="textualColumn"
+                                    Order: =3
+                                    ZIndex: =13
+
+                                "'Invitation Status1' As PowerApps_CoreControls_ComboboxCanvasTemplate_dataField.textualColumn":
+                                    FieldDisplayName: ="Invitation Status"
+                                    FieldName: ="invitestatuscode"
+                                    FieldType: ="l"
+                                    FieldVariantName: ="textualColumn"
+                                    Order: =4
+                                    ZIndex: =14
+
+                                "'System Managed User Type1' As PowerApps_CoreControls_ComboboxCanvasTemplate_dataField.textualColumn":
+                                    FieldDisplayName: ="System Managed User Type"
+                                    FieldName: ="systemmanagedusertype"
+                                    FieldType: ="l"
+                                    FieldVariantName: ="textualColumn"
+                                    Order: =5
+                                    ZIndex: =15
+
+                        "'Modified On_DataCard1' As typedDataCard.fluentV9TextualViewCard":
+                            BorderColor: =RGBA(243, 242, 241, 1)
+                            BorderStyle: =BorderStyle.Solid
+                            DataField: ="modifiedon"
+                            Default: =ThisItem.'Modified On'
+                            DisplayMode: =DisplayMode.View
+                            DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Modified On')
+                            Fill: =RGBA(0, 0, 0, 0)
+                            Height: =70
+                            Required: =false
+                            Width: =382
+                            X: =1
+                            Y: =4
+                            ZIndex: =1
+
+                            DataCardKey6 As Text:
+                                BorderColor: =
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                FontColor: =
+                                Height: =22
+                                PCFTeamsTheme: ="default"
+                                Text: =Parent.DisplayName
+                                Weight: ='TextCanvas.Weight'.Semibold
+                                Width: =Parent.Width - 48
+                                Wrap: =false
+                                X: =24
+                                Y: =10
+                                ZIndex: =1
+
+                            "DataCardValue6 As 'Text input'":
+                                AccessibleLabel: =Parent.DisplayName
+                                BasePaletteColor: =
+                                BorderColor: =
+                                DisplayMode: =DisplayMode.View
+                                Fill: =
+                                FontColor: =
+                                Height: =32
+                                Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                                PCFTeamsTheme: ="default"
+                                Required: =Parent.Required
+                                ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                Value: =Parent.Default
+                                Width: =Parent.Width - 48
+                                X: =24
+                                Y: =DataCardKey6.Y + DataCardKey6.Height + 4
+                                ZIndex: =2
+
+                        CleanedBarcode_DataCard2 As typedDataCard.fluentV9TextualEditCard:
+                            BorderColor: =RGBA(243, 242, 241, 1)
+                            BorderStyle: =BorderStyle.Solid
+                            DataField: ="cr31c_cleanedbarcode"
+                            Default: =ThisItem.CleanedBarcode
+                            DisplayMode: =Parent.DisplayMode
+                            DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,CleanedBarcode)
+                            Fill: =RGBA(0, 0, 0, 0)
+                            Height: =70
+                            MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, CleanedBarcode)
+                            Required: =false
+                            Update: =DataCardValue8.Value
+                            Width: =382
+                            X: =0
+                            Y: =5
+                            ZIndex: =1
+
+                            DataCardKey8 As Text:
+                                BorderColor: =
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                FontColor: =
+                                Height: =22
+                                PCFTeamsTheme: ="default"
+                                Text: =Parent.DisplayName
+                                Weight: ='TextCanvas.Weight'.Semibold
+                                Width: =Parent.Width - 48
+                                Wrap: =false
+                                X: =24
+                                Y: =10
+                                ZIndex: =1
+
+                            "DataCardValue8 As 'Text input'":
+                                AccessibleLabel: =Parent.DisplayName
+                                BasePaletteColor: =
+                                BorderColor: =
+                                DisplayMode: =Parent.DisplayMode
+                                Fill: =
+                                FontColor: =
+                                Height: =32
+                                Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                                PCFTeamsTheme: ="default"
+                                Required: =Parent.Required
+                                ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                Value: =Parent.Default
+                                Width: =Parent.Width - 48
+                                X: =24
+                                Y: =DataCardKey8.Y + DataCardKey8.Height + 4
+                                ZIndex: =2
+
+                            ErrorMessage6 As Text:
+                                BorderColor: =
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                FontColor: =
+                                Height: =30
+                                PCFTeamsTheme: ="default"
+                                Text: =Parent.Error
+                                Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                                Width: =Parent.Width - 48
+                                Wrap: =true
+                                X: =24
+                                Y: =DataCardValue8.Y + DataCardValue8.Height
+                                ZIndex: =3
+
+                            StarVisible6 As Text:
+                                Align: ='TextCanvas.Align'.Center
+                                BorderColor: =
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                FontColor: =
+                                Height: =30
+                                PCFTeamsTheme: ="default"
+                                Text: ="*"
+                                Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                                Width: =30
+                                X: =0
+                                Y: =DataCardKey8.Y
+                                ZIndex: =4
+
+                        Barcode_DataCard1_1 As typedDataCard.fluentV9TextualEditCard:
+                            AutoHeight: =true
+                            BorderColor: =RGBA(243, 242, 241, 1)
+                            BorderStyle: =BorderStyle.Solid
+                            BorderThickness: =0
+                            ContentLanguage: =""
+                            DataField: ="cr31c_barcode"
+                            Default: =ThisItem.Barcode
+                            DisplayMode: =Parent.DisplayMode
+                            DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,Barcode)
+                            Fill: =RGBA(0, 0, 0, 0)
+                            Height: =70
+                            LayoutHeight: =0
+                            LayoutWidth: =0
+                            LayoutX: =0
+                            LayoutY: =0
+                            maximumHeight: =7680
+                            maximumWidth: =1366
+                            MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, Barcode)
+                            minimumHeight: =20
+                            minimumWidth: =20
+                            Required: =false
+                            Update: =BarcodeScanner1_1.Value
+                            Visible: =true
+                            Width: =459
+                            WidthFit: =false
+                            X: =1
+                            Y: =0
+                            ZIndex: =2
+
+                            DataCardKey2_1 As Text:
+                                Align: ="Start"
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =22
+                                Size: =14
+                                TabIndex: =0
+                                Text: =Parent.DisplayName
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =true
+                                Weight: ='TextCanvas.Weight'.Semibold
+                                Width: =Parent.Width - 48
+                                Wrap: =false
+                                X: =24
+                                Y: =10
+                                ZIndex: =1
+
+                            "BarcodeScanner1_1 As 'Text input'":
+                                AccessibleLabel: =Parent.DisplayName
+                                Align: =""
+                                Appearance: ="FilledDarker"
+                                BasePaletteColor: =
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =Parent.DisplayMode
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontSize: =0
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                FontWeight: =""
+                                Height: =32
+                                MaxLength: =-1
+                                Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                                OnChange: |-
+                                    =// Barcode for testing: 013038290221261510519830017251117300100
+                                    // Clean the barcode
+                                    Set(cleanedBarcode, Substitute(Substitute(BarcodeInput_1.Value, "(", ""), ")", ""));
+                                    
+                                    // --- EXTRACTION LOGIC (PROCEDURAL & RELIABLE - NO REGEX) ---
+                                    
+                                    // 1. Extract GTIN (AI 01)
+                                    // GTIN is always first and has a fixed length.
+                                    Set(gtin, If(StartsWith(cleanedBarcode, "01"), Mid(cleanedBarcode, 3, 14), ""));
+                                    
+                                    // 2. Extract Expiration Date (AI 17) - using Find() and Mid()
+                                    Set(startOfExpiryAI, Find("17", cleanedBarcode));
+                                    Set(expiry,
+                                        If(startOfExpiryAI > 0,
+                                            // The expiry date is always 6 digits long after the "17"
+                                            Mid(cleanedBarcode, startOfExpiryAI + 2, 6),
+                                            "" // If "17" is not found, return blank
+                                        )
+                                    );
+                                    
+                                    // 3. Extract Batch Number (AI 10) - using Find() and Mid()
+                                    Set(startOfBatchAI, Find("10", cleanedBarcode));
+                                    If(startOfBatchAI > 0,
+                                        // We found "10". Now find the start of the next AI after it.
+                                        Set(stringAfterBatch, Mid(cleanedBarcode, startOfBatchAI + 2));
+                                        
+                                        // Find the positions of the next possible AIs within the remaining string.
+                                        Set(pos17, Find("17", stringAfterBatch));
+                                        Set(pos30, Find("30", stringAfterBatch));
+                                        
+                                        // Determine the length of the batch data.
+                                        Set(batchLength, 
+                                            Coalesce(
+                                                If(pos17 > 0, pos17 - 1),
+                                                If(pos30 > 0, pos30 - 1),
+                                                Len(stringAfterBatch) // If no other AI is found, take to the end
+                                            )
+                                        );
+                                        
+                                        // Extract the batch number using the calculated length.
+                                        Set(batch, Left(stringAfterBatch, batchLength));
+                                    ,
+                                        // If "10" was not found, set batch to blank.
+                                        Set(batch, "")
+                                    );
+                                    
+                                    
+                                    // --- YOUR EXISTING FORM LOGIC (UNCHANGED) ---
+                                    
+                                    // Format expiration date
+                                    If(!IsBlank(expiry),
+                                       Set(expiryYear, "20" & Left(expiry, 2));
+                                       Set(expiryMonth, Mid(expiry, 3, 2));
+                                       Set(expiryDay, Right(expiry, 2));
+                                       Set(tempDate, Date(Value(expiryYear), Value(expiryMonth), Value(expiryDay))),
+                                       Set(tempDate, Blank())
+                                    );
+                                    
+                                    // Check if barcode exists in inventory...
+                                    Set(existingInventory, LookUp(Inventories, Barcode = BarcodeInput_1.Value));
+                                    
+                                    // Set form mode...
+                                    If(IsBlank(existingInventory),
+                                       If(!IsBlank(gtin),
+                                          With({productLookup: LookUp(GTIN_Lookups, GTIN = gtin)},
+                                             If(!IsBlank(productLookup),
+                                                NewForm(InventoryForm_1);
+                                                Set(varProductName, productLookup.ItemName);
+                                                Set(varManufacturer, productLookup.ItemManufacturer);
+                                                SetFocus(DataCardValue4_1),
+                                                
+                                                Set(varRegistrationGTIN, gtin);
+                                                Set(varRegistrationBatch, batch);
+                                                Set(varRegistrationExpiry, tempDate);
+                                                Set(varRegistrationBarcode, BarcodeInput_1.Value);
+                                                Navigate(Registration, ScreenTransition.None);
+                                                Notify("Unknown product - Please register it first", NotificationType.Warning, 3000)
+                                             )
+                                          ),
+                                          NewForm(InventoryForm_1);
+                                       ),
+                                       EditForm(InventoryForm_1);
+                                       SetFocus(DataCardValue4_1)
+                                    )
+                                Placeholder: =""
+                                Required: =Parent.Required
+                                TabIndex: =0
+                                Tooltip: =""
+                                TriggerOutput: ="FocusOut"
+                                Type: ="Text"
+                                ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                Value: =Parent.Default
+                                Visible: =true
+                                Width: =Parent.Width - 48
+                                X: =24
+                                Y: =DataCardKey2_1.Y + DataCardKey2_1.Height + 4
+                                ZIndex: =2
+
+                            ErrorMessage2_1 As Text:
+                                Align: ="Start"
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =30
+                                Size: =14
+                                TabIndex: =0
+                                Text: =Parent.Error
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                                Weight: ="Regular"
+                                Width: =Parent.Width - 48
+                                Wrap: =true
+                                X: =24
+                                Y: =BarcodeScanner1_1.Y + BarcodeScanner1_1.Height
+                                ZIndex: =3
+
+                            StarVisible2_1 As Text:
+                                Align: ='TextCanvas.Align'.Center
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =30
+                                Size: =14
+                                TabIndex: =0
+                                Text: ="*"
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                                Weight: ="Regular"
+                                Width: =30
+                                Wrap: =true
+                                X: =0
+                                Y: =DataCardKey2_1.Y
+                                ZIndex: =4
+
+                        Batch_DataCard1_1 As typedDataCard.fluentV9TextualEditCard:
+                            AutoHeight: =true
+                            BorderColor: =RGBA(243, 242, 241, 1)
+                            BorderStyle: =BorderStyle.Solid
+                            BorderThickness: =0
+                            ContentLanguage: =""
+                            DataField: ="cr31c_batch"
+                            Default: =ThisItem.Batch
+                            DisplayMode: =Parent.DisplayMode
+                            DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,Batch)
+                            Fill: =RGBA(0, 0, 0, 0)
+                            Height: =70
+                            LayoutHeight: =0
+                            LayoutWidth: =0
+                            LayoutX: =0
+                            LayoutY: =0
+                            maximumHeight: =7680
+                            maximumWidth: =1366
+                            MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, Batch)
+                            minimumHeight: =20
+                            minimumWidth: =20
+                            Required: =false
+                            Update: =DataCardValue3_1.Value
+                            Visible: =true
+                            Width: =459
+                            WidthFit: =false
+                            X: =0
+                            Y: =1
+                            ZIndex: =3
+
+                            DataCardKey3_1 As Text:
+                                Align: ="Start"
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =22
+                                Size: =14
+                                TabIndex: =0
+                                Text: |-
+                                    ="Batch/Lot #"
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =true
+                                Weight: ='TextCanvas.Weight'.Semibold
+                                Width: =Parent.Width - 48
+                                Wrap: =false
+                                X: =24
+                                Y: =10
+                                ZIndex: =1
+
+                            "DataCardValue3_1 As 'Text input'":
+                                AccessibleLabel: =Parent.DisplayName
+                                Align: =""
+                                Appearance: ="FilledDarker"
+                                BasePaletteColor: =
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =Parent.DisplayMode
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontSize: =0
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                FontWeight: =""
+                                Height: =32
+                                MaxLength: =-1
+                                Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                                OnChange: =false
+                                Placeholder: =""
+                                Required: =Parent.Required
+                                TabIndex: =0
+                                Tooltip: =""
+                                TriggerOutput: ="FocusOut"
+                                Type: ="Text"
+                                ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                Value: =Parent.Default
+                                Visible: =true
+                                Width: =Parent.Width - 48
+                                X: =24
+                                Y: =DataCardKey3_1.Y + DataCardKey3_1.Height + 4
+                                ZIndex: =2
+
+                            ErrorMessage3_1 As Text:
+                                Align: ="Start"
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =30
+                                Size: =14
+                                TabIndex: =0
+                                Text: =Parent.Error
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                                Weight: ="Regular"
+                                Width: =Parent.Width - 48
+                                Wrap: =true
+                                X: =24
+                                Y: =DataCardValue3_1.Y + DataCardValue3_1.Height
+                                ZIndex: =3
+
+                            StarVisible3_1 As Text:
+                                Align: ='TextCanvas.Align'.Center
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =30
+                                Size: =14
+                                TabIndex: =0
+                                Text: ="*"
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                                Weight: ="Regular"
+                                Width: =30
+                                Wrap: =true
+                                X: =0
+                                Y: =DataCardKey3_1.Y
+                                ZIndex: =4
+
+                        Quantity_DataCard1_1 As typedDataCard.fluentV9NumberEditCard:
+                            AutoHeight: =true
+                            BorderColor: =RGBA(243, 242, 241, 1)
+                            BorderStyle: =BorderStyle.Solid
+                            BorderThickness: =0
+                            ContentLanguage: =""
+                            DataField: ="cr31c_quantity"
+                            Default: =ThisItem.Quantity
+                            DisplayMode: =Parent.DisplayMode
+                            DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,Quantity)
+                            Fill: =RGBA(0, 0, 0, 0)
+                            Height: =70
+                            LayoutHeight: =0
+                            LayoutWidth: =0
+                            LayoutX: =0
+                            LayoutY: =0
+                            maximumHeight: =7680
+                            maximumWidth: =1366
+                            minimumHeight: =20
+                            minimumWidth: =20
+                            Required: =false
+                            Update: =Value(DataCardValue4_1.Value)
+                            Visible: =true
+                            Width: =459
+                            WidthFit: =false
+                            X: =1
+                            Y: =1
+                            ZIndex: =4
+
+                            DataCardKey5_1 As Text:
+                                Align: ="Start"
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =22
+                                Size: =14
+                                TabIndex: =0
+                                Text: ="Quantity (case/bx/sleeve)"
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =true
+                                Weight: ='TextCanvas.Weight'.Semibold
+                                Width: =Parent.Width - 48
+                                Wrap: =false
+                                X: =24
+                                Y: =10
+                                ZIndex: =1
+
+                            "DataCardValue4_1 As 'Number input'":
+                                AccessibleLabel: =Parent.DisplayName
+                                Align: =""
+                                Appearance: ="FilledDarker"
+                                BasePaletteColor: =
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DelayOutput: =false
+                                DisplayMode: =Parent.DisplayMode
+                                Fill: =
+                                FontSize: =0
+                                Height: =32
+                                Max: =Blank()
+                                Min: =Blank()
+                                OnChange: =false
+                                Precision: ="Auto"
+                                Step: =1
+                                TabIndex: =0
+                                Tooltip: =""
+                                ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                Value: =Parent.Default
+                                Visible: =true
+                                Width: =Parent.Width - 48
+                                X: =24
+                                Y: =DataCardKey5_1.Y + DataCardKey5_1.Height + 4
+                                ZIndex: =2
+
+                            ErrorMessage5_1 As Text:
+                                Align: ="Start"
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =30
+                                Size: =14
+                                TabIndex: =0
+                                Text: =Parent.Error
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                                Weight: ="Regular"
+                                Width: =Parent.Width - 48
+                                Wrap: =true
+                                X: =24
+                                Y: =DataCardValue4_1.Y + DataCardValue4_1.Height
+                                ZIndex: =3
+
+                            StarVisible5_1 As Text:
+                                Align: ='TextCanvas.Align'.Center
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =30
+                                Size: =14
+                                TabIndex: =0
+                                Text: ="*"
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                                Weight: ="Regular"
+                                Width: =30
+                                Wrap: =true
+                                X: =0
+                                Y: =DataCardKey5_1.Y
+                                ZIndex: =4
+
+                        Expiration_DataCard2_1 As typedDataCard.fluentV9DateTimeEditCard:
+                            AutoHeight: =true
+                            BorderColor: =RGBA(243, 242, 241, 1)
+                            BorderStyle: =BorderStyle.Solid
+                            BorderThickness: =0
+                            ContentLanguage: =""
+                            DataField: ="cr31c_expiration"
+                            Default: =ThisItem.Expiration
+                            DisplayMode: =Parent.DisplayMode
+                            DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,Expiration)
+                            Fill: =RGBA(0, 0, 0, 0)
+                            Height: =70
+                            LayoutHeight: =0
+                            LayoutWidth: =0
+                            LayoutX: =0
+                            LayoutY: =0
+                            maximumHeight: =7680
+                            maximumWidth: =1366
+                            minimumHeight: =20
+                            minimumWidth: =20
+                            Required: =false
+                            Update: =If(Not IsBlank(DateValue2_1.SelectedDate), DateTime(Year(DateValue2_1.SelectedDate), Month(DateValue2_1.SelectedDate), Day(DateValue2_1.SelectedDate), Value(HourValue2_1.Selected.Value), Value(MinuteValue2_1.Selected.Value), Second(DateValue2_1.SelectedDate)))
+                            Visible: =true
+                            Width: =459
+                            WidthFit: =false
+                            X: =0
+                            Y: =2
+                            ZIndex: =6
+
+                            DataCardKey7_1 As Text:
+                                Align: ="Start"
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =22
+                                Size: =14
+                                TabIndex: =0
+                                Text: =Parent.DisplayName
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =true
+                                Weight: ='TextCanvas.Weight'.Semibold
+                                Width: =Parent.Width - 48
+                                Wrap: =false
+                                X: =24
+                                Y: =10
+                                ZIndex: =1
+
+                            "DateValue2_1 As 'Date picker'":
+                                AccessibleLabel: =Parent.DisplayName
+                                Appearance: ="FilledDarker"
+                                BasePaletteColor: =
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DateTimeZone: ="Local"
+                                DisplayMode: =Parent.DisplayMode
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontSize: =0
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                FontWeight: =""
+                                Format: ="Long Abbreviated"
+                                Height: =32
+                                IsEditable: =false
+                                OnChange: =false
+                                Placeholder: ="Select a date..."
+                                Required: =false
+                                SelectedDate: =If(IsBlank(ThisItem.Expiration),varBarcodeData.ExpirationFormatted,ThisItem.Expiration)
+                                StartOfWeek: ="Sunday"
+                                TabIndex: =0
+                                Tooltip: =""
+                                ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                Visible: =true
+                                Width: =(Parent.Width - 48) / 2
+                                X: =24
+                                Y: =DataCardKey7_1.Y + DataCardKey7_1.Height + 4
+                                ZIndex: =2
+
+                            HourValue2_1 As Dropdown.pcfdataset:
+                                AccessibleLabel: =If(Parent.Required, Substitute("{0}. Required.", "{0}", Parent.DisplayName), Parent.DisplayName)
+                                Appearance: ="FilledDarker"
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DefaultSelectedItems: =[Text(Hour(Parent.Default),"00")]
+                                DisplayMode: =Parent.DisplayMode
+                                FontSize: =0
+                                Height: =28
+                                Items: =["00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23"]
+                                OnChange: =false
+                                Required: =Parent.Required
+                                TabIndex: =0
+                                Tooltip: =""
+                                ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                Visible: =false
+                                Width: =DateValue2_1.Width / 2 - 10
+                                X: =DateValue2_1.X + DateValue2_1.Width + 10
+                                Y: =DateValue2_1.Y + 1
+                                ZIndex: =3
+
+                            Separator2_1 As Text:
+                                Align: ='TextCanvas.Align'.Center
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =HourValue2_1.Height
+                                Size: =14
+                                TabIndex: =0
+                                Text: |-
+                                    =":"
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =false
+                                Weight: ="Regular"
+                                Width: =10
+                                Wrap: =true
+                                X: =HourValue2_1.X + HourValue2_1.Width
+                                Y: =HourValue2_1.Y
+                                ZIndex: =4
+
+                            MinuteValue2_1 As Dropdown.pcfdataset:
+                                AccessibleLabel: =If(Parent.Required, Substitute("{0}. Required.", "{0}", Parent.DisplayName), Parent.DisplayName)
+                                Appearance: ="FilledDarker"
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DefaultSelectedItems: =[Text(Minute(Parent.Default),"00")]
+                                DisplayMode: =Parent.DisplayMode
+                                FontSize: =0
+                                Height: =28
+                                Items: =["00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59"]
+                                OnChange: =false
+                                Required: =false
+                                TabIndex: =0
+                                Tooltip: =""
+                                ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                Visible: =false
+                                Width: =HourValue2_1.Width
+                                X: =HourValue2_1.X + HourValue2_1.Width + Separator2_1.Width
+                                Y: =HourValue2_1.Y + 1
+                                ZIndex: =5
+
+                            ErrorMessage7_1 As Text:
+                                Align: ="Start"
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =30
+                                Size: =14
+                                TabIndex: =0
+                                Text: =Parent.Error
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                                Weight: ="Regular"
+                                Width: =Parent.Width - 48
+                                Wrap: =true
+                                X: =24
+                                Y: =DateValue2_1.Y + DateValue2_1.Height
+                                ZIndex: =6
+
+                            StarVisible7_1 As Text:
+                                Align: ='TextCanvas.Align'.Center
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =20
+                                Size: =14
+                                TabIndex: =0
+                                Text: ="*"
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                                Weight: ="Regular"
+                                Width: =30
+                                Wrap: =true
+                                X: =0
+                                Y: =DataCardKey7_1.Y
+                                ZIndex: =7
+
+                        ItemID_DataCard1_1 As typedDataCard.fluentV9TextualEditCard:
+                            AutoHeight: =true
+                            BorderColor: =RGBA(243, 242, 241, 1)
+                            BorderStyle: =BorderStyle.Solid
+                            BorderThickness: =0
+                            ContentLanguage: =""
+                            DataField: ="cr31c_itemid"
+                            Default: =ThisItem.ItemID
+                            DisplayMode: =Parent.DisplayMode
+                            DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,ItemID)
+                            Fill: =RGBA(0, 0, 0, 0)
+                            Height: =70
+                            LayoutHeight: =0
+                            LayoutWidth: =0
+                            LayoutX: =0
+                            LayoutY: =0
+                            maximumHeight: =7680
+                            maximumWidth: =1366
+                            MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, ItemID)
+                            minimumHeight: =20
+                            minimumWidth: =20
+                            Required: =false
+                            Update: =DataCardValue6_1.Value
+                            Visible: =true
+                            Width: =459
+                            WidthFit: =false
+                            X: =1
+                            Y: =2
+                            ZIndex: =7
+
+                            DataCardKey8_1 As Text:
+                                Align: ="Start"
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =22
+                                Size: =14
+                                TabIndex: =0
+                                Text: ="GTIN/Item Number"
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =true
+                                Weight: ='TextCanvas.Weight'.Semibold
+                                Width: =Parent.Width - 48
+                                Wrap: =false
+                                X: =24
+                                Y: =10
+                                ZIndex: =1
+
+                            "DataCardValue6_1 As 'Text input'":
+                                AccessibleLabel: =Parent.DisplayName
+                                Align: =""
+                                Appearance: ="FilledDarker"
+                                BasePaletteColor: =
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =Parent.DisplayMode
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontSize: =0
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                FontWeight: =""
+                                Height: =32
+                                MaxLength: =-1
+                                Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                                OnChange: =false
+                                Placeholder: =""
+                                Required: =Parent.Required
+                                TabIndex: =0
+                                Tooltip: =""
+                                TriggerOutput: ="FocusOut"
+                                Type: ="Text"
+                                ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                Value: =If(IsBlank(ThisItem.ItemID),varBarcodeData.ItemID,ThisItem.ItemID)
+                                Visible: =true
+                                Width: =Parent.Width - 48
+                                X: =24
+                                Y: =DataCardKey8_1.Y + DataCardKey8_1.Height + 4
+                                ZIndex: =2
+
+                            ErrorMessage8_1 As Text:
+                                Align: ="Start"
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =30
+                                Size: =14
+                                TabIndex: =0
+                                Text: =Parent.Error
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                                Weight: ="Regular"
+                                Width: =Parent.Width - 48
+                                Wrap: =true
+                                X: =24
+                                Y: =DataCardValue6_1.Y + DataCardValue6_1.Height
+                                ZIndex: =3
+
+                            StarVisible8_1 As Text:
+                                Align: ='TextCanvas.Align'.Center
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =30
+                                Size: =14
+                                TabIndex: =0
+                                Text: ="*"
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                                Weight: ="Regular"
+                                Width: =30
+                                Wrap: =true
+                                X: =0
+                                Y: =DataCardKey8_1.Y
+                                ZIndex: =4
+
+                        Manufacturer_Lookup_DataCard1_1 As typedDataCard.fluentV9TextualEditCard:
+                            AutoHeight: =true
+                            BorderColor: =RGBA(243, 242, 241, 1)
+                            BorderStyle: =BorderStyle.Solid
+                            BorderThickness: =0
+                            ContentLanguage: =""
+                            DataField: ="cr31c_manufacturer_lookup"
+                            Default: =ThisItem.Manufacturer_Lookup
+                            DisplayMode: =Parent.DisplayMode
+                            DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,Manufacturer_Lookup)
+                            Fill: =RGBA(0, 0, 0, 0)
+                            Height: =70
+                            LayoutHeight: =0
+                            LayoutWidth: =0
+                            LayoutX: =0
+                            LayoutY: =0
+                            maximumHeight: =7680
+                            maximumWidth: =1366
+                            MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, Manufacturer_Lookup)
+                            minimumHeight: =20
+                            minimumWidth: =20
+                            Required: =false
+                            Update: =DropdownCanvas1_1.Selected.Value
+                            Visible: =true
+                            Width: =459
+                            WidthFit: =false
+                            X: =0
+                            Y: =3
+                            ZIndex: =8
+
+                            DataCardKey4_1 As Text:
+                                Align: ="Start"
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =22
+                                Size: =14
+                                TabIndex: =0
+                                Text: ="Manufacturer"
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =true
+                                Weight: ='TextCanvas.Weight'.Semibold
+                                Width: =Parent.Width - 48
+                                Wrap: =false
+                                X: =24
+                                Y: =10
+                                ZIndex: =1
+
+                            "DataCardValue2_1 As 'Text input'":
+                                AccessibleLabel: =Parent.DisplayName
+                                Align: =""
+                                Appearance: ="FilledDarker"
+                                BasePaletteColor: =
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =Parent.DisplayMode
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontSize: =0
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                FontWeight: =""
+                                Height: =32
+                                MaxLength: =-1
+                                Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                                OnChange: =false
+                                Placeholder: =""
+                                Required: =Parent.Required
+                                TabIndex: =0
+                                Tooltip: =""
+                                TriggerOutput: ="FocusOut"
+                                Type: ="Text"
+                                ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                                Value: =Parent.Default
+                                Visible: =false
+                                Width: =Parent.Width - 48
+                                X: =24
+                                Y: =DataCardKey4_1.Y + DataCardKey4_1.Height + 4
+                                ZIndex: =2
+
+                            ErrorMessage4_1 As Text:
+                                Align: ="Start"
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =30
+                                Size: =14
+                                TabIndex: =0
+                                Text: =Parent.Error
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                                Weight: ="Regular"
+                                Width: =Parent.Width - 48
+                                Wrap: =true
+                                X: =24
+                                Y: =DataCardValue2_1.Y + DataCardValue2_1.Height
+                                ZIndex: =3
+
+                            StarVisible4_1 As Text:
+                                Align: ='TextCanvas.Align'.Center
+                                AutoHeight: =false
+                                BorderColor: =
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DisplayMode: =DisplayMode.Edit
+                                Fill: =
+                                Font: =""
+                                FontColor: =
+                                FontItalic: =false
+                                FontStrikethrough: =false
+                                FontUnderline: =false
+                                Height: =30
+                                Size: =14
+                                TabIndex: =0
+                                Text: ="*"
+                                Tooltip: =""
+                                VerticalAlign: =""
+                                Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                                Weight: ="Regular"
+                                Width: =30
+                                Wrap: =true
+                                X: =0
+                                Y: =DataCardKey4_1.Y
+                                ZIndex: =4
+
+                            DropdownCanvas1_1 As Dropdown.pcfdataset:
+                                AccessibleLabel: =""
+                                Appearance: ="FilledDarker"
+                                BorderStyle: =""
+                                ContentLanguage: =""
+                                DefaultSelectedItems: =If(!IsBlank(ThisItem.Manufacturer_Lookup), [ThisItem.Manufacturer_Lookup], [])
+                                DisplayMode: =Parent.DisplayMode
+                                FontSize: =0
+                                Height: =36
+                                Items: =Sort(Distinct(Inventories, Manufacturer_Lookup), Value)
+                                OnChange: =false
+                                Required: =false
+                                TabIndex: =0
+                                Tooltip: =""
+                                ValidationState: ="None"
+                                Visible: =true
+                                Width: =411
+                                X: =24
+                                Y: =32
+                                ZIndex: =16
+
+                    ButtonContainer1_2 As groupContainer.horizontalAutoLayoutContainer:
+                        FillPortions: =0.15
+                        Height: =Parent.Height
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutGap: =10
+                        LayoutGridColumnMinWidth: =0
+                        LayoutGridColumns: =6
+                        LayoutGridRowMinHeight: =0
+                        LayoutGridRows: =6
+                        LayoutJustifyContent: =LayoutJustifyContent.End
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =50
+                        LayoutMinWidth: =250
+                        LayoutMode: =LayoutMode.Auto
+                        LayoutOverflowY: =LayoutOverflow.Scroll
+                        PaddingRight: =24
+                        ZIndex: =3
+
+                        CancelButton1_2 As Button:
+                            AcceptsFocus: =true
+                            AccessibleLabel: =""
+                            Align: =""
+                            Appearance: ='ButtonCanvas.Appearance'.Secondary
+                            BasePaletteColor: =
+                            BorderColor: =
+                            BorderStyle: =""
+                            ContentLanguage: =""
+                            DisplayMode: =DisplayMode.Edit
+                            Font: =""
+                            FontColor: =
+                            FontItalic: =false
+                            FontSize: =0
+                            FontStrikethrough: =false
+                            FontUnderline: =false
+                            FontWeight: =""
+                            Height: =32
+                            Icon: =""
+                            IconRotation: =0
+                            IconStyle: ="Outline"
+                            Layout: ="Icon before"
+                            LayoutMaxHeight: =
+                            LayoutMaxWidth: =
+                            LayoutMinHeight: =32
+                            LayoutMinWidth: =96
+                            OnSelect: |-
+                                =ResetForm(Form1_2); UpdateContext({ newMode: false, editMode: false, CurrentItem: First(Gallery2.AllItems), isItemSelected:false });
+                            TabIndex: =0
+                            Text: ="Cancel"
+                            Tooltip: =""
+                            VerticalAlign: =""
+                            Visible: =true
+                            Width: =96
+                            X: =0
+                            Y: =0
+                            ZIndex: =1
+
+                        SubmitButton1_2 As Button:
+                            AcceptsFocus: =true
+                            AccessibleLabel: =""
+                            Align: =""
+                            Appearance: ='ButtonCanvas.Appearance'.Primary
+                            BasePaletteColor: =
+                            BorderColor: =
+                            BorderStyle: =""
+                            ContentLanguage: =""
+                            DisplayMode: =DisplayMode.Edit
+                            Font: =""
+                            FontColor: =
+                            FontItalic: =false
+                            FontSize: =0
+                            FontStrikethrough: =false
+                            FontUnderline: =false
+                            FontWeight: =""
+                            Height: =32
+                            Icon: =""
+                            IconRotation: =0
+                            IconStyle: ="Outline"
+                            Layout: ="Icon before"
+                            LayoutMaxHeight: =
+                            LayoutMaxWidth: =
+                            LayoutMinHeight: =32
+                            LayoutMinWidth: =96
+                            OnSelect: |
+                                =SubmitForm(Form1_2)
+                            TabIndex: =0
+                            Text: ="Submit"
+                            Tooltip: =""
+                            VerticalAlign: =""
+                            Visible: =true
+                            Width: =96
+                            X: =0
+                            Y: =0
+                            ZIndex: =2
+
+        DeleteConfirmDialogContainer1_2 As groupContainer.horizontalAutoLayoutContainer:
+            DropShadow: =DropShadow.Light
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =100
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            Visible: =varDeleteMode
+            Width: =0
+            X: =40
+            Y: =40
+            ZIndex: =3
+
+            ConfirmDeleteLabelContainer1_2 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.Center
+                LayoutAlignItems: =LayoutAlignItems.End
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =100
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                PaddingBottom: =20
+                ZIndex: =1
+
+                TextCanvas1_2 As Text:
+                    Align: ="Center"
+                    AlignInContainer: =AlignInContainer.Center
+                    AutoHeight: =true
+                    BorderColor: =
+                    BorderStyle: =""
+                    ContentLanguage: =""
+                    DisplayMode: =DisplayMode.Edit
+                    Fill: =RGBA(215, 58, 60, 0.52)
+                    Font: =""
+                    FontColor: =
+                    FontItalic: =false
+                    FontStrikethrough: =false
+                    FontUnderline: =false
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =32
+                    LayoutMinWidth: =96
+                    Size: =30
+                    TabIndex: =0
+                    Text: ="Are you sure you want to delete '" & varSelectedRecord.Name & "'?"
+                    Tooltip: =""
+                    VerticalAlign: =""
+                    Visible: =true
+                    Weight: ="Regular"
+                    Width: =Parent.Width
+                    Wrap: =true
+                    X: =0
+                    Y: =0
+                    ZIndex: =1
+
+            ConfirmDeleteButtonBarContainer1_2 As groupContainer.horizontalAutoLayoutContainer:
+                LayoutGap: =15
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutJustifyContent: =LayoutJustifyContent.Center
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =100
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                LayoutWrap: =true
+                ZIndex: =2
+
+                ConfirmDeleteButton1_2 As Button:
+                    AcceptsFocus: =true
+                    AccessibleLabel: ="Delete"
+                    Align: =""
+                    Appearance: ="Primary"
+                    BasePaletteColor: =
+                    BorderColor: =
+                    BorderStyle: =""
+                    ContentLanguage: =""
+                    DisplayMode: =DisplayMode.Edit
+                    Font: =""
+                    FontColor: =
+                    FontItalic: =false
+                    FontSize: =0
+                    FontStrikethrough: =false
+                    FontUnderline: =false
+                    FontWeight: =""
+                    Height: =32
+                    Icon: =""
+                    IconRotation: =0
+                    IconStyle: ="Outline"
+                    Layout: ="Icon before"
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =32
+                    LayoutMinWidth: =96
+                    OnSelect: |-
+                        =If(
+                            varSelectedRecord.Quantity <= 0,
+                            // --- ARCHIVE LOGIC ---
+                            // If quantity is 0 or less, patch to Expireds and then remove.
+                            With(
+                                {archivedRecord: varSelectedRecord},
+                                Patch(
+                                    Expireds,
+                                    Defaults(Expireds),
+                                    {
+                                        Name: archivedRecord.Name,
+                                        Lot: archivedRecord.Batch,
+                                        expiration: archivedRecord.Expiration,
+                                        quantity: archivedRecord.Quantity,
+                                        manufacturer: archivedRecord.Manufacturer_Lookup,
+                                        GTIN: archivedRecord.ItemID,
+                                        archived_date: Today(),
+                                        Archived_reason: "Zero Quantity"
+                                    }
+                                );
+                                Remove(Inventories, archivedRecord);
+                        
+                                If(
+                                    IsEmpty(Errors(Inventories, archivedRecord)),
+                                    // Success actions for archiving
+                                    Notify("Item with zero quantity archived successfully.", NotificationType.Success, 3000);
+                                    Set(varIsItemSelected, false);
+                                    Set(varNewMode, false);
+                                    Set(varEditMode, false);
+                                    Set(varDeleteMode, false);
+                                    Set(varCurrentItem, Blank());
+                                    ResetForm(Form1_2),
+                                    // Failure action for archiving
+                                    Notify("Failed to archive item: " & First(Errors(Inventories, archivedRecord)).Message, NotificationType.Error, 5000)
+                                )
+                            ),
+                            // --- DELETE LOGIC (Original) ---
+                            // If quantity is greater than 0, perform the original delete action.
+                            With(
+                                {recordToDelete: varSelectedRecord},
+                                Remove(
+                                    Inventories,
+                                    recordToDelete
+                                );
+                                If(
+                                    IsEmpty(
+                                        Errors(
+                                            Inventories,
+                                            recordToDelete
+                                        )
+                                    ),
+                                    // Success actions for deleting
+                                    Set(varIsItemSelected, false);
+                                    Set(varNewMode, false);
+                                    Set(varEditMode, false);
+                                    Set(varDeleteMode, false);
+                                    Set(varCurrentItem, Blank());
+                                    ResetForm(Form1_2);
+                                    Notify(
+                                        "Item deleted successfully.",
+                                        NotificationType.Success,
+                                        3000
+                                    ),
+                                    // Failure action for deleting
+                                    Notify(
+                                        "Failed to delete item: " & First(
+                                            Errors(
+                                                Inventories,
+                                                recordToDelete
+                                            )
+                                        ).Message,
+                                        NotificationType.Error,
+                                        5000
+                                    )
+                                )
+                            )
+                        )
+                    TabIndex: =0
+                    Text: ="Delete"
+                    Tooltip: =""
+                    VerticalAlign: =""
+                    Visible: =true
+                    Width: =96
+                    X: =0
+                    Y: =0
+                    ZIndex: =1
+
+                CancelDeleteButton1_2 As Button:
+                    AcceptsFocus: =true
+                    AccessibleLabel: ="Cancel"
+                    Align: =""
+                    Appearance: ='ButtonCanvas.Appearance'.Secondary
+                    BasePaletteColor: =
+                    BorderColor: =
+                    BorderStyle: =""
+                    ContentLanguage: =""
+                    DisplayMode: =DisplayMode.Edit
+                    Font: =""
+                    FontColor: =
+                    FontItalic: =false
+                    FontSize: =0
+                    FontStrikethrough: =false
+                    FontUnderline: =false
+                    FontWeight: =""
+                    Height: =32
+                    Icon: =""
+                    IconRotation: =0
+                    IconStyle: ="Outline"
+                    Layout: ="Icon before"
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =32
+                    LayoutMinWidth: =96
+                    OnSelect: =Set(varDeleteMode, false)
+                    TabIndex: =0
+                    Text: ="Cancel"
+                    Tooltip: =""
+                    VerticalAlign: =""
+                    Visible: =true
+                    Width: =96
+                    X: =0
+                    Y: =0
+                    ZIndex: =2
+
+    NavBarControl_2 As groupContainer.horizontalAutoLayoutContainer:
+        DropShadow: =DropShadow.Light
+        Height: =51
+        LayoutAlignItems: =LayoutAlignItems.Center
+        LayoutGap: =20
+        LayoutGridColumnMinWidth: =0
+        LayoutGridColumns: =6
+        LayoutGridRowMinHeight: =0
+        LayoutGridRows: =6
+        LayoutJustifyContent: =LayoutJustifyContent.Center
+        LayoutMode: =LayoutMode.Auto
+        RadiusBottomLeft: =4
+        RadiusBottomRight: =4
+        RadiusTopLeft: =4
+        RadiusTopRight: =4
+        Width: =923
+        X: =221
+        Y: =25
+        ZIndex: =3
+
+        ButtonCanvas1_102 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =RGBA(106, 122, 127, 1)
+            BorderRadius: =1
+            BorderStyle: =BorderStyle.Solid
+            BorderThickness: =1
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =RGBA(255, 255, 255, 1)
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(Inventory)
+            TabIndex: =0
+            Text: ="Inventory"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_106.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =1
+
+        ButtonCanvas1_103 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =RGBA(106, 122, 127, 1)
+            BorderRadius: =1
+            BorderStyle: =BorderStyle.Solid
+            BorderThickness: =1
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =RGBA(255, 255, 255, 1)
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(Registration)
+            TabIndex: =0
+            Text: ="Registration"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_106.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =2
+
+        ButtonCanvas1_104 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =RGBA(106, 122, 127, 1)
+            BorderRadius: =1
+            BorderStyle: =BorderStyle.Solid
+            BorderThickness: =1
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =RGBA(255, 255, 255, 1)
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(QuickPick)
+            TabIndex: =0
+            Text: ="Quick Pick"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_106.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =3
+
+        ButtonCanvas1_Settings_18 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =RGBA(106, 122, 127, 1)
+            BorderRadius: =1
+            BorderStyle: =BorderStyle.Solid
+            BorderThickness: =1
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =RGBA(255, 255, 255, 1)
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(Settings)
+            TabIndex: =0
+            Text: ="Settings"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_106.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =4
+
+        ButtonCanvas1_105 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =RGBA(106, 122, 127, 1)
+            BorderRadius: =1
+            BorderStyle: =BorderStyle.Solid
+            BorderThickness: =1
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =RGBA(255, 255, 255, 1)
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(ItemList)
+            TabIndex: =0
+            Text: ="Item List"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_106.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =5
+
+        ButtonCanvas1_106 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =RGBA(106, 122, 127, 1)
+            BorderRadius: =1
+            BorderStyle: =BorderStyle.Solid
+            BorderThickness: =1
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =RGBA(255, 255, 255, 1)
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate('Table View')
+            TabIndex: =0
+            Text: ="Table View"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =Not(InventoryTool.Printing)
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_106.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =6
+
+        ButtonCanvas1_107 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =RGBA(106, 122, 127, 1)
+            BorderRadius: =1
+            BorderStyle: =BorderStyle.Solid
+            BorderThickness: =1
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =RGBA(255, 255, 255, 1)
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(InventoryTool)
+            TabIndex: =0
+            Text: ="Inventory Tool"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_106.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =7
+

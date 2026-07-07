@@ -1,0 +1,304 @@
+{
+  "properties": {
+    "connectionReferences": {},
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "barcodeString",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "barcode",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "0f770476-0842-42ba-b744-6293cf5faf54"
+          }
+        }
+      },
+      "actions": {
+        "Initialize_varExpiry": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varExpiry",
+                "type": "string"
+              }
+            ]
+          },
+          "runAfter": {
+            "Initialize_varBatch": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "22b3e4b5-3ded-41de-929c-265e1c1cf531"
+          }
+        },
+        "Initialize_varGTIN": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varGTIN",
+                "type": "string"
+              }
+            ]
+          },
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "019417e2-d3f4-468d-8050-4581e6a36afb"
+          }
+        },
+        "Initialize_varBatch": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varBatch",
+                "type": "string"
+              }
+            ]
+          },
+          "runAfter": {
+            "Initialize_varGTIN": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "0e15e728-80be-43f4-bbe2-23383a54db78"
+          }
+        },
+        "Respond_to_a_Power_App_or_flow": {
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "gtin_out": {
+                  "title": "GTIN_Out",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                },
+                "batch_out": {
+                  "title": "Batch_Out",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                },
+                "expiry_out": {
+                  "title": "Expiry_Out",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              },
+              "additionalProperties": {}
+            },
+            "statusCode": 200,
+            "body": {
+              "gtin_out": "@variables('varGTIN')",
+              "batch_out": "@variables('varBatch')",
+              "expiry_out": "@variables('varExpiry')"
+            }
+          },
+          "runAfter": {
+            "Condition_Check_for_GS_Character": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "57d652c7-a276-448f-90f2-fc8a4025c697"
+          }
+        },
+        "Compose_-_Barcode_without_GTIN": {
+          "type": "Compose",
+          "inputs": "@if(empty(outputs('Compose_-_GTIN')), outputs('Compose_-_Sanitized_Barcode_String'), replace(outputs('Compose_-_Sanitized_Barcode_String'), concat('01', outputs('Compose_-_GTIN')), ''))",
+          "runAfter": {
+            "Set_variable_GTIN": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "07aa0a1f-5f4f-4152-91ba-c3cddb5a87cc"
+          }
+        },
+        "Compose_-_Expiry": {
+          "type": "Compose",
+          "inputs": "@if(contains(outputs('Compose_-_Barcode_without_GTIN'), '17'), substring(outputs('Compose_-_Barcode_without_GTIN'), add(indexOf(outputs('Compose_-_Barcode_without_GTIN'), '17'), 2), 6), '')",
+          "runAfter": {
+            "Compose_-_Barcode_without_GTIN": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7e1a7aa3-8ebd-4edf-a752-c4a6cb32c6d6"
+          }
+        },
+        "Compose_-_Final_Cleaned_Barcode": {
+          "type": "Compose",
+          "inputs": "@if(empty(outputs('Compose_-_Expiry')), outputs('Compose_-_Barcode_without_GTIN'), replace(outputs('Compose_-_Barcode_without_GTIN'), concat('17', outputs('Compose_-_Expiry')), ''))",
+          "runAfter": {
+            "Set_variable_Expiry": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "99523e02-e752-4486-9fb3-ac83385693fa"
+          }
+        },
+        "Set_variable_Expiry": {
+          "type": "SetVariable",
+          "inputs": {
+            "name": "varExpiry",
+            "value": "@outputs('Compose_-_Expiry')"
+          },
+          "runAfter": {
+            "Compose_-_Expiry": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8b307503-8e70-46cf-b57f-9a9d313f0efa"
+          }
+        },
+        "Compose_-_GTIN": {
+          "type": "Compose",
+          "inputs": "@if(contains(outputs('Compose_-_Sanitized_Barcode_String'), '01'), substring(outputs('Compose_-_Sanitized_Barcode_String'), add(indexOf(outputs('Compose_-_Sanitized_Barcode_String'), '01'), 2), 14), '')",
+          "runAfter": {
+            "Compose_-_Sanitized_Barcode_String": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "21f6d694-b912-4bda-a96d-2f4ec7663a19"
+          }
+        },
+        "Compose_-_Sanitized_Barcode_String": {
+          "type": "Compose",
+          "inputs": "@replace(replace(replace(replace(replace(triggerBody()['text'], ']d2', ''), ']C1', ''), ']Q1', ''), ']A0NR', ''), ']', '')",
+          "runAfter": {
+            "Initialize_varExpiry": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7890716a-51c7-435f-bc4b-258bee2b9221"
+          }
+        },
+        "Set_variable_GTIN": {
+          "type": "SetVariable",
+          "inputs": {
+            "name": "varGTIN",
+            "value": "@outputs('Compose_-_GTIN')"
+          },
+          "runAfter": {
+            "Compose_-_GTIN": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e005beff-ddb5-4778-904c-96fd28785b0e"
+          }
+        },
+        "Compose_-_Post-Batch_String": {
+          "type": "Compose",
+          "inputs": "@if(contains(outputs('Compose_-_Final_Cleaned_Barcode'), '10'), substring(outputs('Compose_-_Final_Cleaned_Barcode'), add(indexOf(outputs('Compose_-_Final_Cleaned_Barcode'), '10'), 2)), '')",
+          "runAfter": {
+            "Compose_-_Final_Cleaned_Barcode": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "dd58b1da-ef81-4628-a848-b1b9f1c539a7"
+          }
+        },
+        "Condition_Check_for_GS_Character": {
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "contains": [
+                  "@outputs('Compose_-_Post-Batch_String')",
+                  "@uriComponentToString('%1D')"
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "Set_Batch_from_GS_Split": {
+              "type": "SetVariable",
+              "inputs": {
+                "name": "varBatch",
+                "value": "@first(split(outputs('Compose_-_Post-Batch_String'), uriComponentToString('%1D')))"
+              },
+              "metadata": {
+                "operationMetadataId": "5699abda-b4d8-4bfb-9dc1-9eeb1ec247b1"
+              }
+            }
+          },
+          "else": {
+            "actions": {
+              "Compose_-_Position_of_Next_AI": {
+                "type": "Compose",
+                "inputs": "@min(if(greater(indexOf(outputs('Compose_-_Post-Batch_String'), '21'), 0), indexOf(outputs('Compose_-_Post-Batch_String'), '21'), 999), if(greater(indexOf(outputs('Compose_-_Post-Batch_String'), '240'), 0), indexOf(outputs('Compose_-_Post-Batch_String'), '240'), 999), if(greater(indexOf(outputs('Compose_-_Post-Batch_String'), '30'), 0), indexOf(outputs('Compose_-_Post-Batch_String'), '30'), 999), if(greater(indexOf(outputs('Compose_-_Post-Batch_String'), '91'), 0), indexOf(outputs('Compose_-_Post-Batch_String'), '91'), 999))",
+                "metadata": {
+                  "operationMetadataId": "1f530c87-ba5e-44f2-8aa2-63712215990d"
+                }
+              },
+              "Set_Batch_from_Next_AI": {
+                "type": "SetVariable",
+                "inputs": {
+                  "name": "varBatch",
+                  "value": "@{if(less(outputs('Compose_-_Position_of_Next_AI'), 999), if(less(outputs('Compose_-_Position_of_Next_AI'), 2), outputs('Compose_-_Post-Batch_String'), substring(outputs('Compose_-_Post-Batch_String'), 0, outputs('Compose_-_Position_of_Next_AI'))), outputs('Compose_-_Post-Batch_String'))}"
+                },
+                "runAfter": {
+                  "Compose_-_Position_of_Next_AI": [
+                    "Succeeded"
+                  ]
+                },
+                "metadata": {
+                  "operationMetadataId": "6cccce6b-5eee-4b79-ae66-10feaa5ce92b"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Compose_-_Post-Batch_String": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "dde2a9dc-eb89-40cf-95b5-3ec13ce5c93c"
+          }
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

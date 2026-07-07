@@ -1,0 +1,39 @@
+NavBar As CanvasComponent:
+    Fill: =RGBA(0, 0, 0, 0)
+    Height: =60  
+    Width: =App.Width/2
+    X: =0
+    Y: =0
+    ZIndex: =1
+
+    NavItems As Table.pcfdataset:
+        DateOnlyFormat: ='PowerAppsOneGrid.DateOnlyFormat'.ShortDate
+        DateTimeFormat: ='PowerAppsOneGrid.DateTimeFormat'.ShortDateTime
+        DisplayMode: =DisplayMode.Edit
+        Height: =25
+        Items: =[]
+        onCellValueChange: =false
+        onFilter: =false
+        onNavigate: =false
+        onRowSelect: =false
+        onSave: =false
+        OnSelect: =false
+        PCFTeamsTheme: ="default"
+        Width: =683
+        X: =0
+        Y: =32
+        ZIndex: =1
+
+    "CurrentScreen As 'Text input'":
+        BasePaletteColor: =
+        BorderColor: =
+        DisplayMode: =DisplayMode.Edit
+        Fill: =
+        FontColor: =
+        Height: =32
+        PCFTeamsTheme: ="default"
+        Width: =320
+        X: =0
+        Y: =0
+        ZIndex: =2
+

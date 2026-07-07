@@ -1,0 +1,100 @@
+[
+  {
+    "CdsFCBContext": "{\"FileType\":true,\"ImageExternalStorage\":true}",
+    "EntitySetName": "cr31c_expireds",
+    "IsHidden": false,
+    "IsSampleData": false,
+    "IsWritable": true,
+    "LogicalName": "cr31c_expired",
+    "MaxGetRowsCount": 500,
+    "Name": "Expireds",
+    "NativeCDSDataSourceInfoNameMapping": {
+      "_ownerid_value": "Owner",
+      "cr31c_archived_date": "archived_date",
+      "cr31c_archived_reason": "Archived_reason",
+      "cr31c_expiration": "expiration",
+      "cr31c_expired_AsyncOperations": "System Jobs",
+      "cr31c_expired_BulkDeleteFailures": "Bulk Delete Failures",
+      "cr31c_expired_PrincipalObjectAttributeAccesses": "Field Sharing",
+      "cr31c_expired_ProcessSession": "Process Sessions",
+      "cr31c_expiredid": "Expired",
+      "cr31c_gtin": "GTIN",
+      "cr31c_lot": "Lot",
+      "cr31c_manufacturer": "manufacturer",
+      "cr31c_name": "Name",
+      "cr31c_quantity": "quantity",
+      "createdby": "Created By",
+      "createdon": "Created On",
+      "createdonbehalfby": "Created By (Delegate)",
+      "importsequencenumber": "Import Sequence Number",
+      "modifiedby": "Modified By",
+      "modifiedon": "Modified On",
+      "modifiedonbehalfby": "Modified By (Delegate)",
+      "overriddencreatedon": "Record Created On",
+      "owningbusinessunit": "Owning Business Unit",
+      "owningteam": "Owning Team",
+      "owninguser": "Owning User",
+      "statecode": "Status",
+      "statuscode": "Status Reason",
+      "timezoneruleversionnumber": "Time Zone Rule Version Number",
+      "utcconversiontimezonecode": "UTC Conversion Time Zone Code",
+      "versionnumber": "Version Number"
+    },
+    "PreferredName": "Expireds",
+    "Type": "NativeCDSDataSourceInfo"
+  },
+  {
+    "DisplayName": "Expireds (Views)",
+    "Name": "_cr31c_expired_views",
+    "RelatedEntityName": "Expireds",
+    "TrimmedViewName": true,
+    "Type": "ViewInfo",
+    "ViewInfoNameMapping": {
+      "07b13794-6a4c-42e3-b048-26ec2629a1d9": "Expired Advanced Find View",
+      "2938360a-3505-4ca3-ab3f-bc2669adcb95": "Inactive Expireds",
+      "5c48cd1a-2567-4a4a-80f8-4e5ad219ccbf": "Expired Associated View",
+      "ba759644-86b0-4fca-adab-411745ad5f07": "Expired Lookup View",
+      "d1300c8d-ecef-4b57-9190-6f888acd3966": "Active Expireds"
+    }
+  },
+  {
+    "DisplayName": "Status (Expireds)",
+    "Name": "cr31c_expired_statecode",
+    "OptionSetInfoNameMapping": {
+      "0": "Active",
+      "1": "Inactive"
+    },
+    "OptionSetIsBooleanValued": false,
+    "OptionSetIsGlobal": false,
+    "OptionSetReference": {
+      "OptionSetReferenceItem0": {
+        "OptionSetReferenceColumnName": "statecode",
+        "OptionSetReferenceEntityName": "Expireds"
+      }
+    },
+    "OptionSetTypeKey": "StateType",
+    "RelatedColumnInvariantName": "statecode",
+    "RelatedEntityName": "Expireds",
+    "Type": "OptionSetInfo"
+  },
+  {
+    "DisplayName": "Status Reason (Expireds)",
+    "Name": "cr31c_expired_statuscode",
+    "OptionSetInfoNameMapping": {
+      "1": "Active",
+      "2": "Inactive"
+    },
+    "OptionSetIsBooleanValued": false,
+    "OptionSetIsGlobal": false,
+    "OptionSetReference": {
+      "OptionSetReferenceItem0": {
+        "OptionSetReferenceColumnName": "statuscode",
+        "OptionSetReferenceEntityName": "Expireds"
+      }
+    },
+    "OptionSetTypeKey": "StatusType",
+    "RelatedColumnInvariantName": "statuscode",
+    "RelatedEntityName": "Expireds",
+    "Type": "OptionSetInfo"
+  }
+]

@@ -1,0 +1,625 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Settings:
+    Properties:
+      Fill: =RGBA(240, 240, 240, 1)
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      OnVisible: |-
+        =UpdateContext({
+            ctxAutoFocusEnabled: Coalesce(varAutoFocusEnabled, true),
+            ctxSoundEnabled: Coalesce(varSoundEnabled, true),
+            ctxAutoSubmitOnScan: Coalesce(varAutoSubmitOnScan, false),
+            ctxDefaultQuantity: Coalesce(varDefaultQuantity, 1),
+            ctxShowExpiredWarning: Coalesce(varShowExpiredWarning, true),
+            ctxDaysBeforeExpiryWarning: Coalesce(varDaysBeforeExpiryWarning, 30)
+        })
+    Children:
+      - HeaderContainer3:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(98, 100, 167, 1)
+            Height: =80
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Horizontal
+            Width: =Parent.Width
+          Children:
+            - HeaderText:
+                Control: Text@0.0.51
+                Properties:
+                  Align: ='TextCanvas.Align'.Start
+                  AutoHeight: =true
+                  FontColor: =RGBA(255, 255, 255, 1)
+                  Height: =50
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  Size: =24
+                  Text: ="Application Settings"
+                  Weight: ='TextCanvas.Weight'.Semibold
+                  Width: =500
+            - NavBarControl_8:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Height: =Parent.Height
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =10
+                  LayoutJustifyContent: =LayoutJustifyContent.Center
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinHeight: =10
+                  Width: =Parent.Width/2
+                  X: =Parent.X
+                  Y: =Parent.Y
+                Children:
+                  - ButtonCanvas1_66:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        FontSize: =8
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(Inventory)
+                        Text: ="Inventory"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_70.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_67:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        FontSize: =8
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(Registration)
+                        Text: ="Registration"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_70.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_68:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        FontSize: =8
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(QuickPick)
+                        Text: ="Quick Pick"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_70.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_Settings_12:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        FontSize: =8
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(Settings)
+                        Text: ="Settings"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_70.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_69:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        FontSize: =8
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(ItemList)
+                        Text: ="Item List"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_70.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_70:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        FontSize: =8
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate('Table View')
+                        Text: ="Table View"
+                        Visible: =Not(InventoryTool.Printing)
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_70.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_71:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        FontSize: =8
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(InventoryTool)
+                        Text: ="Inventory Tool"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_70.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+      - MainContainer3:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Height: =629
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =20
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =30
+            PaddingLeft: =30
+            PaddingRight: =30
+            PaddingTop: =30
+            Width: =Parent.Width
+            Y: =80
+          Children:
+            - ScannerSettingsCard:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =300
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =15
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  PaddingBottom: =20
+                  PaddingLeft: =20
+                  PaddingRight: =20
+                  PaddingTop: =20
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Min(600, Parent.Width - 60)
+                Children:
+                  - ScannerTitle:
+                      Control: Text@0.0.51
+                      Properties:
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Size: =18
+                        Text: ="Scanner Settings"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width
+                  - Divider1:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =RGBA(230, 230, 230, 1)
+                        Height: =1
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Width: =Parent.Width - 40
+                  - AutoFocusToggle:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        Height: =10
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =30
+                        Width: =Parent.Width/3
+                      Children:
+                        - AutoFocusLabel:
+                            Control: Text@0.0.51
+                            Properties:
+                              AutoHeight: =true
+                              FillPortions: =1
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Text: ="Auto-focus barcode field"
+                        - AutoFocusSwitch:
+                            Control: Toggle@1.1.5
+                            Properties:
+                              Checked: =ctxAutoFocusEnabled
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnCheck: =Set(varAutoFocusEnabled, true)
+                              OnUncheck: =Set(varAutoFocusEnabled, false)
+                              Width: =60
+                  - SoundToggle:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        Height: =10
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =30
+                        Width: =Parent.Width/3
+                      Children:
+                        - SoundLabel:
+                            Control: Text@0.0.51
+                            Properties:
+                              AutoHeight: =true
+                              FillPortions: =1
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Text: ="Sound feedback on scan"
+                        - SoundSwitch:
+                            Control: Toggle@1.1.5
+                            Properties:
+                              Checked: =ctxSoundEnabled
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnCheck: =Set(varSoundEnabled, true)
+                              OnUncheck: =Set(varSoundEnabled, false)
+                              Width: =60
+                  - AutoSubmitToggle:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        Height: =10
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =30
+                        Width: =Parent.Width/3
+                      Children:
+                        - AutoSubmitLabel:
+                            Control: Text@0.0.51
+                            Properties:
+                              AutoHeight: =true
+                              FillPortions: =1
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Text: ="Auto-submit on scan (Advanced)"
+                        - AutoSubmitSwitch:
+                            Control: Toggle@1.1.5
+                            Properties:
+                              Checked: =ctxAutoSubmitOnScan
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnCheck: =Set(varAutoSubmitOnScan, true)
+                              OnUncheck: =Set(varAutoSubmitOnScan, false)
+                              Width: =60
+                  - DefaultQuantityContainer:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        Height: =10
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =30
+                        Width: =Parent.Width/3
+                      Children:
+                        - DefaultQuantityLabel:
+                            Control: Text@0.0.51
+                            Properties:
+                              AutoHeight: =true
+                              FillPortions: =1
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Text: ="Default quantity for new items"
+                        - DefaultQuantityInput:
+                            Control: NumberInput@2.9.12
+                            Properties:
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Max: =9999
+                              Min: =1
+                              OnChange: =Set(varDefaultQuantity, Self.Value)
+                              Value: =ctxDefaultQuantity
+                              Width: =100
+            - InventorySettingsCard:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =15
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  PaddingBottom: =20
+                  PaddingLeft: =20
+                  PaddingRight: =20
+                  PaddingTop: =20
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Min(600, Parent.Width - 60)
+                Children:
+                  - InventoryTitle:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Size: =18
+                        Text: ="Inventory Settings"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width
+                  - Divider2:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =RGBA(230, 230, 230, 1)
+                        Height: =1
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Width: =Parent.Width - 40
+                  - ExpiryWarningToggle:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        Height: =30
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: '=30  '
+                        Width: =Parent.Width - 40
+                      Children:
+                        - ExpiryWarningLabel:
+                            Control: Text@0.0.51
+                            Properties:
+                              AutoHeight: =true
+                              FillPortions: =1
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              LayoutMinHeight: =50
+                              Text: ="Show expiration warnings"
+                        - ExpiryWarningSwitch:
+                            Control: Toggle@1.1.5
+                            Properties:
+                              Checked: =ctxShowExpiredWarning
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnCheck: =Set(varShowExpiredWarning, true)
+                              OnUncheck: =Set(varShowExpiredWarning, false)
+                              Width: =60
+                  - ExpiryDaysContainer:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =30
+                        Width: =Parent.Width - 40
+                      Children:
+                        - ExpiryDaysLabel:
+                            Control: Text@0.0.51
+                            Properties:
+                              AutoHeight: =true
+                              FillPortions: =1
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Text: ="Days before expiry to warn"
+                        - ExpiryDaysInput:
+                            Control: NumberInput@2.9.12
+                            Properties:
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Max: =365
+                              Min: =1
+                              OnChange: =Set(varDaysBeforeExpiryWarning, Self.Value)
+                              Value: =ctxDaysBeforeExpiryWarning
+                              Width: =100
+            - DatabaseInfoCard:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =0
+                  Height: =300
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =10
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinHeight: =150
+                  PaddingBottom: =20
+                  PaddingLeft: =20
+                  PaddingRight: =20
+                  PaddingTop: =20
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Min(600, Parent.Width - 60)
+                Children:
+                  - DatabaseTitle:
+                      Control: Text@0.0.51
+                      Properties:
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Size: =18
+                        Text: ="Database Statistics"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width
+                  - Divider3:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =RGBA(230, 230, 230, 1)
+                        Height: =1
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Width: =Parent.Width - 40
+                  - TotalItemsText:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =10
+                        Text: |-
+                          ="Total inventory items: " & CountIf(Inventories, true)
+                        Width: =Parent.Width/3
+                  - TotalGTINText:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =10
+                        Text: |-
+                          ="Registered GTIN products: " & CountIf(GTIN_Lookups, true)
+                        Width: =Parent.Width/3
+                  - ExpiredItemsText:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        FontColor: =If(CountRows(Filter(Inventories, Expiration < Today())) > 0, RGBA(255, 0, 0, 1), RGBA(0, 0, 0, 1))
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =10
+                        Text: |-
+                          ="Expired items: " & CountRows(Filter(Inventories, Expiration < Today()))
+                        Width: =Parent.Width/3
+                  - ExpiringItemsText:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        FontColor: =If(CountRows(Filter(Inventories, And(Expiration >= Today(), Expiration <= DateAdd(Today(), varDaysBeforeExpiryWarning, TimeUnit.Days)))) > 0, RGBA(255, 165, 0, 1), RGBA(0, 0, 0, 1))
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =10
+                        Text: |-
+                          ="Items expiring within " & varDaysBeforeExpiryWarning & " days: " & CountRows(Filter(Inventories, And(Expiration >= Today(), Expiration <= DateAdd(Today(), varDaysBeforeExpiryWarning, TimeUnit.Days))))
+                        Width: =Parent.Width/3
+            - ShortcutsCard:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  Height: =500
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =5
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinHeight: =300
+                  PaddingBottom: =20
+                  PaddingLeft: =20
+                  PaddingRight: =20
+                  PaddingTop: =20
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Min(600, Parent.Width - 60)
+                Children:
+                  - ShortcutsTitle:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Size: =18
+                        Text: ="Keyboard Shortcuts"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                  - Divider4:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =RGBA(230, 230, 230, 1)
+                        Height: =1
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Width: =Parent.Width - 40
+                  - Shortcut1:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =10
+                        Size: =12
+                        Text: ="F1 - Quick Pick Screen"
+                        Width: =Parent.Width/2
+                  - Shortcut2:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =10
+                        Size: =12
+                        Text: ="F2 - Inventory Screen"
+                        Width: =Parent.Width/2
+                  - Shortcut3:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =10
+                        Size: =12
+                        Text: ="F3 - Registration Screen"
+                        Width: =Parent.Width/2
+                  - Shortcut4:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =10
+                        Size: =12
+                        Text: ="F4 - Settings Screen"
+                        Width: =Parent.Width/2
+                  - Shortcut5:
+                      Control: Text@0.0.51
+                      Properties:
+                        AutoHeight: =true
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =10
+                        Size: =12
+                        Text: ="ESC - Clear/Reset current form"
+                        Width: =Parent.Width/2
+            - SaveButton:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ='ButtonCanvas.Appearance'.Primary
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  OnSelect: =Notify("Settings saved successfully", NotificationType.Success, 2000)
+                  Text: ="Save Settings"
+                  Width: =200

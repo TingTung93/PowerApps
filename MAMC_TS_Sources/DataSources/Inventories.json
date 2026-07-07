@@ -1,0 +1,103 @@
+[
+  {
+    "CdsFCBContext": "{\"FileType\":true,\"ImageExternalStorage\":true}",
+    "EntitySetName": "cr31c_inventories",
+    "IsHidden": false,
+    "IsSampleData": false,
+    "IsWritable": true,
+    "LogicalName": "cr31c_inventory",
+    "MaxGetRowsCount": 500,
+    "Name": "Inventories",
+    "NativeCDSDataSourceInfoNameMapping": {
+      "_ownerid_value": "Owner",
+      "cr31c_barcode": "Barcode",
+      "cr31c_batch": "Batch",
+      "cr31c_cleanedbarcode": "CleanedBarcode",
+      "cr31c_expiration": "Expiration",
+      "cr31c_inventory_AsyncOperations": "System Jobs",
+      "cr31c_inventory_BulkDeleteFailures": "Bulk Delete Failures",
+      "cr31c_inventory_PrincipalObjectAttributeAccesses": "Field Sharing",
+      "cr31c_inventory_ProcessSession": "Process Sessions",
+      "cr31c_inventoryid": "Inventory",
+      "cr31c_itemcategory": "Item Category",
+      "cr31c_itemid": "ItemID",
+      "cr31c_manufacturer_lookup": "Manufacturer_Lookup",
+      "cr31c_name": "Name",
+      "cr31c_notescomments": "Notes/Comments",
+      "cr31c_quantity": "Quantity",
+      "cra16_units": "Units",
+      "createdby": "Created By",
+      "createdon": "Created On",
+      "createdonbehalfby": "Created By (Delegate)",
+      "importsequencenumber": "Import Sequence Number",
+      "modifiedby": "Modified By",
+      "modifiedon": "Modified On",
+      "modifiedonbehalfby": "Modified By (Delegate)",
+      "overriddencreatedon": "Record Created On",
+      "owningbusinessunit": "Owning Business Unit",
+      "owningteam": "Owning Team",
+      "owninguser": "Owning User",
+      "statecode": "Status",
+      "statuscode": "Status Reason",
+      "timezoneruleversionnumber": "Time Zone Rule Version Number",
+      "utcconversiontimezonecode": "UTC Conversion Time Zone Code",
+      "versionnumber": "Version Number"
+    },
+    "PreferredName": "Inventories",
+    "Type": "NativeCDSDataSourceInfo"
+  },
+  {
+    "DisplayName": "Inventories (Views)",
+    "Name": "_cr31c_inventory_views",
+    "RelatedEntityName": "Inventories",
+    "TrimmedViewName": true,
+    "Type": "ViewInfo",
+    "ViewInfoNameMapping": {
+      "508fb2ed-2adf-4a54-afc5-658f9bb6bd7f": "Inactive Inventories",
+      "ab46e081-4492-4cc6-95bf-7239a31f653a": "Active Inventories",
+      "b73af48d-9207-4dcd-8b80-cffa8b51aa9f": "Inventory Advanced Find View",
+      "c832706d-4e23-4024-a062-c62b2a411525": "Inventory Associated View",
+      "d509da94-41cf-45fa-aec8-31869ce96c40": "Inventory Lookup View"
+    }
+  },
+  {
+    "DisplayName": "Status (Inventories)",
+    "Name": "cr31c_inventory_statecode",
+    "OptionSetInfoNameMapping": {
+      "0": "Active",
+      "1": "Inactive"
+    },
+    "OptionSetIsBooleanValued": false,
+    "OptionSetIsGlobal": false,
+    "OptionSetReference": {
+      "OptionSetReferenceItem0": {
+        "OptionSetReferenceColumnName": "statecode",
+        "OptionSetReferenceEntityName": "Inventories"
+      }
+    },
+    "OptionSetTypeKey": "StateType",
+    "RelatedColumnInvariantName": "statecode",
+    "RelatedEntityName": "Inventories",
+    "Type": "OptionSetInfo"
+  },
+  {
+    "DisplayName": "Status Reason (Inventories)",
+    "Name": "cr31c_inventory_statuscode",
+    "OptionSetInfoNameMapping": {
+      "1": "Active",
+      "2": "Inactive"
+    },
+    "OptionSetIsBooleanValued": false,
+    "OptionSetIsGlobal": false,
+    "OptionSetReference": {
+      "OptionSetReferenceItem0": {
+        "OptionSetReferenceColumnName": "statuscode",
+        "OptionSetReferenceEntityName": "Inventories"
+      }
+    },
+    "OptionSetTypeKey": "StatusType",
+    "RelatedColumnInvariantName": "statuscode",
+    "RelatedEntityName": "Inventories",
+    "Type": "OptionSetInfo"
+  }
+]

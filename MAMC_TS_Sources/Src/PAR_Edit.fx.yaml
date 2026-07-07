@@ -1,0 +1,595 @@
+PAR_Edit As screen:
+    LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+
+    Container6 As groupContainer.manualLayoutContainer:
+        DropShadow: =DropShadow.Light
+        Height: =693
+        LayoutGridColumnMinWidth: =0
+        LayoutGridColumns: =6
+        LayoutGridRowMinHeight: =0
+        LayoutGridRows: =6
+        RadiusBottomLeft: =4
+        RadiusBottomRight: =4
+        RadiusTopLeft: =4
+        RadiusTopRight: =4
+        Width: =1366
+        Y: =75
+        ZIndex: =2
+
+        Gallery6 As gallery.BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore:
+            BorderThickness: =1
+            DelayItemLoading: =true
+            FocusedBorderColor: =RGBA(98, 100, 167, 1)
+            FocusedBorderThickness: =2
+            Height: =Parent.Height
+            Items: |
+                =Filter(
+                    GTIN_Lookups,
+                
+                    // 1. Filter for items with no PAR level, if checkbox is ticked
+                    If(chk_NoPAR.Checked, IsBlank(PAR), true),
+                
+                    // 2. Filter for items with no unit price, if checkbox is ticked
+                    If(chk_NoPrice.Checked, IsBlank(UnitPrice), true),
+                
+                    // 3. Filter based on search text input (case-insensitive)
+                    IsBlank(txt_Search.Value) || StartsWith(Lower(ItemName), Lower(txt_Search.Value))
+                )
+            Layout: =Layout.Vertical
+            LoadingSpinner: =LoadingSpinner.Data
+            TemplateSize: =48
+            Width: =Parent.Width
+            ZIndex: =2
+
+            Rectangle5 As rectangle:
+                BorderColor: =RGBA(173, 173, 173, 0.92)
+                BorderThickness: =1
+                DisabledFill: =RGBA(0,0,0,0)
+                Fill: =RGBA(0,0,0,0)
+                FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                Height: =Parent.TemplateHeight
+                HoverFill: =RGBA(0,0,0,0)
+                OnSelect: =Select(Parent)
+                PressedFill: =RGBA(0,0,0,0)
+                TabIndex: =0
+                Width: =Parent.TemplateWidth
+                ZIndex: =2
+
+            TextCanvas10 As Text:
+                AutoHeight: =false
+                BorderColor: =
+                DisplayMode: =DisplayMode.Edit
+                Fill: =
+                FontColor: =
+                Height: =Parent.TemplateHeight
+                PaddingBottom: =5
+                PaddingTop: =5
+                PCFTeamsTheme: ="default"
+                Text: =ThisItem.ItemName
+                VerticalAlign: =VerticalAlign.Middle
+                Width: =202
+                X: =14
+                Y: =0
+                ZIndex: =3
+
+            TextCanvas10_1 As Text:
+                Align: ="Start"
+                AutoHeight: =false
+                BorderColor: =
+                BorderStyle: =""
+                ContentLanguage: =""
+                DisplayMode: =DisplayMode.Edit
+                Fill: =
+                Font: =""
+                FontColor: =
+                FontItalic: =false
+                FontStrikethrough: =false
+                FontUnderline: =false
+                Height: =Parent.TemplateHeight
+                PaddingBottom: =5
+                PaddingTop: =5
+                Size: =14
+                TabIndex: =0
+                Text: =ThisItem.ItemManufacturer
+                Tooltip: =""
+                VerticalAlign: =VerticalAlign.Middle
+                Visible: =true
+                Weight: ="Regular"
+                Width: =99
+                Wrap: =true
+                X: =217
+                Y: =0
+                ZIndex: =4
+
+            "NumberInput3 As 'Number input'":
+                BasePaletteColor: =
+                BorderColor: =
+                DisplayMode: =DisplayMode.Edit
+                Fill: =
+                Height: =Parent.TemplateHeight/1.5
+                OnChange: |+
+                    =Patch(GTIN_Lookups, ThisItem, {UnitPrice: Self.Value});
+                    
+                PaddingBottom: =5
+                PaddingTop: =5
+                PCFTeamsTheme: ="default"
+                Precision: ='NumberInput.Precision'.Auto
+                Value: =ThisItem.UnitPrice
+                Width: =161
+                X: =746
+                Y: =8
+                ZIndex: =5
+
+            TextCanvas11 As Text:
+                AutoHeight: =false
+                BorderColor: =
+                DisplayMode: =DisplayMode.Edit
+                Fill: =
+                FontColor: =
+                Height: =Parent.TemplateHeight
+                PaddingBottom: =5
+                PaddingTop: =5
+                PCFTeamsTheme: ="default"
+                Text: |-
+                    ="PAR: "& If(IsBlank(ThisItem.PAR),"Not Assigned",ThisItem.PAR)
+                VerticalAlign: =VerticalAlign.Middle
+                Width: =147
+                X: =344
+                Y: =0
+                ZIndex: =6
+
+            TextCanvas12 As Text:
+                Align: ='TextCanvas.Align'.Start
+                BorderColor: =
+                DisplayMode: =DisplayMode.Edit
+                Fill: =
+                FontColor: =
+                Height: =Parent.TemplateHeight
+                PaddingBottom: =5
+                PaddingTop: =5
+                PCFTeamsTheme: ="default"
+                Text: |-
+                    ="Price: "& ThisItem.UnitPrice
+                VerticalAlign: =VerticalAlign.Middle
+                Width: =96
+                X: =650
+                Y: =0
+                ZIndex: =7
+
+            "NumberInput2 As 'Number input'":
+                BasePaletteColor: =
+                BorderColor: =
+                DisplayMode: =DisplayMode.Edit
+                Fill: =
+                Height: =Parent.TemplateHeight/1.5
+                OnChange: |-
+                    =Patch(GTIN_Lookups, ThisItem, {PAR: Self.Value});
+                PaddingBottom: =5
+                PaddingTop: =5
+                PCFTeamsTheme: ="default"
+                Value: =ThisItem.PAR
+                Width: =135
+                X: =491
+                Y: =8
+                ZIndex: =8
+
+            TextCanvas7 As Text:
+                BorderColor: =
+                DisplayMode: =DisplayMode.Edit
+                Fill: =
+                FontColor: =
+                Height: =32
+                PCFTeamsTheme: ="default"
+                Text: =ThisItem.'Unit Quantities'
+                VerticalAlign: =VerticalAlign.Middle
+                Width: =56
+                X: =929
+                Y: =8
+                ZIndex: =9
+
+    Container7 As groupContainer.manualLayoutContainer:
+        DropShadow: =DropShadow.Light
+        Height: =72
+        LayoutGridColumnMinWidth: =0
+        LayoutGridColumns: =6
+        LayoutGridRowMinHeight: =0
+        LayoutGridRows: =6
+        RadiusBottomLeft: =4
+        RadiusBottomRight: =4
+        RadiusTopLeft: =4
+        RadiusTopRight: =4
+        Width: =1366
+        Y: =3
+        ZIndex: =3
+
+        chk_NoPAR As Checkbox:
+            BasePaletteColor: =
+            DisplayMode: =DisplayMode.Edit
+            FontColor: =
+            Height: =32
+            Label: ="No PAR"
+            OnCheck: =false
+            OnUncheck: =false
+            PCFTeamsTheme: ="default"
+            Width: =70
+            X: =1179
+            Y: =21
+            ZIndex: =1
+
+        chk_NoPrice As Checkbox:
+            AccessibleLabel: =""
+            BasePaletteColor: =
+            CheckboxSize: =16
+            Checked: =false
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =
+            FontItalic: =false
+            FontSize: =0
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Label: ="No Price"
+            OnCheck: =false
+            OnSelect: =false
+            OnUncheck: =false
+            TabIndex: =0
+            Tooltip: =""
+            Visible: =true
+            Width: =69
+            X: =1285
+            Y: =21
+            ZIndex: =2
+
+        "txt_Search As 'Text input'":
+            BasePaletteColor: =
+            BorderColor: =
+            DisplayMode: =DisplayMode.Edit
+            Fill: =
+            FontColor: =
+            Height: =32
+            PCFTeamsTheme: ="default"
+            Placeholder: ="Search by Name"
+            TriggerOutput: ='TextInputCanvas.TriggerOutput'.Delayed
+            Width: =212
+            X: =949
+            Y: =20
+            ZIndex: =3
+
+        NavBarControl_10 As groupContainer.horizontalAutoLayoutContainer:
+            DropShadow: =DropShadow.Light
+            Height: =31
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGap: =20
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            LayoutMode: =LayoutMode.Auto
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            Width: =920
+            X: =12
+            Y: =21
+            ZIndex: =10
+
+            ButtonCanvas1_108 As Button:
+                AcceptsFocus: =true
+                AccessibleLabel: =""
+                Align: =""
+                Appearance: ="Primary"
+                BasePaletteColor: =RGBA(249, 83, 109, 1)
+                BorderColor: =RGBA(106, 122, 127, 1)
+                BorderRadius: =1
+                BorderStyle: =BorderStyle.Solid
+                BorderThickness: =1
+                ContentLanguage: =""
+                DisplayMode: =DisplayMode.Edit
+                Font: =""
+                FontColor: =RGBA(255, 255, 255, 1)
+                FontItalic: =false
+                FontSize: =12
+                FontStrikethrough: =false
+                FontUnderline: =false
+                FontWeight: =""
+                Height: =32
+                Icon: =""
+                IconRotation: =0
+                IconStyle: ="Outline"
+                Layout: ="Icon before"
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =32
+                LayoutMinWidth: =96
+                OnSelect: =Navigate(Inventory)
+                TabIndex: =0
+                Text: ="Inventory"
+                Tooltip: =""
+                VerticalAlign: =""
+                Visible: =true
+                Width: |-
+                    =With(
+                                      {
+                                          VisibleButtons: 6 + If(ButtonCanvas1_112.Visible, 1, 0)
+                                      },
+                                      (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                  )
+                X: =0
+                Y: =0
+                ZIndex: =1
+
+            ButtonCanvas1_109 As Button:
+                AcceptsFocus: =true
+                AccessibleLabel: =""
+                Align: =""
+                Appearance: ="Primary"
+                BasePaletteColor: =RGBA(249, 83, 109, 1)
+                BorderColor: =RGBA(106, 122, 127, 1)
+                BorderRadius: =1
+                BorderStyle: =BorderStyle.Solid
+                BorderThickness: =1
+                ContentLanguage: =""
+                DisplayMode: =DisplayMode.Edit
+                Font: =""
+                FontColor: =RGBA(255, 255, 255, 1)
+                FontItalic: =false
+                FontSize: =12
+                FontStrikethrough: =false
+                FontUnderline: =false
+                FontWeight: =""
+                Height: =32
+                Icon: =""
+                IconRotation: =0
+                IconStyle: ="Outline"
+                Layout: ="Icon before"
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =32
+                LayoutMinWidth: =96
+                OnSelect: =Navigate(Registration)
+                TabIndex: =0
+                Text: ="Registration"
+                Tooltip: =""
+                VerticalAlign: =""
+                Visible: =true
+                Width: |-
+                    =With(
+                                      {
+                                          VisibleButtons: 6 + If(ButtonCanvas1_112.Visible, 1, 0)
+                                      },
+                                      (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                  )
+                X: =0
+                Y: =0
+                ZIndex: =2
+
+            ButtonCanvas1_110 As Button:
+                AcceptsFocus: =true
+                AccessibleLabel: =""
+                Align: =""
+                Appearance: ="Primary"
+                BasePaletteColor: =RGBA(249, 83, 109, 1)
+                BorderColor: =RGBA(106, 122, 127, 1)
+                BorderRadius: =1
+                BorderStyle: =BorderStyle.Solid
+                BorderThickness: =1
+                ContentLanguage: =""
+                DisplayMode: =DisplayMode.Edit
+                Font: =""
+                FontColor: =RGBA(255, 255, 255, 1)
+                FontItalic: =false
+                FontSize: =12
+                FontStrikethrough: =false
+                FontUnderline: =false
+                FontWeight: =""
+                Height: =32
+                Icon: =""
+                IconRotation: =0
+                IconStyle: ="Outline"
+                Layout: ="Icon before"
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =32
+                LayoutMinWidth: =96
+                OnSelect: =Navigate(QuickPick)
+                TabIndex: =0
+                Text: ="Quick Pick"
+                Tooltip: =""
+                VerticalAlign: =""
+                Visible: =true
+                Width: |-
+                    =With(
+                                      {
+                                          VisibleButtons: 6 + If(ButtonCanvas1_112.Visible, 1, 0)
+                                      },
+                                      (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                  )
+                X: =0
+                Y: =0
+                ZIndex: =3
+
+            ButtonCanvas1_Settings_19 As Button:
+                AcceptsFocus: =true
+                AccessibleLabel: =""
+                Align: =""
+                Appearance: ="Primary"
+                BasePaletteColor: =RGBA(249, 83, 109, 1)
+                BorderColor: =RGBA(106, 122, 127, 1)
+                BorderRadius: =1
+                BorderStyle: =BorderStyle.Solid
+                BorderThickness: =1
+                ContentLanguage: =""
+                DisplayMode: =DisplayMode.Edit
+                Font: =""
+                FontColor: =RGBA(255, 255, 255, 1)
+                FontItalic: =false
+                FontSize: =12
+                FontStrikethrough: =false
+                FontUnderline: =false
+                FontWeight: =""
+                Height: =32
+                Icon: =""
+                IconRotation: =0
+                IconStyle: ="Outline"
+                Layout: ="Icon before"
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =32
+                LayoutMinWidth: =96
+                OnSelect: =Navigate(Settings)
+                TabIndex: =0
+                Text: ="Settings"
+                Tooltip: =""
+                VerticalAlign: =""
+                Visible: =true
+                Width: |-
+                    =With(
+                                      {
+                                          VisibleButtons: 6 + If(ButtonCanvas1_112.Visible, 1, 0)
+                                      },
+                                      (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                  )
+                X: =0
+                Y: =0
+                ZIndex: =4
+
+            ButtonCanvas1_111 As Button:
+                AcceptsFocus: =true
+                AccessibleLabel: =""
+                Align: =""
+                Appearance: ="Primary"
+                BasePaletteColor: =RGBA(249, 83, 109, 1)
+                BorderColor: =RGBA(106, 122, 127, 1)
+                BorderRadius: =1
+                BorderStyle: =BorderStyle.Solid
+                BorderThickness: =1
+                ContentLanguage: =""
+                DisplayMode: =DisplayMode.Edit
+                Font: =""
+                FontColor: =RGBA(255, 255, 255, 1)
+                FontItalic: =false
+                FontSize: =12
+                FontStrikethrough: =false
+                FontUnderline: =false
+                FontWeight: =""
+                Height: =32
+                Icon: =""
+                IconRotation: =0
+                IconStyle: ="Outline"
+                Layout: ="Icon before"
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =32
+                LayoutMinWidth: =96
+                OnSelect: =Navigate(ItemList)
+                TabIndex: =0
+                Text: ="Item List"
+                Tooltip: =""
+                VerticalAlign: =""
+                Visible: =true
+                Width: |-
+                    =With(
+                                      {
+                                          VisibleButtons: 6 + If(ButtonCanvas1_112.Visible, 1, 0)
+                                      },
+                                      (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                  )
+                X: =0
+                Y: =0
+                ZIndex: =5
+
+            ButtonCanvas1_112 As Button:
+                AcceptsFocus: =true
+                AccessibleLabel: =""
+                Align: =""
+                Appearance: ="Primary"
+                BasePaletteColor: =RGBA(249, 83, 109, 1)
+                BorderColor: =RGBA(106, 122, 127, 1)
+                BorderRadius: =1
+                BorderStyle: =BorderStyle.Solid
+                BorderThickness: =1
+                ContentLanguage: =""
+                DisplayMode: =DisplayMode.Edit
+                Font: =""
+                FontColor: =RGBA(255, 255, 255, 1)
+                FontItalic: =false
+                FontSize: =12
+                FontStrikethrough: =false
+                FontUnderline: =false
+                FontWeight: =""
+                Height: =32
+                Icon: =""
+                IconRotation: =0
+                IconStyle: ="Outline"
+                Layout: ="Icon before"
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =32
+                LayoutMinWidth: =96
+                OnSelect: =Navigate('Table View')
+                TabIndex: =0
+                Text: ="Table View"
+                Tooltip: =""
+                VerticalAlign: =""
+                Visible: =Not(InventoryTool.Printing)
+                Width: |-
+                    =With(
+                                      {
+                                          VisibleButtons: 6 + If(ButtonCanvas1_112.Visible, 1, 0)
+                                      },
+                                      (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                  )
+                X: =0
+                Y: =0
+                ZIndex: =6
+
+            ButtonCanvas1_113 As Button:
+                AcceptsFocus: =true
+                AccessibleLabel: =""
+                Align: =""
+                Appearance: ="Primary"
+                BasePaletteColor: =RGBA(249, 83, 109, 1)
+                BorderColor: =RGBA(106, 122, 127, 1)
+                BorderRadius: =1
+                BorderStyle: =BorderStyle.Solid
+                BorderThickness: =1
+                ContentLanguage: =""
+                DisplayMode: =DisplayMode.Edit
+                Font: =""
+                FontColor: =RGBA(255, 255, 255, 1)
+                FontItalic: =false
+                FontSize: =12
+                FontStrikethrough: =false
+                FontUnderline: =false
+                FontWeight: =""
+                Height: =32
+                Icon: =""
+                IconRotation: =0
+                IconStyle: ="Outline"
+                Layout: ="Icon before"
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =32
+                LayoutMinWidth: =96
+                OnSelect: =Navigate(InventoryTool)
+                TabIndex: =0
+                Text: ="Inventory Tool"
+                Tooltip: =""
+                VerticalAlign: =""
+                Visible: =true
+                Width: |-
+                    =With(
+                                      {
+                                          VisibleButtons: 6 + If(ButtonCanvas1_112.Visible, 1, 0)
+                                      },
+                                      (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                  )
+                X: =0
+                Y: =0
+                ZIndex: =7
+

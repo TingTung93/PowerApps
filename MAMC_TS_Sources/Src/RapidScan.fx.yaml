@@ -1,0 +1,480 @@
+"RapidScan As screen.'autoLayout_HeaderFooter_ver1.0'":
+    LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+
+    ScreenContainer4 As groupContainer.verticalAutoLayoutContainer:
+        DropShadow: =DropShadow.Light
+        Fill: =RGBA(245, 245, 245, 1)
+        Height: =Parent.Height
+        LayoutAlignItems: =LayoutAlignItems.Stretch
+        LayoutDirection: =LayoutDirection.Vertical
+        LayoutGap: =16
+        LayoutGridColumnMinWidth: =0
+        LayoutGridColumns: =6
+        LayoutGridRowMinHeight: =0
+        LayoutGridRows: =6
+        LayoutMode: =LayoutMode.Auto
+        PaddingBottom: =16
+        PaddingLeft: =16
+        PaddingRight: =16
+        PaddingTop: =16
+        RadiusBottomLeft: =4
+        RadiusBottomRight: =4
+        RadiusTopLeft: =4
+        RadiusTopRight: =4
+        Width: =Parent.Width
+        ZIndex: =1
+
+        HeaderContainer_2 As groupContainer.horizontalAutoLayoutContainer:
+            DropShadow: =DropShadow.Light
+            FillPortions: =0
+            Height: =75
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =100
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            X: =40
+            Y: =40
+            ZIndex: =1
+
+            HeaderTitle_2 As Header:
+                Align: =""
+                BasePaletteColor: =
+                BorderColor: =
+                BorderStyle: =""
+                ContentLanguage: =""
+                DisplayMode: =DisplayMode.Edit
+                Fill: =
+                Font: =""
+                FontColor: =
+                Height: =75
+                IsLogoVisible: =true
+                IsProfilePictureVisible: =true
+                IsTitleVisible: =true
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =75
+                LayoutMinWidth: =Parent.Width
+                LogoMaxHeight: =70
+                LogoTooltip: ="The logo image"
+                OnSelectLogo: =false
+                Style: ="Primary"
+                TabIndex: =0
+                Title: ="Quick Pick - Inventory Management"
+                TitleFontSize: =12
+                TitleRole: =""
+                Tooltip: =""
+                UserEmail: =User().Email
+                UserImage: =User().Image
+                UserImageAltText: =User().FullName &" profile picture"
+                UserName: =User().FullName
+                Visible: =true
+                Width: =Parent.Width
+                X: =0
+                Y: =0
+                ZIndex: =1
+
+        MainContainer5 As groupContainer.verticalAutoLayoutContainer:
+            DropShadow: =DropShadow.Light
+            Fill: =RGBA(255, 255, 255, 1)
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =100
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            ZIndex: =2
+
+            Container2 As groupContainer.verticalAutoLayoutContainer:
+                DropShadow: =DropShadow.Light
+                FillPortions: =0
+                Height: =RapidScanInput.Height
+                LayoutDirection: =LayoutDirection.Vertical
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =100
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                RadiusBottomLeft: =4
+                RadiusBottomRight: =4
+                RadiusTopLeft: =4
+                RadiusTopRight: =4
+                ZIndex: =1
+
+                "RapidScanInput As 'Text input'":
+                    BasePaletteColor: =
+                    BorderColor: =
+                    DisplayMode: =DisplayMode.Edit
+                    Fill: =
+                    FontColor: =
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =32
+                    LayoutMinWidth: =320
+                    OnChange: |-
+                        =// OnChange property of RapidScanInput
+                        
+                        // --- 1. PREPARE & CLEAN BARCODE ---
+                        // ... (your barcode cleaning logic remains the same) ...
+                        ClearCollect(colTempBarcode, {Result: Self.Value});
+                        ForAll(
+                            ["]d2", "]C1", Char(29), "]Q1"],
+                            Patch(colTempBarcode, First(colTempBarcode), {Result: Substitute(First(colTempBarcode).Result, Value, "")})
+                        );
+                        Set(varCleanedBarcode, Substitute(First(colTempBarcode).Result, " ", ""));
+                        
+                        // --- 2. DECODE GS1 & GET PRODUCT INFO (with Error Handling) ---
+                        Set(varBarcodeDetails, 'DecodeAlternate'.Run(Self.Value));
+                        
+                        // *** MODIFICATION START: Use IfError to handle potential flow failures ***
+                        Set(
+                            varSafeGTIN,
+                            IfError(varBarcodeDetails.gtin_out, "") // If gtin_out is an error, use ""
+                        );
+                        Set(
+                            varSafeBatch,
+                            IfError(varBarcodeDetails.batch_out, "") // If batch_out is an error, use ""
+                        );
+                        Set(
+                            varSafeExpiry,
+                            IfError(varBarcodeDetails.expiry_out, "") // If expiry_out is an error, use ""
+                        );
+                        // *** MODIFICATION END ***
+                        
+                        // Check if the primary identifier was found. If not, stop and notify the user.
+                        If(IsBlank(varSafeGTIN),
+                            Notify("Could not decode GTIN from barcode. Please check the barcode and try again.", NotificationType.Error);
+                            Reset(RapidScanInput);
+                            If(gblAppIsRunning, SetFocus(RapidScanInput));
+                            // Exit the rest of the OnChange logic
+                            ,
+                        
+                            // --- If GTIN was found, continue ---
+                            Set(varProductInfo, LookUp(GTIN_Lookups, GTIN = varSafeGTIN));
+                        
+                            Set(
+                                varParsedExpiryDate,
+                                If(
+                                    !IsBlank(varSafeExpiry),
+                                    Date(Value("20" & Left(varSafeExpiry, 2)), Value(Mid(varSafeExpiry, 3, 2)), Value(Right(varSafeExpiry, 2))),
+                                    Blank() // If there's no expiry date, store a blank value
+                                )
+                            );
+                        
+                            Set(
+                                varExistingScan,
+                                LookUp(
+                                    colScannedItems,
+                                    ItemID = varSafeGTIN &&
+                                    Batch = varSafeBatch &&
+                                    Expiration = varParsedExpiryDate
+                                )
+                            );
+                        
+                            If(
+                                IsBlank(varExistingScan),
+                                Collect(
+                                    colScannedItems,
+                                    {
+                                        CleanedBarcode: varCleanedBarcode,
+                                        // Use the safe variables
+                                        ItemID: varSafeGTIN,
+                                        ProductName: IfError(varProductInfo.ItemName, "Unknown Product"), // Also protect the lookup
+                                        Manufacturer: IfError(varProductInfo.ItemManufacturer, "Unknown Manufacturer"),
+                                        Batch: varSafeBatch,
+                                        Expiration: varParsedExpiryDate,
+                                        Quantity: 1
+                                    }
+                                ),
+                                Patch(
+                                    colScannedItems,
+                                    varExistingScan,
+                                    {Quantity: varExistingScan.Quantity + 1}
+                                )
+                            );
+                        
+                            Reset(RapidScanInput);
+                            If(gblAppIsRunning, SetFocus(RapidScanInput));
+                        );
+                    Placeholder: ="Scan item barcode here..."
+                    Width: =320
+                    X: =0
+                    Y: =0
+                    ZIndex: =1
+
+            Gallery4 As gallery.BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore:
+                BorderColor: =RGBA(243, 242, 241, 1)
+                DelayItemLoading: =true
+                FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                FocusedBorderThickness: =2
+                Items: =colScannedItems
+                Layout: =Layout.Vertical
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =287
+                LayoutMinWidth: =320
+                LoadingSpinner: =LoadingSpinner.Data
+                TemplatePadding: =0
+                TemplateSize: =52
+                WrapCount: =
+                ZIndex: =2
+
+                Rectangle2 As rectangle:
+                    BorderColor: =RGBA(53, 61, 63, 1)
+                    BorderThickness: =1
+                    DisabledFill: =RGBA(0,0,0,0)
+                    Fill: =RGBA(0,0,0,0)
+                    FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                    Height: =48
+                    HoverFill: =RGBA(0,0,0,0)
+                    OnSelect: =Select(Parent)
+                    PressedFill: =RGBA(0,0,0,0)
+                    TabIndex: =0
+                    Width: =Parent.TemplateWidth
+                    ZIndex: =1
+
+                NAME As Label:
+                    Color: =
+                    DisplayMode: =DisplayMode.Edit
+                    FontSize: =10.5
+                    FontWeight: =FontWeight.Semibold
+                    Height: =24
+                    OnChange: =false
+                    OnSelect: =Select(Parent)
+                    PCFTeamsTheme: ="default"
+                    TabIndex: =-1
+                    Text: =ThisItem.ProductName
+                    VerticalAlignment: =VerticalAlign.Top
+                    Width: =Parent.TemplateWidth - Self.X - 8
+                    X: =12
+                    Y: =((Parent.TemplateHeight - 36) / 2) - 4
+                    ZIndex: =3
+
+                BATCH_EXP As Label:
+                    Color: =
+                    DisplayMode: =DisplayMode.Edit
+                    FontSize: =9
+                    FontWeight: =FontWeight.Normal
+                    Height: =20
+                    OnChange: =false
+                    OnSelect: =Select(Parent)
+                    PCFTeamsTheme: ="default"
+                    TabIndex: =-1
+                    Text: |-
+                        ="Batch: " & ThisItem.Batch & " | Exp: " & Text(ThisItem.Expiration)
+                    VerticalAlignment: =VerticalAlign.Top
+                    Width: =173
+                    X: =87
+                    Y: =28
+                    ZIndex: =4
+
+                QUANTITY As Label:
+                    AcceptsFocus: =false
+                    Alignment: ="left"
+                    AutoHeight: =false
+                    Color: =
+                    ContentLanguage: =""
+                    DisplayMode: =DisplayMode.Edit
+                    Font: ="'Segoe UI', 'Open Sans', sans-serif"
+                    FontSize: =9
+                    FontWeight: =FontWeight.Normal
+                    Height: =20
+                    Italic: =false
+                    OnChange: =false
+                    OnSelect: =Select(Parent)
+                    Overflow: ="Hidden"
+                    PaddingBottom: =0
+                    PaddingEnd: =0
+                    PaddingStart: =0
+                    PaddingTop: =0
+                    Strikethrough: =false
+                    TabIndex: =-1
+                    Text: |-
+                        ="Qty: " & ThisItem.Quantity
+                    TextRole: ="Default"
+                    Tooltip: =""
+                    Underline: =false
+                    VerticalAlignment: =VerticalAlign.Top
+                    Visible: =true
+                    Width: =209
+                    Wrap: =true
+                    X: =NAME.X
+                    Y: =28
+                    ZIndex: =5
+
+        FooterContainer1_1 As groupContainer.horizontalAutoLayoutContainer:
+            DropShadow: =DropShadow.Light
+            Fill: =RGBA(255, 255, 255, 1)
+            FillPortions: =0
+            Height: =75
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGap: =16
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutJustifyContent: =LayoutJustifyContent.End
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =100
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            PaddingBottom: =16
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =16
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            X: =40
+            Y: =40
+            ZIndex: =4
+
+            ClearSessionButton As Button:
+                AcceptsFocus: =true
+                AccessibleLabel: =""
+                Align: =""
+                Appearance: ='ButtonCanvas.Appearance'.Secondary
+                BasePaletteColor: =
+                BorderColor: =
+                BorderStyle: =""
+                ContentLanguage: =""
+                DisplayMode: =DisplayMode.Edit
+                Font: =""
+                FontColor: =
+                FontItalic: =false
+                FontSize: =0
+                FontStrikethrough: =false
+                FontUnderline: =false
+                FontWeight: =""
+                Height: =32
+                Icon: =""
+                IconRotation: =0
+                IconStyle: ="Outline"
+                Layout: ="Icon before"
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =32
+                LayoutMinWidth: =96
+                OnSelect: |-
+                    =// OnSelect property of ClearSessionButton
+                    Clear(colScannedItems);
+                    Notify("Current scanning session has been cleared.", NotificationType.Warning);
+                    If(gblAppIsRunning, SetFocus(RapidScanInput));
+                TabIndex: =0
+                Text: ="Clear Session"
+                Tooltip: =""
+                VerticalAlign: =""
+                Visible: =true
+                Width: =150
+                X: =0
+                Y: =0
+                ZIndex: =1
+
+            SubmitAllButton As Button:
+                AcceptsFocus: =true
+                AccessibleLabel: =""
+                Align: =""
+                Appearance: ="Primary"
+                BasePaletteColor: =
+                BorderColor: =
+                BorderStyle: =""
+                ContentLanguage: =""
+                DisplayMode: =DisplayMode.Edit
+                Font: =""
+                FontColor: =
+                FontItalic: =false
+                FontSize: =0
+                FontStrikethrough: =false
+                FontUnderline: =false
+                FontWeight: =""
+                Height: =32
+                Icon: =""
+                IconRotation: =0
+                IconStyle: ="Outline"
+                Layout: ="Icon before"
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =32
+                LayoutMinWidth: =96
+                OnSelect: |-
+                    =Set(varIsSubmitting, true);
+                    Notify("Submitting inventory updates...", NotificationType.Information);
+                    
+                    // Use 'As' operator for clear record scope
+                    ForAll(
+                        colScannedItems As ScannedItem, 
+                        
+                        With(
+                            {
+                                // Use ScannedItem to reference the current record
+                                existingInventoryItem: LookUp(Inventories, CleanedBarcode = ScannedItem.CleanedBarcode)
+                            },
+                            
+                            If(
+                                IsBlank(existingInventoryItem),
+                                // CREATE NEW RECORD
+                                Patch(
+                                    Inventories,
+                                    Defaults(Inventories),
+                                    {
+                                        // Use ScannedItem. and wrap in IfError for safety
+                                        CleanedBarcode: ScannedItem.CleanedBarcode,
+                                        ItemID: ScannedItem.ItemID,
+                                        Name: IfError(ScannedItem.ProductName, "Unknown Product"),
+                                        Manufacturer_Lookup: IfError(ScannedItem.Manufacturer, "Unknown Manufacturer"),
+                                        Batch: IfError(ScannedItem.Batch, ""), // Final safeguard
+                                        Expiration: ScannedItem.Expiration,
+                                        Quantity: ScannedItem.Quantity
+                                    }
+                                ),
+                                
+                                // UPDATE EXISTING RECORD
+                                Patch(
+                                    Inventories,
+                                    existingInventoryItem,
+                                    {
+                                        Quantity: existingInventoryItem.Quantity + ScannedItem.Quantity
+                                    }
+                                )
+                            )
+                        )
+                    );
+                    
+                    // --- CLEANUP AND NOTIFY ---
+                    Clear(colScannedItems);
+                    Set(varIsSubmitting, false);
+                    Notify("Inventory successfully updated!", NotificationType.Success);
+                    If(gblAppIsRunning, SetFocus(RapidScanInput));
+                TabIndex: =0
+                Text: ="Submit All Scans"
+                Tooltip: =""
+                VerticalAlign: =""
+                Visible: =true
+                Width: =150
+                X: =0
+                Y: =0
+                ZIndex: =2
+

@@ -1,0 +1,1953 @@
+QuickPick As screen:
+    ContentLanguage: =""
+    LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+    OnVisible: |
+        =// Check if returning from Registration
+        If(varReturnToQuickPick,
+           Set(varReturnToQuickPick, false);
+           // The product should now be registered, so re-scan will find it
+           Notify("Product registered! Please scan the barcode again to add to inventory", NotificationType.Success, 4000),
+           
+           // Normal initialization
+           Set(cleanedBarcode, "");
+           Set(gtin, "");
+           Set(batch, "");
+           Set(expiry, "");
+           Set(expiryFormatted, "");
+           Set(existingInventory, Blank());
+           NewForm(InventoryForm_1)
+        );
+        
+        // Always set focus to barcode input
+        SetFocus(BarcodeInput_1);
+
+    MainContainer_1 As groupContainer.horizontalAutoLayoutContainer:
+        DropShadow: =DropShadow.Light
+        Fill: =RGBA(245, 245, 245, 1)
+        Height: =Parent.Height
+        LayoutAlignItems: =LayoutAlignItems.Stretch
+        LayoutDirection: =LayoutDirection.Vertical
+        LayoutGap: =16
+        LayoutGridColumnMinWidth: =0
+        LayoutGridColumns: =6
+        LayoutGridRowMinHeight: =0
+        LayoutGridRows: =6
+        LayoutMode: =LayoutMode.Auto
+        PaddingBottom: =16
+        PaddingLeft: =16
+        PaddingRight: =16
+        PaddingTop: =16
+        RadiusBottomLeft: =4
+        RadiusBottomRight: =4
+        RadiusTopLeft: =4
+        RadiusTopRight: =4
+        Width: =Parent.Width
+        ZIndex: =1
+
+        HeaderContainer_1 As groupContainer.horizontalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            DropShadow: =DropShadow.Light
+            FillPortions: =0
+            Height: =75
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =100
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            ZIndex: =1
+
+            HeaderTitle_1 As Header:
+                Align: =""
+                BasePaletteColor: =
+                BorderColor: =
+                BorderStyle: =""
+                ContentLanguage: =""
+                DisplayMode: =DisplayMode.Edit
+                Fill: =
+                Font: =""
+                FontColor: =
+                Height: =75
+                IsLogoVisible: =true
+                IsProfilePictureVisible: =true
+                IsTitleVisible: =true
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =75
+                LayoutMinWidth: =Parent.Width
+                LogoMaxHeight: =70
+                LogoTooltip: ="The logo image"
+                OnSelectLogo: =false
+                Style: ="Primary"
+                TabIndex: =0
+                Title: ="Quick Pick - Inventory Management"
+                TitleFontSize: =12
+                TitleRole: =""
+                Tooltip: =""
+                UserEmail: =User().Email
+                UserImage: =User().Image
+                UserImageAltText: =User().FullName &" profile picture"
+                UserName: =User().FullName
+                Visible: =true
+                Width: =Parent.Width
+                X: =0
+                Y: =0
+                ZIndex: =1
+
+        FormContainer_1 As groupContainer.horizontalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            DropShadow: =DropShadow.Light
+            Fill: =RGBA(255, 255, 255, 1)
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =16
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =100
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =15
+            PaddingLeft: =15
+            PaddingRight: =15
+            PaddingTop: =15
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            ZIndex: =2
+
+            InventoryForm_1 As form.PowerApps_CoreControls_Form:
+                AcceptsFocus: =true
+                BorderColor: =RGBA(243, 242, 241, 1)
+                DataSource: =Inventories
+                DefaultMode: =FormMode.New
+                Item: =existingInventory
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =250
+                LayoutMinWidth: =0
+                NumberOfColumns: =2
+                OnFailure: =Notify("There is an unspecified error", NotificationType.Error)
+                OnSuccess: |+
+                    =Notify("Entry saved successfully", NotificationType.Success);
+                    ResetForm(InventoryForm_1);
+                    NewForm(InventoryForm_1);
+                    // Clear variables
+                    Set(cleanedBarcode, "");
+                    Set(gtin, "");
+                    Set(batch, "");
+                    Set(expiry, "");
+                    Set(expiryFormatted, "");
+                    Set(existingInventory, Blank());
+                    SetFocus(BarcodeInput_1);
+                    
+                    
+                    
+                UseFluentV9Cards: =true
+                ZIndex: =1
+
+                BarcodeCard_1 As typedDataCard.pcfCoreTextualEditCard:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    BorderStyle: =BorderStyle.Solid
+                    BorderThickness: =5
+                    ContentLanguage: =""
+                    DataField: ="cr31c_barcode"
+                    Default: =ThisItem.Barcode
+                    DisplayMode: =Parent.DisplayMode
+                    DisplayName: ="Barcode"
+                    Fill: =RGBA(0, 0, 0, 0)
+                    Height: |
+                        =120
+                    LayoutHeight: =0
+                    LayoutWidth: =0
+                    LayoutX: =0
+                    LayoutY: =0
+                    maximumHeight: =7680
+                    maximumWidth: =1366
+                    MaxLength: =100
+                    minimumHeight: =20
+                    minimumWidth: =20
+                    Required: =true
+                    Update: =BarcodeInput_1.Value
+                    Visible: =true
+                    Width: =647
+                    WidthFit: =true
+                    X: =0
+                    Y: =0
+                    ZIndex: =1
+
+                    BarcodeLabel_1 As Label:
+                        AcceptsFocus: =false
+                        Alignment: ="left"
+                        AutoHeight: =true
+                        Color: =
+                        ContentLanguage: =""
+                        DisplayMode: =DisplayMode.Edit
+                        Font: ="'Segoe UI', 'Open Sans', sans-serif"
+                        FontSize: =9
+                        FontWeight: ="normal"
+                        Height: =22
+                        Italic: =false
+                        OnChange: =false
+                        OnSelect: =false
+                        Overflow: ="Hidden"
+                        PaddingBottom: =0
+                        PaddingEnd: =0
+                        PaddingStart: =0
+                        PaddingTop: =0
+                        Strikethrough: =false
+                        TabIndex: =0
+                        Text: =Parent.DisplayName
+                        TextRole: ="Default"
+                        Tooltip: =Parent.DisplayName
+                        Underline: =false
+                        VerticalAlignment: =VerticalAlign.Bottom
+                        Visible: =true
+                        Width: =Parent.Width - 48
+                        Wrap: =true
+                        X: =24
+                        Y: =10
+                        ZIndex: =1
+
+                    ExistenceCheck_1 As Text:
+                        Align: ="Start"
+                        AutoHeight: =false
+                        BorderColor: =
+                        BorderStyle: =""
+                        ContentLanguage: =""
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =If(!IsBlank(existingInventory), Color.LightGreen, Color.Aqua)
+                        Font: =""
+                        FontColor: =
+                        FontItalic: =false
+                        FontStrikethrough: =false
+                        FontUnderline: =false
+                        Height: =30
+                        Size: =14
+                        TabIndex: =0
+                        Text: |-
+                            =If(BarcodeInput_1.Value = Blank(), "",
+                               If(!IsBlank(existingInventory), 
+                                  "Barcode already exists in the inventory. Editing the entry.",
+                                  "Barcode is new. You can add it to the inventory.")
+                            )
+                        Tooltip: =""
+                        VerticalAlign: =""
+                        Visible: =true
+                        Weight: ="Regular"
+                        Width: =Parent.Width-Self.X-BarcodeInput_1.X
+                        Wrap: =true
+                        X: =83
+                        Y: =10
+                        ZIndex: =3
+
+                    "BarcodeInput_1 As 'Text input'":
+                        BasePaletteColor: =
+                        BorderColor: =
+                        DisplayMode: =Parent.DisplayMode
+                        Fill: =RGBA(152, 208, 70, 1)
+                        FontColor: =
+                        Height: =32
+                        OnChange: |
+                            =// --- Enhanced Barcode Logic for Stacked Barcodes (v3) ---
+                            
+                            // This variable will hold the complete barcode string, whether from one scan or two.
+                            UpdateContext({localCompleteBarcode: ""});
+                            
+                            // If we are waiting for the second part of a stacked barcode...
+                            If(
+                                isWaitingForSecondScan,
+                                
+                                // --- THIS IS THE SECOND SCAN ---
+                                
+                                // 1. Reconstruct the full barcode string.
+                                UpdateContext({localCompleteBarcode: ctxFirstScanValue & Self.Value});
+                                
+                                // 2. Parse the COMBINED barcode string.
+                                Set(
+                                    gblBarcodeResult,
+                                    'DecodeAlternate'.Run(Substitute(Substitute(localCompleteBarcode, "(", ""), ")", ""))
+                                );
+                                
+                                // 3. Reset the state flag.
+                                UpdateContext({isWaitingForSecondScan: false});
+                                
+                            ,
+                                // --- THIS IS THE FIRST (or a complete) SCAN ---
+                                
+                                // 1. Start processing and parse the initial scan.
+                                Set(gblIsProcessing, true);
+                                UpdateContext({localCompleteBarcode: Self.Value});
+                                Set(
+                                    gblBarcodeResult,
+                                    'DecodeAlternate'.Run(Substitute(Substitute(localCompleteBarcode, "(", ""), ")", ""))
+                                );
+                                
+                                // 2. Check if the scan was partial (only GTIN was found).
+                                If(
+                                    !IsBlank(gblBarcodeResult.gtin_out) && IsBlank(gblBarcodeResult.batch_out) && IsBlank(gblBarcodeResult.expiry_out),
+                                    
+                                    // --- PARTIAL SCAN DETECTED ---
+                                    
+                                    // a. Store the value of the first scan.
+                                    Set(ctxFirstScanValue, Self.Value);
+                                    
+                                    // b. Set the app to a "waiting" state.
+                                    UpdateContext({isWaitingForSecondScan: true});
+                                    
+                                    // c. Set focus back to the input for the second scan.
+                                    SetFocus(BarcodeInput_1);
+                                    
+                                    ,
+                                    
+                                    // --- COMPLETE SCAN DETECTED ---
+                                    UpdateContext({isWaitingForSecondScan: false})
+                                )
+                            );
+                            
+                            
+                            // =====[ SHARED LOGIC - RUNS AFTER A COMPLETE SCAN IS ASSEMBLED ]=====
+                            
+                            If(
+                                !isWaitingForSecondScan,
+                                
+                                // Use the parsed GTIN to check if the product is registered.
+                                With(
+                                    {
+                                        registeredItem: LookUp(GTIN_Lookups, GTIN = gblBarcodeResult.gtin_out)
+                                    },
+                                    If(
+                                        IsBlank(registeredItem) && !IsBlank(gblBarcodeResult.gtin_out),
+                                        
+                                        // --- ITEM NOT REGISTERED ---
+                                        Notify("This item is not registered. Please register it now.", NotificationType.Warning);
+                                        Navigate(
+                                            Registration,
+                                            ScreenTransition.None,
+                                            {
+                                                varRegistrationBarcode: localCompleteBarcode,
+                                                varRegistrationGTIN: gblBarcodeResult.gtin_out,
+                                                varRegistrationBatch: gblBarcodeResult.batch_out,
+                                                varRegistrationExpiry: gblBarcodeResult.expiry_out
+                                            }
+                                        ),
+                                        
+                                        // --- ITEM IS ALREADY REGISTERED ---
+                            
+                                        // **KEY FIX:** Use the original, complete barcode string for the inventory lookup.
+                                        Set(
+                                            existingInventory,
+                                            LookUp(Inventories, Barcode = localCompleteBarcode)
+                                        );
+                                        
+                                        // Set the gblCleanedBarcode for saving later, if needed.
+                                        Set(gblCleanedBarcode, gblBarcodeResult.gtin_out & gblBarcodeResult.batch_out);
+                            
+                                        If(
+                                            !IsBlank(existingInventory),
+                                            EditForm(InventoryForm_1),
+                                            NewForm(InventoryForm_1)
+                                        );
+                                        
+                                        SetFocus(QuantityInput_1)
+                                    )
+                                );
+                                
+                                Set(gblIsProcessing, false);
+                            )
+                        PCFTeamsTheme: ="default"
+                        Placeholder: ="Click here and scan to begin adding/updating inventory"
+                        TriggerOutput: ='TextInputCanvas.TriggerOutput'.Delayed
+                        Value: =Parent.Default
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =BarcodeLabel_1.Y + BarcodeLabel_1.Height + 4
+                        ZIndex: =4
+
+                    Text1 As modernText:
+                        AutoHeight: =true
+                        Color: =RGBA(255, 0, 0, 1)
+                        Fill: =RGBA(255, 255, 255, 1)
+                        FontWeight: =FontWeight.Bold
+                        Height: =28
+                        Text: ="GTIN captured. Now scan the barcode with the Batch/Expiry information."
+                        Visible: =isWaitingForSecondScan
+                        Width: =Parent.Width-Self.X
+                        X: =24
+                        Y: =72
+                        ZIndex: =5
+
+                "'Item Category_DataCard2' As typedDataCard.fluentV9TextualEditCard":
+                    BorderColor: =RGBA(243, 242, 241, 1)
+                    BorderStyle: =BorderStyle.Solid
+                    DataField: ="cr31c_itemcategory"
+                    Default: =ThisItem.'Item Category'
+                    DisplayMode: =Parent.DisplayMode
+                    DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Item Category')
+                    Fill: =RGBA(0, 0, 0, 0)
+                    Height: =70
+                    MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, 'Item Category')
+                    Required: =false
+                    Update: =DataCardValue4.Value
+                    Width: =652
+                    X: =1
+                    Y: =3
+                    ZIndex: =1
+
+                    DataCardKey4 As Text:
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FontColor: =
+                        Height: =22
+                        PCFTeamsTheme: ="default"
+                        Text: =Parent.DisplayName
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width - 48
+                        Wrap: =false
+                        X: =24
+                        Y: =10
+                        ZIndex: =1
+
+                    "DataCardValue4 As 'Text input'":
+                        AccessibleLabel: =Parent.DisplayName
+                        BasePaletteColor: =
+                        BorderColor: =
+                        DisplayMode: =Parent.DisplayMode
+                        Fill: =
+                        FontColor: =
+                        Height: =32
+                        Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                        PCFTeamsTheme: ="default"
+                        Required: =Parent.Required
+                        ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                        Value: =LookUp(GTIN_Lookups, GTIN = Text(ItemCodeInput_1.Value), First(ItemCategory).Value)
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =DataCardKey4.Y + DataCardKey4.Height + 4
+                        ZIndex: =2
+
+                    ErrorMessage4 As Text:
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FontColor: =
+                        Height: =30
+                        PCFTeamsTheme: ="default"
+                        Text: =Parent.Error
+                        Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =Parent.Width - 48
+                        Wrap: =true
+                        X: =24
+                        Y: =DataCardValue4.Y + DataCardValue4.Height
+                        ZIndex: =3
+
+                    StarVisible4 As Text:
+                        Align: ='TextCanvas.Align'.Center
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FontColor: =
+                        Height: =30
+                        PCFTeamsTheme: ="default"
+                        Text: ="*"
+                        Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =30
+                        X: =0
+                        Y: =DataCardKey4.Y
+                        ZIndex: =4
+
+                "'Notes/Comments_DataCard1' As typedDataCard.fluentV9TextualEditCard":
+                    BorderColor: =RGBA(243, 242, 241, 1)
+                    BorderStyle: =BorderStyle.Solid
+                    DataField: ="cr31c_notescomments"
+                    Default: =ThisItem.'Notes/Comments'
+                    DisplayMode: =Parent.DisplayMode
+                    DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Notes/Comments')
+                    Fill: =RGBA(0, 0, 0, 0)
+                    Height: =70
+                    MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, 'Notes/Comments')
+                    Required: =false
+                    Update: =DataCardValue9.Value
+                    Width: =652
+                    X: =0
+                    Y: =4
+                    ZIndex: =1
+
+                    DataCardKey9 As Text:
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FontColor: =
+                        Height: =22
+                        PCFTeamsTheme: ="default"
+                        Text: =Parent.DisplayName
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width - 48
+                        Wrap: =false
+                        X: =24
+                        Y: =10
+                        ZIndex: =1
+
+                    "DataCardValue9 As 'Text input'":
+                        AccessibleLabel: =Parent.DisplayName
+                        BasePaletteColor: =
+                        BorderColor: =
+                        DisplayMode: =Parent.DisplayMode
+                        Fill: =
+                        FontColor: =
+                        Height: =32
+                        Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                        PCFTeamsTheme: ="default"
+                        Required: =Parent.Required
+                        ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                        Value: =Parent.Default
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =DataCardKey9.Y + DataCardKey9.Height + 4
+                        ZIndex: =2
+
+                    ErrorMessage7 As Text:
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FontColor: =
+                        Height: =30
+                        PCFTeamsTheme: ="default"
+                        Text: =Parent.Error
+                        Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =Parent.Width - 48
+                        Wrap: =true
+                        X: =24
+                        Y: =DataCardValue9.Y + DataCardValue9.Height
+                        ZIndex: =3
+
+                    StarVisible7 As Text:
+                        Align: ='TextCanvas.Align'.Center
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FontColor: =
+                        Height: =30
+                        PCFTeamsTheme: ="default"
+                        Text: ="*"
+                        Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =30
+                        X: =0
+                        Y: =DataCardKey9.Y
+                        ZIndex: =4
+
+                "'Modified On_DataCard2' As typedDataCard.fluentV9TextualViewCard":
+                    BorderColor: =RGBA(243, 242, 241, 1)
+                    BorderStyle: =BorderStyle.Solid
+                    DataField: ="modifiedon"
+                    Default: =ThisItem.'Modified On'
+                    DisplayMode: =DisplayMode.View
+                    DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Modified On')
+                    Fill: =RGBA(0, 0, 0, 0)
+                    Height: =70
+                    Required: =false
+                    Width: =652
+                    X: =1
+                    Y: =4
+                    ZIndex: =1
+
+                    DataCardKey10 As Text:
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FontColor: =
+                        Height: =22
+                        PCFTeamsTheme: ="default"
+                        Text: =Parent.DisplayName
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width - 48
+                        Wrap: =false
+                        X: =24
+                        Y: =10
+                        ZIndex: =1
+
+                    "DataCardValue10 As 'Text input'":
+                        AccessibleLabel: =Parent.DisplayName
+                        BasePaletteColor: =
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.View
+                        Fill: =
+                        FontColor: =
+                        Height: =32
+                        Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                        PCFTeamsTheme: ="default"
+                        Required: =Parent.Required
+                        ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                        Value: =Parent.Default
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =DataCardKey10.Y + DataCardKey10.Height + 4
+                        ZIndex: =2
+
+                "'Modified By_DataCard2' As typedDataCard.fluentV9ComboBoxViewCard":
+                    BorderColor: =RGBA(243, 242, 241, 1)
+                    BorderStyle: =BorderStyle.Solid
+                    DataField: ="modifiedby"
+                    Default: =ThisItem.'Modified By'
+                    DisplayMode: =DisplayMode.View
+                    DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Modified By')
+                    Fill: =RGBA(0, 0, 0, 0)
+                    Height: =70
+                    Required: =false
+                    Width: =652
+                    X: =0
+                    Y: =5
+                    ZIndex: =1
+
+                    DataCardKey11 As Text:
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FontColor: =
+                        Height: =22
+                        PCFTeamsTheme: ="default"
+                        Text: =Parent.DisplayName
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width - 48
+                        Wrap: =false
+                        X: =24
+                        Y: =10
+                        ZIndex: =1
+
+                    DataCardValue11 As Combobox.pcfdataset:
+                        DefaultSelectedItems: =[Parent.Default]
+                        DisplayMode: =DisplayMode.View
+                        Height: =32
+                        Items: =Choices([@Inventories].'Modified By')
+                        PCFTeamsTheme: ="default"
+                        ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =DataCardKey11.Y + DataCardKey11.Height + 4
+                        ZIndex: =2
+
+                        "'System Managed User Type2' As PowerApps_CoreControls_ComboboxCanvasTemplate_dataField.textualColumn":
+                            FieldDisplayName: ="System Managed User Type"
+                            FieldName: ="systemmanagedusertype"
+                            FieldType: ="l"
+                            FieldVariantName: ="textualColumn"
+                            Order: =5
+                            ZIndex: =8
+
+                        "'Invitation Status2' As PowerApps_CoreControls_ComboboxCanvasTemplate_dataField.textualColumn":
+                            FieldDisplayName: ="Invitation Status"
+                            FieldName: ="invitestatuscode"
+                            FieldType: ="l"
+                            FieldVariantName: ="textualColumn"
+                            Order: =4
+                            ZIndex: =9
+
+                        "'Full Name2' As PowerApps_CoreControls_ComboboxCanvasTemplate_dataField.textualColumn":
+                            FieldDisplayName: ="Full Name"
+                            FieldName: ="fullname"
+                            FieldType: ="s"
+                            FieldVariantName: ="textualColumn"
+                            Order: =3
+                            ZIndex: =10
+
+                        "'Last Name2' As PowerApps_CoreControls_ComboboxCanvasTemplate_dataField.textualColumn":
+                            FieldDisplayName: ="Last Name"
+                            FieldName: ="lastname"
+                            FieldType: ="s"
+                            FieldVariantName: ="textualColumn"
+                            Order: =2
+                            ZIndex: =11
+
+                        "'First Name2' As PowerApps_CoreControls_ComboboxCanvasTemplate_dataField.textualColumn":
+                            FieldDisplayName: ="First Name"
+                            FieldName: ="firstname"
+                            FieldType: ="s"
+                            FieldVariantName: ="textualColumn"
+                            Order: =1
+                            ZIndex: =12
+
+                Units_DataCard1 As typedDataCard.fluentV9TextualEditCard:
+                    BorderColor: =RGBA(243, 242, 241, 1)
+                    BorderStyle: =BorderStyle.Solid
+                    DataField: ="cra16_units"
+                    Default: =ThisItem.Units
+                    DisplayMode: =Parent.DisplayMode
+                    DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,cra16_units)
+                    Fill: =RGBA(0, 0, 0, 0)
+                    Height: =70
+                    MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, cra16_units)
+                    Required: =false
+                    Update: =DataCardValue14.Value
+                    Width: =652
+                    X: =1
+                    Y: =5
+                    ZIndex: =1
+
+                    DataCardKey14 As Text:
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FontColor: =
+                        Height: =22
+                        PCFTeamsTheme: ="default"
+                        Text: =Parent.DisplayName
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width - 48
+                        Wrap: =false
+                        X: =24
+                        Y: =10
+                        ZIndex: =1
+
+                    "DataCardValue14 As 'Text input'":
+                        AccessibleLabel: =Parent.DisplayName
+                        BasePaletteColor: =
+                        BorderColor: =
+                        DisplayMode: =Parent.DisplayMode
+                        Fill: =
+                        FontColor: =
+                        Height: =32
+                        Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                        PCFTeamsTheme: ="default"
+                        Required: =Parent.Required
+                        ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                        Value: =LookUp(GTIN_Lookups, GTIN = Text(ItemCodeInput_1.Value), 'Unit Quantities')
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =DataCardKey14.Y + DataCardKey14.Height + 4
+                        ZIndex: =2
+
+                    ErrorMessage10 As Text:
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FontColor: =
+                        Height: =30
+                        PCFTeamsTheme: ="default"
+                        Text: =Parent.Error
+                        Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =Parent.Width - 48
+                        Wrap: =true
+                        X: =24
+                        Y: =DataCardValue14.Y + DataCardValue14.Height
+                        ZIndex: =3
+
+                    StarVisible10 As Text:
+                        Align: ='TextCanvas.Align'.Center
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FontColor: =
+                        Height: =30
+                        PCFTeamsTheme: ="default"
+                        Text: ="*"
+                        Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =30
+                        X: =0
+                        Y: =DataCardKey14.Y
+                        ZIndex: =4
+
+                CleanedBarcode_DataCard1 As typedDataCard.fluentV9TextualEditCard:
+                    BorderColor: =RGBA(243, 242, 241, 1)
+                    BorderStyle: =BorderStyle.Solid
+                    DataField: ="cr31c_cleanedbarcode"
+                    Default: =ThisItem.CleanedBarcode
+                    DisplayMode: =Parent.DisplayMode
+                    DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,CleanedBarcode)
+                    Fill: =RGBA(0, 0, 0, 0)
+                    Height: =70
+                    MaxLength: =DataSourceInfo([@Inventories], DataSourceInfo.MaxLength, CleanedBarcode)
+                    Required: =false
+                    Update: =DataCardValue7.Value
+                    Visible: =true
+                    Width: =652
+                    X: =0
+                    Y: =6
+                    ZIndex: =1
+
+                    DataCardKey7 As Text:
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FontColor: =
+                        Height: =22
+                        PCFTeamsTheme: ="default"
+                        Text: =Parent.DisplayName
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =Parent.Width - 48
+                        Wrap: =false
+                        X: =24
+                        Y: =10
+                        ZIndex: =1
+
+                    "DataCardValue7 As 'Text input'":
+                        AccessibleLabel: =Parent.DisplayName
+                        BasePaletteColor: =
+                        BorderColor: =
+                        DisplayMode: =Parent.DisplayMode
+                        Fill: =
+                        FontColor: =
+                        Height: =32
+                        Mode: ="'TextInputCanvas.Mode'.TextInputModeSingleLine"
+                        PCFTeamsTheme: ="default"
+                        Required: =Parent.Required
+                        ValidationState: =If(IsBlank(Parent.Error), "None", "Error")
+                        Value: =gblCleanedBarcode
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =DataCardKey7.Y + DataCardKey7.Height + 4
+                        ZIndex: =2
+
+                    ErrorMessage5 As Text:
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FontColor: =
+                        Height: =30
+                        PCFTeamsTheme: ="default"
+                        Text: =Parent.Error
+                        Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =Parent.Width - 48
+                        Wrap: =true
+                        X: =24
+                        Y: =DataCardValue7.Y + DataCardValue7.Height
+                        ZIndex: =3
+
+                    StarVisible5 As Text:
+                        Align: ='TextCanvas.Align'.Center
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FontColor: =
+                        Height: =30
+                        PCFTeamsTheme: ="default"
+                        Text: ="*"
+                        Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =30
+                        X: =0
+                        Y: =DataCardKey7.Y
+                        ZIndex: =4
+
+                ItemCodeCard_1 As typedDataCard.pcfCoreTextualEditCard:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(243, 242, 241, 1)
+                    BorderStyle: =BorderStyle.Solid
+                    BorderThickness: =0
+                    ContentLanguage: =""
+                    DataField: ="cr31c_itemid"
+                    Default: =ThisItem.ItemID
+                    DisplayMode: =Parent.DisplayMode
+                    DisplayName: ="Item Code/GTIN"
+                    Fill: =RGBA(0, 0, 0, 0)
+                    Height: =70
+                    LayoutHeight: =0
+                    LayoutWidth: =0
+                    LayoutX: =0
+                    LayoutY: =0
+                    maximumHeight: =7680
+                    maximumWidth: =1366
+                    MaxLength: =100
+                    minimumHeight: =20
+                    minimumWidth: =20
+                    Required: =false
+                    Update: =ItemCodeInput_1.Value
+                    Visible: =true
+                    Width: =652
+                    WidthFit: =true
+                    X: =0
+                    Y: =1
+                    ZIndex: =2
+
+                    ItemCodeLabel_1 As Label:
+                        AcceptsFocus: =false
+                        Alignment: ="left"
+                        AutoHeight: =true
+                        Color: =
+                        ContentLanguage: =""
+                        DisplayMode: =DisplayMode.Edit
+                        Font: ="'Segoe UI', 'Open Sans', sans-serif"
+                        FontSize: =9
+                        FontWeight: ="normal"
+                        Height: =22
+                        Italic: =false
+                        OnChange: =false
+                        OnSelect: =false
+                        Overflow: ="Hidden"
+                        PaddingBottom: =0
+                        PaddingEnd: =0
+                        PaddingStart: =0
+                        PaddingTop: =0
+                        Strikethrough: =false
+                        TabIndex: =0
+                        Text: =Parent.DisplayName
+                        TextRole: ="Default"
+                        Tooltip: =Parent.DisplayName
+                        Underline: =false
+                        VerticalAlignment: =VerticalAlign.Bottom
+                        Visible: =true
+                        Width: =Parent.Width - 48
+                        Wrap: =true
+                        X: =24
+                        Y: =10
+                        ZIndex: =1
+
+                    "ItemCodeInput_1 As 'Text box'":
+                        AcceptsFocus: =true
+                        AccessibleLabel: =Parent.DisplayName
+                        ColorBackground: =
+                        ColorText: =
+                        ContentLanguage: =""
+                        DelayOutput: =false
+                        DisplayMode: =Parent.DisplayMode
+                        Font: ="'Segoe UI', 'Open Sans', sans-serif"
+                        FontSize: =10.5
+                        FontWeight: ="normal"
+                        Height: =32
+                        Italic: =false
+                        Label: =""
+                        LabelFontSize: =10.5
+                        MaxLength: =-1
+                        Mode: ="SingleLine"
+                        OnChange: =false
+                        OnSelect: =false
+                        PaddingBottom: =0
+                        PaddingEnd: =0
+                        PaddingStart: =0
+                        PaddingTop: =0
+                        Placeholder: ="This should auto-populate after you scan the barcode"
+                        Required: =Parent.Required
+                        SpellCheck: =false
+                        Strikethrough: =false
+                        TabIndex: =0
+                        Tooltip: =Parent.DisplayName
+                        Underline: =false
+                        Underlined: =false
+                        Value: =gblBarcodeResult.gtin_out
+                        Visible: =true
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =ItemCodeLabel_1.Y + ItemCodeLabel_1.Height + 4
+                        ZIndex: =2
+
+                ProductNameCard_1 As typedDataCard.pcfCoreTextualEditCard:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(243, 242, 241, 1)
+                    BorderStyle: =BorderStyle.Solid
+                    BorderThickness: =0
+                    ContentLanguage: =""
+                    DataField: ="cr31c_name"
+                    Default: =ThisItem.Name
+                    DisplayMode: =Parent.DisplayMode
+                    DisplayName: ="Product Name"
+                    Fill: =RGBA(0, 0, 0, 0)
+                    Height: =70
+                    LayoutHeight: =0
+                    LayoutWidth: =0
+                    LayoutX: =0
+                    LayoutY: =0
+                    maximumHeight: =7680
+                    maximumWidth: =1366
+                    MaxLength: =100
+                    minimumHeight: =20
+                    minimumWidth: =20
+                    Required: =true
+                    Update: =ProductNameInput_1.Value
+                    Visible: =true
+                    Width: =652
+                    WidthFit: =true
+                    X: =1
+                    Y: =1
+                    ZIndex: =3
+
+                    ProductNameLabel_1 As Label:
+                        AcceptsFocus: =false
+                        Alignment: ="left"
+                        AutoHeight: =true
+                        Color: =
+                        ContentLanguage: =""
+                        DisplayMode: =DisplayMode.Edit
+                        Font: ="'Segoe UI', 'Open Sans', sans-serif"
+                        FontSize: =9
+                        FontWeight: ="normal"
+                        Height: =22
+                        Italic: =false
+                        OnChange: =false
+                        OnSelect: =false
+                        Overflow: ="Hidden"
+                        PaddingBottom: =0
+                        PaddingEnd: =0
+                        PaddingStart: =0
+                        PaddingTop: =0
+                        Strikethrough: =false
+                        TabIndex: =0
+                        Text: =Parent.DisplayName
+                        TextRole: ="Default"
+                        Tooltip: =Parent.DisplayName
+                        Underline: =false
+                        VerticalAlignment: =VerticalAlign.Bottom
+                        Visible: =true
+                        Width: =Parent.Width - 48
+                        Wrap: =true
+                        X: =24
+                        Y: =10
+                        ZIndex: =1
+
+                    "ProductNameInput_1 As 'Text box'":
+                        AcceptsFocus: =true
+                        AccessibleLabel: =Parent.DisplayName
+                        ColorBackground: =
+                        ColorText: =
+                        ContentLanguage: =""
+                        DelayOutput: =false
+                        DisplayMode: =Parent.DisplayMode
+                        Font: ="'Segoe UI', 'Open Sans', sans-serif"
+                        FontSize: =10.5
+                        FontWeight: ="normal"
+                        Height: =32
+                        Italic: =false
+                        Label: =""
+                        LabelFontSize: =10.5
+                        MaxLength: =-1
+                        Mode: ="SingleLine"
+                        OnChange: =false
+                        OnSelect: =false
+                        PaddingBottom: =0
+                        PaddingEnd: =0
+                        PaddingStart: =0
+                        PaddingTop: =0
+                        Placeholder: ="If this does not populate, please register the item code"
+                        Required: =Parent.Required
+                        SpellCheck: =false
+                        Strikethrough: =false
+                        TabIndex: =0
+                        Tooltip: =Parent.DisplayName
+                        Underline: =false
+                        Underlined: =false
+                        Value: =LookUp(GTIN_Lookups, GTIN = Text(ItemCodeInput_1.Value), ItemName)
+                        Visible: =true
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =ProductNameLabel_1.Y + ProductNameLabel_1.Height + 4
+                        ZIndex: =2
+
+                ManufacturerCard_1 As typedDataCard.pcfCoreTextualEditCard:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(243, 242, 241, 1)
+                    BorderStyle: =BorderStyle.Solid
+                    BorderThickness: =0
+                    ContentLanguage: =""
+                    DataField: ="cr31c_manufacturer_lookup"
+                    Default: =ThisItem.Manufacturer_Lookup
+                    DisplayMode: =Parent.DisplayMode
+                    DisplayName: ="Manufacturer"
+                    Fill: =RGBA(0, 0, 0, 0)
+                    Height: =70
+                    LayoutHeight: =0
+                    LayoutWidth: =0
+                    LayoutX: =0
+                    LayoutY: =0
+                    maximumHeight: =7680
+                    maximumWidth: =1366
+                    MaxLength: =100
+                    minimumHeight: =20
+                    minimumWidth: =20
+                    Required: =true
+                    Update: =ManufacturerInput_1.Value
+                    Visible: =true
+                    Width: =652
+                    WidthFit: =true
+                    X: =0
+                    Y: =2
+                    ZIndex: =4
+
+                    ManufacturerLabel_1 As Label:
+                        AcceptsFocus: =false
+                        Alignment: ="left"
+                        AutoHeight: =true
+                        Color: =
+                        ContentLanguage: =""
+                        DisplayMode: =DisplayMode.Edit
+                        Font: ="'Segoe UI', 'Open Sans', sans-serif"
+                        FontSize: =9
+                        FontWeight: ="normal"
+                        Height: =22
+                        Italic: =false
+                        OnChange: =false
+                        OnSelect: =false
+                        Overflow: ="Hidden"
+                        PaddingBottom: =0
+                        PaddingEnd: =0
+                        PaddingStart: =0
+                        PaddingTop: =0
+                        Strikethrough: =false
+                        TabIndex: =0
+                        Text: =Parent.DisplayName
+                        TextRole: ="Default"
+                        Tooltip: =Parent.DisplayName
+                        Underline: =false
+                        VerticalAlignment: =VerticalAlign.Bottom
+                        Visible: =true
+                        Width: =Parent.Width - 48
+                        Wrap: =true
+                        X: =24
+                        Y: =10
+                        ZIndex: =1
+
+                    "ManufacturerInput_1 As 'Text box'":
+                        AcceptsFocus: =true
+                        AccessibleLabel: =Parent.DisplayName
+                        ColorBackground: =
+                        ColorText: =
+                        ContentLanguage: =""
+                        DelayOutput: =false
+                        DisplayMode: =Parent.DisplayMode
+                        Font: ="'Segoe UI', 'Open Sans', sans-serif"
+                        FontSize: =10.5
+                        FontWeight: ="normal"
+                        Height: =32
+                        Italic: =false
+                        Label: =""
+                        LabelFontSize: =10.5
+                        MaxLength: =-1
+                        Mode: ="SingleLine"
+                        OnChange: =false
+                        OnSelect: =false
+                        PaddingBottom: =0
+                        PaddingEnd: =0
+                        PaddingStart: =0
+                        PaddingTop: =0
+                        Placeholder: ="If this does not populate, please register the item code"
+                        Required: =Parent.Required
+                        SpellCheck: =false
+                        Strikethrough: =false
+                        TabIndex: =0
+                        Tooltip: =Parent.DisplayName
+                        Underline: =false
+                        Underlined: =false
+                        Value: =LookUp(GTIN_Lookups, GTIN = Text(ItemCodeInput_1.Value), ItemManufacturer)
+                        Visible: =true
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =ManufacturerLabel_1.Y + ManufacturerLabel_1.Height + 4
+                        ZIndex: =2
+
+                BatchCard_1 As typedDataCard.pcfCoreTextualEditCard:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(243, 242, 241, 1)
+                    BorderStyle: =BorderStyle.Solid
+                    BorderThickness: =0
+                    ContentLanguage: =""
+                    DataField: ="cr31c_batch"
+                    Default: =ThisItem.Batch
+                    DisplayMode: =Parent.DisplayMode
+                    DisplayName: ="Batch/Lot Number"
+                    Fill: =RGBA(0, 0, 0, 0)
+                    Height: =70
+                    LayoutHeight: =0
+                    LayoutWidth: =0
+                    LayoutX: =0
+                    LayoutY: =0
+                    maximumHeight: =7680
+                    maximumWidth: =1366
+                    MaxLength: =100
+                    minimumHeight: =20
+                    minimumWidth: =20
+                    Required: =false
+                    Update: =BatchInput_1.Value
+                    Visible: =true
+                    Width: =652
+                    WidthFit: =true
+                    X: =1
+                    Y: =2
+                    ZIndex: =5
+
+                    BatchLabel_1 As Label:
+                        AcceptsFocus: =false
+                        Alignment: ="left"
+                        AutoHeight: =true
+                        Color: =
+                        ContentLanguage: =""
+                        DisplayMode: =DisplayMode.Edit
+                        Font: ="'Segoe UI', 'Open Sans', sans-serif"
+                        FontSize: =9
+                        FontWeight: ="normal"
+                        Height: =22
+                        Italic: =false
+                        OnChange: =false
+                        OnSelect: =false
+                        Overflow: ="Hidden"
+                        PaddingBottom: =0
+                        PaddingEnd: =0
+                        PaddingStart: =0
+                        PaddingTop: =0
+                        Strikethrough: =false
+                        TabIndex: =0
+                        Text: =Parent.DisplayName
+                        TextRole: ="Default"
+                        Tooltip: =Parent.DisplayName
+                        Underline: =false
+                        VerticalAlignment: =VerticalAlign.Bottom
+                        Visible: =true
+                        Width: =Parent.Width - 48
+                        Wrap: =true
+                        X: =24
+                        Y: =10
+                        ZIndex: =1
+
+                    "BatchInput_1 As 'Text box'":
+                        AcceptsFocus: =true
+                        AccessibleLabel: =Parent.DisplayName
+                        ColorBackground: =
+                        ColorText: =
+                        ContentLanguage: =""
+                        DelayOutput: =false
+                        DisplayMode: =Parent.DisplayMode
+                        Font: ="'Segoe UI', 'Open Sans', sans-serif"
+                        FontSize: =10.5
+                        FontWeight: ="normal"
+                        Height: =32
+                        Italic: =false
+                        Label: =""
+                        LabelFontSize: =10.5
+                        MaxLength: =-1
+                        Mode: ="SingleLine"
+                        OnChange: =false
+                        OnSelect: =false
+                        PaddingBottom: =0
+                        PaddingEnd: =0
+                        PaddingStart: =0
+                        PaddingTop: =0
+                        Placeholder: ="This should auto-populate. Please verify for new items"
+                        Required: =Parent.Required
+                        SpellCheck: =false
+                        Strikethrough: =false
+                        TabIndex: =0
+                        Tooltip: =Parent.DisplayName
+                        Underline: =false
+                        Underlined: =false
+                        Value: =gblBarcodeResult.batch_out
+                        Visible: =true
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =BatchLabel_1.Y + BatchLabel_1.Height + 4
+                        ZIndex: =2
+
+                ExpirationCard_1 As typedDataCard.pcfCoreDateTimeEditCard:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(243, 242, 241, 1)
+                    BorderStyle: =BorderStyle.Solid
+                    BorderThickness: =0
+                    ContentLanguage: =""
+                    DataField: ="cr31c_expiration"
+                    Default: =ThisItem.Expiration
+                    DisplayMode: =Parent.DisplayMode
+                    DisplayName: ="Expiration Date"
+                    Fill: =RGBA(0, 0, 0, 0)
+                    Height: =70
+                    LayoutHeight: =0
+                    LayoutWidth: =0
+                    LayoutX: =0
+                    LayoutY: =0
+                    maximumHeight: =7680
+                    maximumWidth: =1366
+                    minimumHeight: =20
+                    minimumWidth: =20
+                    Required: =false
+                    Update: =If(Not IsBlank(ExpirationPicker_1.Value), DateTime(Year(ExpirationPicker_1.Value), Month(ExpirationPicker_1.Value), Day(ExpirationPicker_1.Value), 0, 0, 0))
+                    Visible: =true
+                    Width: =652
+                    WidthFit: =true
+                    X: =0
+                    Y: =3
+                    ZIndex: =6
+
+                    ExpirationLabel_1 As Label:
+                        AcceptsFocus: =false
+                        Alignment: ="left"
+                        AutoHeight: =true
+                        Color: =
+                        ContentLanguage: =""
+                        DisplayMode: =DisplayMode.Edit
+                        Font: ="'Segoe UI', 'Open Sans', sans-serif"
+                        FontSize: =9
+                        FontWeight: ="normal"
+                        Height: =22
+                        Italic: =false
+                        OnChange: =false
+                        OnSelect: =false
+                        Overflow: ="Hidden"
+                        PaddingBottom: =0
+                        PaddingEnd: =0
+                        PaddingStart: =0
+                        PaddingTop: =0
+                        Strikethrough: =false
+                        TabIndex: =0
+                        Text: =Parent.DisplayName
+                        TextRole: ="Default"
+                        Tooltip: =Parent.DisplayName
+                        Underline: =false
+                        VerticalAlignment: =VerticalAlign.Bottom
+                        Visible: =true
+                        Width: =Parent.Width - 48
+                        Wrap: =true
+                        X: =24
+                        Y: =10
+                        ZIndex: =1
+
+                    "ExpirationPicker_1 As 'Date picker'":
+                        AcceptsFocus: =true
+                        AccessibleLabel: =If(Parent.Required, Substitute("{0}. Required.", "{0}", Parent.DisplayName), Parent.DisplayName)
+                        AllowTextInput: =true
+                        ContentLanguage: =""
+                        DisplayMode: =Parent.DisplayMode
+                        FillColor: =
+                        FirstDayOfWeek: =1
+                        FirstWeekOfYear: ="FirstDay"
+                        Font: ="'Segoe UI', 'Open Sans', sans-serif"
+                        FontSize: =10.5
+                        FontWeight: ="normal"
+                        Format: =""
+                        Height: =32
+                        IconFill: =
+                        IconSize: =16
+                        Label: =""
+                        LabelFontSize: =10.5
+                        OnChange: =false
+                        OnSelect: =false
+                        PaddingBottom: =0
+                        PaddingEnd: =0
+                        PaddingStart: =0
+                        PaddingTop: =0
+                        ShowGoToToday: =false
+                        ShowWeekNumbers: =false
+                        TabIndex: =0
+                        TextColor: =
+                        Tooltip: =Parent.DisplayName
+                        Value: =Date("20"&Left((gblBarcodeResult.expiry_out),2),Mid((gblBarcodeResult.expiry_out),3,2),Right((gblBarcodeResult.expiry_out),2))
+                        Visible: =true
+                        Width: =(Parent.Width - 48) / 2
+                        X: =24
+                        Y: =ExpirationLabel_1.Y + ExpirationLabel_1.Height + 4
+                        ZIndex: =2
+
+                QuantityCard_1 As typedDataCard.pcfCoreNumberEditCard:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(243, 242, 241, 1)
+                    BorderStyle: =BorderStyle.Solid
+                    BorderThickness: =0
+                    ContentLanguage: =""
+                    DataField: ="cr31c_quantity"
+                    Default: =ThisItem.Quantity
+                    DisplayMode: =Parent.DisplayMode
+                    DisplayName: ="Quantity"
+                    Fill: =RGBA(0, 0, 0, 0)
+                    Height: =82
+                    LayoutHeight: =0
+                    LayoutWidth: =0
+                    LayoutX: =0
+                    LayoutY: =0
+                    maximumHeight: =7680
+                    maximumWidth: =1366
+                    minimumHeight: =20
+                    minimumWidth: =20
+                    Required: =true
+                    Update: =Value(QuantityInput_1.Text)
+                    Visible: =true
+                    Width: =652
+                    WidthFit: =true
+                    X: =1
+                    Y: =0
+                    ZIndex: =7
+
+                    QuantityLabel_1 As Label:
+                        AcceptsFocus: =false
+                        Alignment: ="left"
+                        AutoHeight: =true
+                        Color: =
+                        ContentLanguage: =""
+                        DisplayMode: =DisplayMode.Edit
+                        Font: ="'Segoe UI', 'Open Sans', sans-serif"
+                        FontSize: =9
+                        FontWeight: ="normal"
+                        Height: =22
+                        Italic: =false
+                        OnChange: =false
+                        OnSelect: =false
+                        Overflow: ="Hidden"
+                        PaddingBottom: =0
+                        PaddingEnd: =0
+                        PaddingStart: =0
+                        PaddingTop: =0
+                        Strikethrough: =false
+                        TabIndex: =0
+                        Text: =Parent.DisplayName
+                        TextRole: ="Default"
+                        Tooltip: =Parent.DisplayName
+                        Underline: =false
+                        VerticalAlignment: =VerticalAlign.Bottom
+                        Visible: =true
+                        Width: =Parent.Width - 48
+                        Wrap: =true
+                        X: =24
+                        Y: =10
+                        ZIndex: =1
+
+                    QuantityInput_1 As text:
+                        AccessibleLabel: =If(Parent.Required, Substitute("{0}. Required.", "{0}", Parent.DisplayName), Parent.DisplayName)
+                        BorderColor: =RGBA(243, 242, 241, 1)
+                        BorderThickness: =0
+                        Color: =RGBA(37, 36, 35, 1)
+                        Default: =If(!IsBlank(Parent.Default), Parent.Default, "1")
+                        DelayOutput: =true
+                        DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                        DisabledColor: =RGBA(200, 198, 196, 1)
+                        DisabledFill: =RGBA(243, 242, 241, 1)
+                        DisplayMode: =Parent.DisplayMode
+                        Fill: =RGBA(255, 191, 0, 1)
+                        FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Format: =TextFormat.Number
+                        Height: =32
+                        HintText: ="Indicate the quantity here"
+                        HoverBorderColor: =RGBA(243, 242, 241, 1)
+                        HoverColor: =RGBA(37, 36, 35, 1)
+                        HoverFill: =RGBA(243, 242, 241, 1)
+                        PaddingBottom: =4
+                        PaddingRight: =12
+                        PaddingTop: =0
+                        PressedBorderColor: =RGBA(98, 100, 167, 1)
+                        PressedColor: =RGBA(37, 36, 35, 1)
+                        PressedFill: =RGBA(243, 242, 241, 1)
+                        RadiusBottomLeft: =3
+                        RadiusBottomRight: =3
+                        RadiusTopLeft: =3
+                        RadiusTopRight: =3
+                        Size: =10.5
+                        Tooltip: =Parent.DisplayName
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =QuantityLabel_1.Y + QuantityLabel_1.Height + 4
+                        ZIndex: =2
+
+                    TextCanvas6 As Text:
+                        AutoHeight: =false
+                        BorderColor: =
+                        DisplayMode: =DisplayMode.Edit
+                        Fill: =
+                        FontColor: =
+                        Height: =26
+                        PCFTeamsTheme: ="default"
+                        Text: |-
+                            ="Quantity Units: "&LookUp(GTIN_Lookups, ThisItem.ItemID = GTIN,'Unit Quantities')
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =171
+                        X: =239
+                        Y: =10
+                        ZIndex: =3
+
+            ButtonContainer_1 As groupContainer.horizontalAutoLayoutContainer:
+                FillPortions: =0
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =10
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutJustifyContent: =LayoutJustifyContent.End
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =100
+                LayoutMinWidth: =0
+                LayoutMode: =LayoutMode.Auto
+                PaddingBottom: =10
+                PaddingRight: =24
+                PaddingTop: =10
+                ZIndex: =2
+
+                EnterKeyScanner_1 As image:
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    BorderStyle: =BorderStyle.None
+                    BorderThickness: =2
+                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                    DisabledFill: =RGBA(0, 0, 0, 0)
+                    FillPortions: =1
+                    Height: |
+                        =Parent.Height*1.2
+                    HoverBorderColor: =RGBA(0, 0, 0, 0)
+                    HoverFill: =RGBA(0, 0, 0, 0)
+                    Image: =ResetBarcodeScanner
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =Parent.Height
+                    PressedBorderColor: =RGBA(0, 0, 0, 0)
+                    PressedFill: =RGBA(0, 0, 0, 0)
+                    RadiusBottomLeft: =3
+                    RadiusBottomRight: =3
+                    RadiusTopLeft: =3
+                    RadiusTopRight: =3
+                    Width: =298
+                    X: =0   
+                    Y: |
+                        =0
+                    ZIndex: =1
+
+                EnterKeyScanner As image:
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    BorderStyle: =BorderStyle.None
+                    BorderThickness: =2
+                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                    DisabledFill: =RGBA(0, 0, 0, 0)
+                    FillPortions: =1
+                    Height: =Parent.Height*1.3
+                    HoverBorderColor: =RGBA(0, 0, 0, 0)
+                    HoverFill: =RGBA(0, 0, 0, 0)
+                    Image: =AddEnterKey
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    PressedBorderColor: =RGBA(0, 0, 0, 0)
+                    PressedFill: =RGBA(0, 0, 0, 0)
+                    RadiusBottomLeft: =3
+                    RadiusBottomRight: =3
+                    RadiusTopLeft: =3
+                    RadiusTopRight: =3
+                    Width: =298
+                    ZIndex: =2
+
+                CancelButton_1 As Button:
+                    AcceptsFocus: =true
+                    AccessibleLabel: ="Cancel form button"
+                    Align: =""
+                    Appearance: ='ButtonCanvas.Appearance'.Secondary
+                    BasePaletteColor: =
+                    BorderColor: =
+                    BorderStyle: =""
+                    ContentLanguage: =""
+                    DisplayMode: =DisplayMode.Edit
+                    Font: =""
+                    FontColor: =
+                    FontItalic: =false
+                    FontSize: =0
+                    FontStrikethrough: =false
+                    FontUnderline: =false
+                    FontWeight: =""
+                    Height: =32
+                    Icon: =""
+                    IconRotation: =0
+                    IconStyle: ="Outline"
+                    Layout: ="Icon before"
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =32
+                    LayoutMinWidth: =96
+                    OnSelect: |+
+                        =ResetForm(InventoryForm_1);
+                        NewForm(InventoryForm_1);
+                        Notify("Changes discarded", NotificationType.Warning);
+                        // Clear variables
+                        Set(cleanedBarcode, "");
+                        Set(gtin, "");
+                        Set(batch, "");
+                        Set(expiry, "");
+                        Set(expiryFormatted, "");
+                        Set(existingInventory, Blank());
+                        SetFocus(BarcodeInput_1);
+                        
+                    TabIndex: =0
+                    Text: ="Cancel"
+                    Tooltip: =""
+                    VerticalAlign: =""
+                    Visible: =true
+                    Width: =120
+                    X: =0
+                    Y: =0
+                    ZIndex: =3
+
+                SubmitButton_1 As Button:
+                    AcceptsFocus: =true
+                    AccessibleLabel: ="Submit form button"
+                    Align: =""
+                    Appearance: ="Primary"
+                    BasePaletteColor: =
+                    BorderColor: =
+                    BorderStyle: =""
+                    ContentLanguage: =""
+                    DisplayMode: =DisplayMode.Edit
+                    Font: =""
+                    FontColor: =
+                    FontItalic: =false
+                    FontSize: =0
+                    FontStrikethrough: =false
+                    FontUnderline: =false
+                    FontWeight: =""
+                    Height: =32
+                    Icon: =""
+                    IconRotation: =0
+                    IconStyle: ="Outline"
+                    Layout: ="Icon before"
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =32
+                    LayoutMinWidth: =96
+                    OnSelect: =SubmitForm(InventoryForm_1)
+                    TabIndex: =0
+                    Text: ="Submit"
+                    Tooltip: =""
+                    VerticalAlign: =""
+                    Visible: =true
+                    Width: =120
+                    X: =0
+                    Y: =0
+                    ZIndex: =4
+
+    NavBarControl_3 As groupContainer.horizontalAutoLayoutContainer:
+        DropShadow: =DropShadow.Light
+        Height: =51
+        LayoutAlignItems: =LayoutAlignItems.Center
+        LayoutGap: =20
+        LayoutGridColumnMinWidth: =0
+        LayoutGridColumns: =6
+        LayoutGridRowMinHeight: =0
+        LayoutGridRows: =6
+        LayoutJustifyContent: =LayoutJustifyContent.Center
+        LayoutMode: =LayoutMode.Auto
+        RadiusBottomLeft: =4
+        RadiusBottomRight: =4
+        RadiusTopLeft: =4
+        RadiusTopRight: =4
+        Width: =923
+        X: =308
+        Y: =28
+        ZIndex: =2
+
+        ButtonCanvas1_96 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =
+            BorderStyle: =""
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(Inventory)
+            TabIndex: =0
+            Text: ="Inventory"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_100.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =1
+
+        ButtonCanvas1_97 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =
+            BorderStyle: =""
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(Registration)
+            TabIndex: =0
+            Text: ="Registration"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_100.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =2
+
+        ButtonCanvas1_98 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =
+            BorderStyle: =""
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(QuickPick)
+            TabIndex: =0
+            Text: ="Quick Pick"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_100.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =3
+
+        ButtonCanvas1_Settings_17 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =
+            BorderStyle: =""
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(Settings)
+            TabIndex: =0
+            Text: ="Settings"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_100.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =4
+
+        ButtonCanvas1_99 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =
+            BorderStyle: =""
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(ItemList)
+            TabIndex: =0
+            Text: ="Item List"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_100.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =5
+
+        ButtonCanvas1_100 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =
+            BorderStyle: =""
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate('Table View')
+            TabIndex: =0
+            Text: ="Table View"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =Not(InventoryTool.Printing)
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_100.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =6
+
+        ButtonCanvas1_101 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =
+            BorderStyle: =""
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(InventoryTool)
+            TabIndex: =0
+            Text: ="Inventory Tool"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_100.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =7
+
+    Spinner1 As Spinner:
+        BasePaletteColor: =RGBA(249, 83, 109, 1)
+        DisplayMode: =DisplayMode.Edit
+        FontColor: =
+        Height: =Parent.Height/4
+        Label: =
+        LabelPosition: ='Spinner.LabelPosition'.Below
+        PCFTeamsTheme: ="default"
+        SpinnerColor: =
+        SpinnerSize: ='Spinner.SpinnerSize'.Huge
+        TrackColor: =
+        Visible: =gblIsProcessing
+        Width: =Parent.Width/4
+        X: =Parent.Width/3
+        Y: =Parent.Height/3
+        ZIndex: =3
+

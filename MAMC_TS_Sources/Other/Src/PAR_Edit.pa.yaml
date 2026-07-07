@@ -1,0 +1,328 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  PAR_Edit:
+    Properties:
+      Fill: =RGBA(255, 255, 255, 1)
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+    Children:
+      - Container6:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            Height: =693
+            Width: =1366
+            Y: =75
+          Children:
+            - Gallery6:
+                Control: Gallery@2.15.0
+                Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  BorderThickness: =1
+                  FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                  FocusedBorderThickness: =2
+                  Height: =Parent.Height
+                  Items: |+
+                    =Filter(
+                        GTIN_Lookups,
+
+                        // 1. Filter for items with no PAR level, if checkbox is ticked
+                        If(chk_NoPAR.Checked, IsBlank(PAR), true),
+
+                        // 2. Filter for items with no unit price, if checkbox is ticked
+                        If(chk_NoPrice.Checked, IsBlank(UnitPrice), true),
+
+                        // 3. Filter based on search text input (case-insensitive)
+                        IsBlank(txt_Search.Value) || StartsWith(Lower(ItemName), Lower(txt_Search.Value))
+                    )
+                  TemplatePadding: =5
+                  Width: =Parent.Width
+                Children:
+                  - Rectangle5:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        BorderColor: =RGBA(173, 173, 173, 0.92)
+                        BorderThickness: =1
+                        DisabledFill: =RGBA(0,0,0,0)
+                        Fill: =RGBA(0,0,0,0)
+                        FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                        Height: =Parent.TemplateHeight
+                        HoverFill: =RGBA(0,0,0,0)
+                        OnSelect: =Select(Parent)
+                        PressedFill: =RGBA(0,0,0,0)
+                        TabIndex: =0
+                        Width: =Parent.TemplateWidth
+                  - TextCanvas10:
+                      Control: Text@0.0.51
+                      Properties:
+                        Height: =Parent.TemplateHeight
+                        PaddingBottom: =5
+                        PaddingTop: =5
+                        Text: =ThisItem.ItemName
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =202
+                        X: =14
+                  - TextCanvas10_1:
+                      Control: Text@0.0.51
+                      Properties:
+                        Height: =Parent.TemplateHeight
+                        PaddingBottom: =5
+                        PaddingTop: =5
+                        Text: =ThisItem.ItemManufacturer
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =99
+                        X: =217
+                  - NumberInput3:
+                      Control: NumberInput@2.9.12
+                      Properties:
+                        Height: =Parent.TemplateHeight/1.5
+                        OnChange: |+
+                          =Patch(GTIN_Lookups, ThisItem, {UnitPrice: Self.Value});
+
+                        PaddingBottom: =5
+                        PaddingTop: =5
+                        Precision: ='NumberInput.Precision'.Auto
+                        Value: =ThisItem.UnitPrice
+                        Width: =161
+                        X: =746
+                        Y: =8
+                  - TextCanvas11:
+                      Control: Text@0.0.51
+                      Properties:
+                        Height: =Parent.TemplateHeight
+                        PaddingBottom: =5
+                        PaddingTop: =5
+                        Text: |-
+                          ="PAR: "& If(IsBlank(ThisItem.PAR),"Not Assigned",ThisItem.PAR)
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =147
+                        X: =344
+                  - TextCanvas12:
+                      Control: Text@0.0.51
+                      Properties:
+                        Align: ='TextCanvas.Align'.Start
+                        Height: =Parent.TemplateHeight
+                        PaddingBottom: =5
+                        PaddingTop: =5
+                        Text: |-
+                          ="Price: "& ThisItem.UnitPrice
+                        VerticalAlign: =VerticalAlign.Middle
+                        X: =650
+                  - NumberInput2:
+                      Control: NumberInput@2.9.12
+                      Properties:
+                        Height: =Parent.TemplateHeight/1.5
+                        OnChange: |-
+                          =Patch(GTIN_Lookups, ThisItem, {PAR: Self.Value});
+                        PaddingBottom: =5
+                        PaddingTop: =5
+                        Value: =ThisItem.PAR
+                        Width: =135
+                        X: =491
+                        Y: =8
+                  - TextCanvas7:
+                      Control: Text@0.0.51
+                      Properties:
+                        Text: =ThisItem.'Unit Quantities'
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =56
+                        X: =929
+                        Y: =8
+      - Container7:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            Height: =72
+            Width: =1366
+            Y: =3
+          Children:
+            - chk_NoPAR:
+                Control: CheckBox@0.0.30
+                Properties:
+                  Label: ="No PAR"
+                  Width: =70
+                  X: =1179
+                  Y: =21
+            - chk_NoPrice:
+                Control: CheckBox@0.0.30
+                Properties:
+                  Label: ="No Price"
+                  Width: =69
+                  X: =1285
+                  Y: =21
+            - txt_Search:
+                Control: TextInput@0.0.54
+                Properties:
+                  Placeholder: ="Search by Name"
+                  TriggerOutput: ='TextInputCanvas.TriggerOutput'.Delayed
+                  Width: =212
+                  X: =949
+                  Y: =20
+            - NavBarControl_10:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Height: =31
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =20
+                  LayoutJustifyContent: =LayoutJustifyContent.Center
+                  Width: =920
+                  X: =12
+                  Y: =21
+                Children:
+                  - ButtonCanvas1_108:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        BorderColor: =RGBA(106, 122, 127, 1)
+                        BorderRadius: =1
+                        BorderStyle: =BorderStyle.Solid
+                        BorderThickness: =1
+                        FontColor: =RGBA(255, 255, 255, 1)
+                        FontSize: =12
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(Inventory)
+                        Text: ="Inventory"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_112.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_109:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        BorderColor: =RGBA(106, 122, 127, 1)
+                        BorderRadius: =1
+                        BorderStyle: =BorderStyle.Solid
+                        BorderThickness: =1
+                        FontColor: =RGBA(255, 255, 255, 1)
+                        FontSize: =12
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(Registration)
+                        Text: ="Registration"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_112.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_110:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        BorderColor: =RGBA(106, 122, 127, 1)
+                        BorderRadius: =1
+                        BorderStyle: =BorderStyle.Solid
+                        BorderThickness: =1
+                        FontColor: =RGBA(255, 255, 255, 1)
+                        FontSize: =12
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(QuickPick)
+                        Text: ="Quick Pick"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_112.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_Settings_19:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        BorderColor: =RGBA(106, 122, 127, 1)
+                        BorderRadius: =1
+                        BorderStyle: =BorderStyle.Solid
+                        BorderThickness: =1
+                        FontColor: =RGBA(255, 255, 255, 1)
+                        FontSize: =12
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(Settings)
+                        Text: ="Settings"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_112.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_111:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        BorderColor: =RGBA(106, 122, 127, 1)
+                        BorderRadius: =1
+                        BorderStyle: =BorderStyle.Solid
+                        BorderThickness: =1
+                        FontColor: =RGBA(255, 255, 255, 1)
+                        FontSize: =12
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(ItemList)
+                        Text: ="Item List"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_112.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_112:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        BorderColor: =RGBA(106, 122, 127, 1)
+                        BorderRadius: =1
+                        BorderStyle: =BorderStyle.Solid
+                        BorderThickness: =1
+                        FontColor: =RGBA(255, 255, 255, 1)
+                        FontSize: =12
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate('Table View')
+                        Text: ="Table View"
+                        Visible: =Not(InventoryTool.Printing)
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_112.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )
+                  - ButtonCanvas1_113:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =RGBA(249, 83, 109, 1)
+                        BorderColor: =RGBA(106, 122, 127, 1)
+                        BorderRadius: =1
+                        BorderStyle: =BorderStyle.Solid
+                        BorderThickness: =1
+                        FontColor: =RGBA(255, 255, 255, 1)
+                        FontSize: =12
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: =Navigate(InventoryTool)
+                        Text: ="Inventory Tool"
+                        Width: |-
+                          =With(
+                                            {
+                                                VisibleButtons: 6 + If(ButtonCanvas1_112.Visible, 1, 0)
+                                            },
+                                            (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                                        )

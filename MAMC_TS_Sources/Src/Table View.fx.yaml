@@ -1,0 +1,560 @@
+"'Table View' As screen.'headerTableLayout_ver1.0'":
+    LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+
+    ScreenContainer1 As groupContainer.verticalAutoLayoutContainer:
+        DropShadow: =DropShadow.Light
+        Fill: =RGBA(245, 245, 245, 1)
+        Height: =Parent.Height
+        LayoutAlignItems: =LayoutAlignItems.Stretch
+        LayoutDirection: =LayoutDirection.Vertical
+        LayoutGap: =16
+        LayoutGridColumnMinWidth: =0
+        LayoutGridColumns: =6
+        LayoutGridRowMinHeight: =0
+        LayoutGridRows: =6
+        LayoutMode: =LayoutMode.Auto
+        PaddingBottom: =16
+        PaddingLeft: =16
+        PaddingRight: =16
+        PaddingTop: =16
+        RadiusBottomLeft: =4
+        RadiusBottomRight: =4
+        RadiusTopLeft: =4
+        RadiusTopRight: =4
+        Width: =Parent.Width
+        ZIndex: =1
+
+        HeaderContainer1 As groupContainer.horizontalAutoLayoutContainer:
+            DropShadow: =DropShadow.Light
+            FillPortions: =0
+            Height: =75
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =100
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            ZIndex: =2
+
+            Header1 As Header:
+                BasePaletteColor: =
+                BorderColor: =
+                DisplayMode: =DisplayMode.Edit
+                Fill: =
+                FontColor: =
+                Height: =75
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =75
+                LayoutMinWidth: =Parent.Width
+                OnSelectLogo: =false
+                Title: ="Table View"
+                UserEmail: =User().Email
+                UserImage: =User().Image
+                UserImageAltText: =User().FullName &" profile picture"
+                UserName: =User().FullName
+                Width: =Parent.Width
+                X: =0
+                Y: =0
+                ZIndex: =3
+
+        MainContainer1 As groupContainer.horizontalAutoLayoutContainer:
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =100
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            LayoutWrap: =true
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            Width: =1000
+            ZIndex: =4
+
+            TextCanvas2 As Text:
+                Align: ='TextCanvas.Align'.Center
+                AutoHeight: =true
+                BorderColor: =
+                DisplayMode: =DisplayMode.Edit
+                Fill: =RGBA(180, 214, 250, 1)
+                FontColor: =
+                Height: =32
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =32
+                LayoutMinWidth: =96
+                Size: =24
+                Text: ="On this screen, you can click on any item to navigate straight to the inventory page entry to edit information."
+                VerticalAlign: =VerticalAlign.Middle
+                Width: =96
+                X: =0
+                Y: =0
+                ZIndex: =1
+
+            Table1 As Table.pcfdataset:
+                BasePaletteColor: =
+                DateOnlyFormat: ='PowerAppsOneGrid.DateOnlyFormat'.ShortDate
+                DateTimeFormat: ='PowerAppsOneGrid.DateTimeFormat'.ShortDate
+                DisplayMode: =DisplayMode.Edit
+                EnableRangeSelection: ='PowerAppsOneGrid.EnableRangeSelection'.Disable
+                FillPortions: =1
+                Height: =If(Self.Y + 500 > Parent.Height, Parent.Height - Self.Y, 500)
+                Items: =SortByColumns(Inventories,"cr31c_name",SortOrder.Ascending)
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =Parent.Width
+                LayoutMinHeight: =If(Self.Y + 500 > Parent.Height, Parent.Height - Self.Y, 500)
+                LayoutMinWidth: =If(Self.X + 800 > Parent.Width, Parent.Width - Self.X, 800)
+                onCellValueChange: =false
+                onFilter: =false
+                onNavigate: =false
+                onRowSelect: =false
+                onSave: =false
+                OnSelect: |-
+                    =If(
+                          !IsBlank(Table1.Selected),
+                          Set(varIsItemSelected, true); 
+                          Set(varEditMode, true); 
+                          Set(varCurrentItem, Table1.Selected);
+                          Navigate(Inventory, ScreenTransition.Fade),
+                          Notify("Please select a valid item", NotificationType.Warning)
+                      )
+                ReflowBehavior: ='PowerAppsOneGrid.ReflowBehavior'.Reflow
+                Width: =If(Self.X + 800 > Parent.Width, Parent.Width - Self.X, 800)
+                X: =0
+                Y: =0
+                ZIndex: =3
+
+                Name1 As PowerAppsOneGridTemplate_dataField.textualColumn:
+                    FieldDisplayName: ="Name"
+                    FieldName: ="cr31c_name"
+                    FieldType: ="s"
+                    FieldVariantName: ="textualColumn"
+                    Order: =1
+                    Width: =0
+                    ZIndex: =6
+
+                Batch1 As PowerAppsOneGridTemplate_dataField.textualColumn:
+                    FieldDisplayName: ="Batch"
+                    FieldName: ="cr31c_batch"
+                    FieldType: ="s"
+                    FieldVariantName: ="textualColumn"
+                    Order: =4
+                    Width: =0
+                    ZIndex: =8
+
+                Expiration1 As PowerAppsOneGridTemplate_dataField.textualColumn:
+                    FieldDisplayName: ="Expiration"
+                    FieldName: ="cr31c_expiration"
+                    FieldType: ="d"
+                    FieldVariantName: ="textualColumn"
+                    Order: =8
+                    Width: =0
+                    ZIndex: =9
+
+                Quantity1 As PowerAppsOneGridTemplate_dataField.textualColumn:
+                    FieldDisplayName: ="Quantity"
+                    FieldName: ="cr31c_quantity"
+                    FieldType: ="n"
+                    FieldVariantName: ="textualColumn"
+                    Order: =5
+                    Width: =0
+                    ZIndex: =10
+
+                ItemID2 As PowerAppsOneGridTemplate_dataField.textualColumn:
+                    FieldDisplayName: ="ItemID"
+                    FieldName: ="cr31c_itemid"
+                    FieldType: ="s"
+                    FieldVariantName: ="textualColumn"
+                    Order: =3
+                    Width: =0
+                    ZIndex: =12
+
+                Manufacturer_Lookup2 As PowerAppsOneGridTemplate_dataField.textualColumn:
+                    FieldDisplayName: ="Manufacturer_Lookup"
+                    FieldName: ="cr31c_manufacturer_lookup"
+                    FieldType: ="s"
+                    FieldVariantName: ="textualColumn"
+                    Order: =8
+                    Width: =0
+                    ZIndex: =13
+
+                "'Created On1' As PowerAppsOneGridTemplate_dataField.textualColumn":
+                    FieldDisplayName: ="Created On"
+                    FieldName: ="createdon"
+                    FieldType: ="d"
+                    FieldVariantName: ="textualColumn"
+                    Order: =9
+                    Width: =0
+                    ZIndex: =14
+
+                "'Modified By1' As PowerAppsOneGridTemplate_dataField":
+                    FieldDisplayName: ="Modified By"
+                    FieldName: ="modifiedby"
+                    FieldType: ="E"
+                    FieldVariantName: ="complexTypeColumn"
+                    Order: =9
+                    Width: =0
+                    ZIndex: =15
+
+                "'Item Category1' As PowerAppsOneGridTemplate_dataField.textualColumn":
+                    FieldDisplayName: ="Item Category"
+                    FieldName: ="cr31c_itemcategory"
+                    FieldType: ="s"
+                    FieldVariantName: ="textualColumn"
+                    Order: =11
+                    Width: =0
+                    ZIndex: =16
+
+                "'Modified On1' As PowerAppsOneGridTemplate_dataField.textualColumn":
+                    FieldDisplayName: ="Modified On"
+                    FieldName: ="modifiedon"
+                    FieldType: ="d"
+                    FieldVariantName: ="textualColumn"
+                    Order: =10
+                    Width: =0
+                    ZIndex: =17
+
+                Units1 As PowerAppsOneGridTemplate_dataField.textualColumn:
+                    FieldDisplayName: ="Units"
+                    FieldName: ="cra16_units"
+                    FieldType: ="s"
+                    FieldVariantName: ="textualColumn"
+                    Order: =7
+                    Width: =0
+                    ZIndex: =18
+
+    NavBarControl_4 As groupContainer.horizontalAutoLayoutContainer:
+        DropShadow: =DropShadow.Light
+        Height: =51
+        LayoutAlignItems: =LayoutAlignItems.Center
+        LayoutGap: =20
+        LayoutGridColumnMinWidth: =0
+        LayoutGridColumns: =6
+        LayoutGridRowMinHeight: =0
+        LayoutGridRows: =6
+        LayoutJustifyContent: =LayoutJustifyContent.Center
+        LayoutMode: =LayoutMode.Auto
+        RadiusBottomLeft: =4
+        RadiusBottomRight: =4
+        RadiusTopLeft: =4
+        RadiusTopRight: =4
+        Width: =923
+        X: =221
+        Y: =29
+        ZIndex: =2
+
+        ButtonCanvas1_90 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =
+            BorderStyle: =""
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(Inventory)
+            TabIndex: =0
+            Text: ="Inventory"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_94.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =1
+
+        ButtonCanvas1_91 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =
+            BorderStyle: =""
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(Registration)
+            TabIndex: =0
+            Text: ="Registration"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_94.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =2
+
+        ButtonCanvas1_92 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =
+            BorderStyle: =""
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(QuickPick)
+            TabIndex: =0
+            Text: ="Quick Pick"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_94.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =3
+
+        ButtonCanvas1_Settings_16 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =
+            BorderStyle: =""
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(Settings)
+            TabIndex: =0
+            Text: ="Settings"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_94.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =4
+
+        ButtonCanvas1_93 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =
+            BorderStyle: =""
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(ItemList)
+            TabIndex: =0
+            Text: ="Item List"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_94.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =5
+
+        ButtonCanvas1_94 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =
+            BorderStyle: =""
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate('Table View')
+            TabIndex: =0
+            Text: ="Table View"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =Not(InventoryTool.Printing)
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_94.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =6
+
+        ButtonCanvas1_95 As Button:
+            AcceptsFocus: =true
+            AccessibleLabel: =""
+            Align: =""
+            Appearance: ="Primary"
+            BasePaletteColor: =RGBA(249, 83, 109, 1)
+            BorderColor: =
+            BorderStyle: =""
+            ContentLanguage: =""
+            DisplayMode: =DisplayMode.Edit
+            Font: =""
+            FontColor: =
+            FontItalic: =false
+            FontSize: =12
+            FontStrikethrough: =false
+            FontUnderline: =false
+            FontWeight: =""
+            Height: =32
+            Icon: =""
+            IconRotation: =0
+            IconStyle: ="Outline"
+            Layout: ="Icon before"
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =96
+            OnSelect: =Navigate(InventoryTool)
+            TabIndex: =0
+            Text: ="Inventory Tool"
+            Tooltip: =""
+            VerticalAlign: =""
+            Visible: =true
+            Width: |-
+                =With(
+                                  {
+                                      VisibleButtons: 6 + If(ButtonCanvas1_94.Visible, 1, 0)
+                                  },
+                                  (Parent.Width - (VisibleButtons - 1) * Parent.LayoutGap) / VisibleButtons
+                              )
+            X: =0
+            Y: =0
+            ZIndex: =7
+

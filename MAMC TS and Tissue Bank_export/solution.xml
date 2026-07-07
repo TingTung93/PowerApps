@@ -1,0 +1,144 @@
+<ImportExportXml version="9.2.26054.155" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26054.155" OrganizationSchemaType="Core" CRMServerServiceabilityVersion="9.2.26054.00155">
+  <SolutionManifest>
+    <UniqueName>ExportComponents293a159944ea41209e88121964e7ba9f</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="ExportComponents293a159944ea41209e88121964e7ba9f" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions />
+    <Version>1.0</Version>
+    <Managed>0</Managed>
+    <Publisher>
+      <UniqueName>Cr7b6d8</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="CDS Default Publisher" languagecode="1033" />
+      </LocalizedNames>
+      <Descriptions />
+      <EMailAddress xsi:nil="true"></EMailAddress>
+      <SupportingWebsiteUrl xsi:nil="true"></SupportingWebsiteUrl>
+      <CustomizationPrefix>cra16</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>89645</CustomizationOptionValuePrefix>
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="1" schemaName="appusersetting" behavior="2" />
+      <RootComponent type="1" schemaName="bot" behavior="2" />
+      <RootComponent type="1" schemaName="cr31c_expired" behavior="0" />
+      <RootComponent type="1" schemaName="cr31c_gtin_lookup" behavior="0" />
+      <RootComponent type="1" schemaName="cr31c_inventory" behavior="0" />
+      <RootComponent type="1" schemaName="systemuser" behavior="0" />
+      <RootComponent type="9" schemaName="cr31c_itemcat" behavior="0" />
+      <RootComponent type="9" schemaName="cra16_unitquantities" behavior="0" />
+      <RootComponent type="29" id="{9e61ddae-6099-f011-b4cc-001dd805afeb}" behavior="0" />
+      <RootComponent type="29" id="{bc6ea359-e594-f011-b4cc-001dd805afeb}" behavior="0" />
+      <RootComponent type="29" id="{d3a6e99d-fe97-f011-b4cc-001dd805afeb}" behavior="0" />
+      <RootComponent type="300" schemaName="cr31c_supplytracker_5b1fb" behavior="0" />
+    </RootComponents>
+    <MissingDependencies>
+      <MissingDependency>
+        <Required type="1" schemaName="appusersetting" displayName="Model-Driven App User Setting" solution="AppModule (9.2.2603.2603182)">
+          <package appName="AppModule" version="9.2.2603.2603182">AppModuleSolutionAnchor (9.2.2603.2603182)</package>
+        </Required>
+        <Dependent type="1" schemaName="appusersetting" displayName="Model-Driven App User Setting" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="1" schemaName="bot" displayName="Copilot" solution="PowerVirtualAgents (2025.10.1.18240125)">
+          <package appName="CCI Bots" version="2025.10.1.18240125">msdynce_CustomerCareIntelligenceBots_Anchor (2025.10.1.18240125)</package>
+        </Required>
+        <Dependent type="1" schemaName="bot" displayName="Copilot" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="1" schemaName="componentversion" displayName="Component Version" solution="msdyn_ComponentVersioning (9.1.0.766)">
+          <package appName="Component Versioning Package" version="9.1.0.766">ComponentVersioning_Anchor (9.1.0.766)</package>
+        </Required>
+        <Dependent type="1" schemaName="componentversion" displayName="Component Version" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="1" schemaName="componentversion" displayName="Component Version" solution="msdyn_ComponentVersioning (9.1.0.766)">
+          <package appName="Component Versioning Package" version="9.1.0.766">ComponentVersioning_Anchor (9.1.0.766)</package>
+        </Required>
+        <Dependent type="2" schemaName="owninguser" displayName="Owning User" parentSchemaName="componentversion" parentDisplayName="Component Version" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="1" schemaName="sourcecontroloperationstatus" displayName="Source Control Operation Status" solution="msdyn_SourceControlIntegration (9.1.3421.2)">
+          <package appName="Source Control Integration Package" version="9.1.3421.2">SourceControlIntegration_Anchor (9.1.3421.2)</package>
+        </Required>
+        <Dependent type="1" schemaName="sourcecontroloperationstatus" displayName="Source Control Operation Status" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="10" schemaName="lk_componentversion_createdby" displayName="lk_componentversion_createdby" parentSchemaName="systemuser" parentDisplayName="User" solution="msdyn_ComponentVersioning (9.1.0.766)">
+          <package appName="Component Versioning Package" version="9.1.0.766">ComponentVersioning_Anchor (9.1.0.766)</package>
+        </Required>
+        <Dependent type="10" schemaName="lk_componentversion_createdby" displayName="lk_componentversion_createdby" parentSchemaName="systemuser" parentDisplayName="User" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="10" schemaName="lk_componentversion_modifiedby" displayName="lk_componentversion_modifiedby" parentSchemaName="systemuser" parentDisplayName="User" solution="msdyn_ComponentVersioning (9.1.0.766)">
+          <package appName="Component Versioning Package" version="9.1.0.766">ComponentVersioning_Anchor (9.1.0.766)</package>
+        </Required>
+        <Dependent type="10" schemaName="lk_componentversion_modifiedby" displayName="lk_componentversion_modifiedby" parentSchemaName="systemuser" parentDisplayName="User" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="10" schemaName="systemuser_appusersetting_userId" displayName="systemuser_appusersetting_userId" parentSchemaName="systemuser" parentDisplayName="User" solution="AppModule (9.2.2603.2603182)">
+          <package appName="AppModule" version="9.2.2603.2603182">AppModuleSolutionAnchor (9.2.2603.2603182)</package>
+        </Required>
+        <Dependent type="10" schemaName="systemuser_appusersetting_userId" displayName="systemuser_appusersetting_userId" parentSchemaName="systemuser" parentDisplayName="User" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="10" schemaName="systemuser_bot_publishedby" displayName="systemuser_bot_publishedby" parentSchemaName="systemuser" parentDisplayName="User" solution="PowerVirtualAgents (2025.10.1.18240125)">
+          <package appName="CCI Bots" version="2025.10.1.18240125">msdynce_CustomerCareIntelligenceBots_Anchor (2025.10.1.18240125)</package>
+        </Required>
+        <Dependent type="10" schemaName="systemuser_bot_publishedby" displayName="systemuser_bot_publishedby" parentSchemaName="systemuser" parentDisplayName="User" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="10" schemaName="systemuser_sourcecontroloperationstatus_StartedBy" displayName="systemuser_sourcecontroloperationstatus_StartedBy" parentSchemaName="systemuser" parentDisplayName="User" solution="msdyn_SourceControlIntegration (9.1.3421.2)">
+          <package appName="Source Control Integration Package" version="9.1.3421.2">SourceControlIntegration_Anchor (9.1.3421.2)</package>
+        </Required>
+        <Dependent type="10" schemaName="systemuser_sourcecontroloperationstatus_StartedBy" displayName="systemuser_sourcecontroloperationstatus_StartedBy" parentSchemaName="systemuser" parentDisplayName="User" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="10" schemaName="user_componentversion" displayName="user_componentversion" parentSchemaName="systemuser" parentDisplayName="User" solution="msdyn_ComponentVersioning (9.1.0.766)">
+          <package appName="Component Versioning Package" version="9.1.0.766">ComponentVersioning_Anchor (9.1.0.766)</package>
+        </Required>
+        <Dependent type="10" schemaName="user_componentversion" displayName="user_componentversion" parentSchemaName="systemuser" parentDisplayName="User" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="10" schemaName="user_componentversion" displayName="user_componentversion" parentSchemaName="systemuser" parentDisplayName="User" solution="msdyn_ComponentVersioning (9.1.0.766)">
+          <package appName="Component Versioning Package" version="9.1.0.766">ComponentVersioning_Anchor (9.1.0.766)</package>
+        </Required>
+        <Dependent type="2" schemaName="owninguser" displayName="Owning User" parentSchemaName="componentversion" parentDisplayName="Component Version" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="2" schemaName="userid" displayName="User" parentSchemaName="appusersetting" parentDisplayName="Model-Driven App User Setting" solution="AppModule (9.2.2603.2603182)">
+          <package appName="AppModule" version="9.2.2603.2603182">AppModuleSolutionAnchor (9.2.2603.2603182)</package>
+        </Required>
+        <Dependent type="2" schemaName="userid" displayName="User" parentSchemaName="appusersetting" parentDisplayName="Model-Driven App User Setting" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="2" schemaName="publishedby" displayName="Published By" parentSchemaName="bot" parentDisplayName="Copilot" solution="PowerVirtualAgents (2025.10.1.18240125)">
+          <package appName="CCI Bots" version="2025.10.1.18240125">msdynce_CustomerCareIntelligenceBots_Anchor (2025.10.1.18240125)</package>
+        </Required>
+        <Dependent type="2" schemaName="publishedby" displayName="Published By" parentSchemaName="bot" parentDisplayName="Copilot" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="2" schemaName="createdby" displayName="Created By" parentSchemaName="componentversion" parentDisplayName="Component Version" solution="msdyn_ComponentVersioning (9.1.0.766)">
+          <package appName="Component Versioning Package" version="9.1.0.766">ComponentVersioning_Anchor (9.1.0.766)</package>
+        </Required>
+        <Dependent type="2" schemaName="createdby" displayName="Created By" parentSchemaName="componentversion" parentDisplayName="Component Version" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="2" schemaName="modifiedby" displayName="Modified By" parentSchemaName="componentversion" parentDisplayName="Component Version" solution="msdyn_ComponentVersioning (9.1.0.766)">
+          <package appName="Component Versioning Package" version="9.1.0.766">ComponentVersioning_Anchor (9.1.0.766)</package>
+        </Required>
+        <Dependent type="2" schemaName="modifiedby" displayName="Modified By" parentSchemaName="componentversion" parentDisplayName="Component Version" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="2" schemaName="startedby" displayName="Started By" parentSchemaName="sourcecontroloperationstatus" parentDisplayName="Source Control Operation Status" solution="msdyn_SourceControlIntegration (9.1.3421.2)">
+          <package appName="Source Control Integration Package" version="9.1.3421.2">SourceControlIntegration_Anchor (9.1.3421.2)</package>
+        </Required>
+        <Dependent type="2" schemaName="startedby" displayName="Started By" parentSchemaName="sourcecontroloperationstatus" parentDisplayName="Source Control Operation Status" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="1" schemaName="systemuser" displayName="SystemUser" parentSchemaName="" solution="msft_AIPlatformExtensionsCore (1.0.0.96)" />
+        <Dependent type="1" schemaName="systemuser" displayName="SystemUser" />
+      </MissingDependency>
+    </MissingDependencies>
+  </SolutionManifest>
+</ImportExportXml>

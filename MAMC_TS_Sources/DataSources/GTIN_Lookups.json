@@ -1,0 +1,150 @@
+[
+  {
+    "CdsFCBContext": "{\"FileType\":true,\"ImageExternalStorage\":true}",
+    "EntitySetName": "cr31c_gtin_lookups",
+    "IsHidden": false,
+    "IsSampleData": false,
+    "IsWritable": true,
+    "LogicalName": "cr31c_gtin_lookup",
+    "MaxGetRowsCount": 500,
+    "Name": "GTIN_Lookups",
+    "NativeCDSDataSourceInfoNameMapping": {
+      "_ownerid_value": "Owner",
+      "cr31c_dmlss": "DMLSS #",
+      "cr31c_gtin": "GTIN",
+      "cr31c_gtin_lookup_AsyncOperations": "System Jobs",
+      "cr31c_gtin_lookup_BulkDeleteFailures": "Bulk Delete Failures",
+      "cr31c_gtin_lookup_PrincipalObjectAttributeAccesses": "Field Sharing",
+      "cr31c_gtin_lookup_ProcessSession": "Process Sessions",
+      "cr31c_gtin_lookupid": "GTIN_Lookup",
+      "cr31c_itemcategory": "ItemCategory",
+      "cr31c_itemmanufacturer": "ItemManufacturer",
+      "cr31c_name": "ItemName",
+      "cr31c_notes": "Notes",
+      "cr31c_par": "PAR",
+      "cr31c_unitprice": "UnitPrice",
+      "cra16_unitquantities": "Unit Quantities",
+      "createdby": "Created By",
+      "createdon": "Created On",
+      "createdonbehalfby": "Created By (Delegate)",
+      "importsequencenumber": "Import Sequence Number",
+      "modifiedby": "Modified By",
+      "modifiedon": "Modified On",
+      "modifiedonbehalfby": "Modified By (Delegate)",
+      "overriddencreatedon": "Record Created On",
+      "owningbusinessunit": "Owning Business Unit",
+      "owningteam": "Owning Team",
+      "owninguser": "Owning User",
+      "statecode": "Status",
+      "statuscode": "Status Reason",
+      "timezoneruleversionnumber": "Time Zone Rule Version Number",
+      "transactioncurrencyid": "Currency",
+      "utcconversiontimezonecode": "UTC Conversion Time Zone Code",
+      "versionnumber": "Version Number"
+    },
+    "PreferredName": "GTIN_Lookups",
+    "Type": "NativeCDSDataSourceInfo"
+  },
+  {
+    "DisplayName": "GTIN_Lookups (Views)",
+    "Name": "_cr31c_gtin_lookup_views",
+    "RelatedEntityName": "GTIN_Lookups",
+    "TrimmedViewName": true,
+    "Type": "ViewInfo",
+    "ViewInfoNameMapping": {
+      "1aac67ca-2cdb-4417-bb0c-a7284f1db1d0": "Inactive GTIN_Lookups",
+      "8946743a-204d-4f7e-bf24-f840eebad278": "GTIN_Lookup Advanced Find View",
+      "8dcea21a-2b0a-4c5e-990f-c0c03757671f": "Active GTIN_Lookups",
+      "a6b6a38b-2d26-404c-9223-78747f6dd033": "GTIN_Lookup Associated View",
+      "adb41a63-61ce-4253-a3c4-12d0001f0322": "GTIN_Lookup Lookup View"
+    }
+  },
+  {
+    "DisplayName": "Status (GTIN_Lookups)",
+    "Name": "cr31c_gtin_lookup_statecode",
+    "OptionSetInfoNameMapping": {
+      "0": "Active",
+      "1": "Inactive"
+    },
+    "OptionSetIsBooleanValued": false,
+    "OptionSetIsGlobal": false,
+    "OptionSetReference": {
+      "OptionSetReferenceItem0": {
+        "OptionSetReferenceColumnName": "statecode",
+        "OptionSetReferenceEntityName": "GTIN_Lookups"
+      }
+    },
+    "OptionSetTypeKey": "StateType",
+    "RelatedColumnInvariantName": "statecode",
+    "RelatedEntityName": "GTIN_Lookups",
+    "Type": "OptionSetInfo"
+  },
+  {
+    "DisplayName": "Status Reason (GTIN_Lookups)",
+    "Name": "cr31c_gtin_lookup_statuscode",
+    "OptionSetInfoNameMapping": {
+      "1": "Active",
+      "2": "Inactive"
+    },
+    "OptionSetIsBooleanValued": false,
+    "OptionSetIsGlobal": false,
+    "OptionSetReference": {
+      "OptionSetReferenceItem0": {
+        "OptionSetReferenceColumnName": "statuscode",
+        "OptionSetReferenceEntityName": "GTIN_Lookups"
+      }
+    },
+    "OptionSetTypeKey": "StatusType",
+    "RelatedColumnInvariantName": "statuscode",
+    "RelatedEntityName": "GTIN_Lookups",
+    "Type": "OptionSetInfo"
+  },
+  {
+    "DisplayName": "ItemCat",
+    "Name": "cr31c_itemcat",
+    "OptionSetInfoNameMapping": {
+      "799010000": "MEDIA",
+      "799010001": "REAGENT",
+      "799010002": "MOLECULAR",
+      "799010003": "BIOCHEMICALS",
+      "799010004": "OTHER",
+      "799010005": "TEST KITS",
+      "799010006": "BENCH SUPPLIES",
+      "896450001": "ANTI-SERA",
+      "896450002": "TEST CARDS"
+    },
+    "OptionSetIsBooleanValued": false,
+    "OptionSetIsGlobal": true,
+    "OptionSetReference": {
+      "OptionSetReferenceItem0": {
+        "OptionSetReferenceColumnName": "cr31c_itemcategory",
+        "OptionSetReferenceEntityName": "GTIN_Lookups"
+      }
+    },
+    "OptionSetTypeKey": "MultiSelectPicklistType",
+    "RelatedColumnInvariantName": "cr31c_itemcategory",
+    "RelatedEntityName": "GTIN_Lookups",
+    "Type": "OptionSetInfo"
+  },
+  {
+    "DisplayName": "Unit Quantities Choices",
+    "Name": "cra16_unitquantities",
+    "OptionSetInfoNameMapping": {
+      "896450000": "EA",
+      "896450001": "BX",
+      "896450002": "CS"
+    },
+    "OptionSetIsBooleanValued": false,
+    "OptionSetIsGlobal": true,
+    "OptionSetReference": {
+      "OptionSetReferenceItem0": {
+        "OptionSetReferenceColumnName": "cra16_unitquantities",
+        "OptionSetReferenceEntityName": "GTIN_Lookups"
+      }
+    },
+    "OptionSetTypeKey": "PicklistType",
+    "RelatedColumnInvariantName": "cra16_unitquantities",
+    "RelatedEntityName": "GTIN_Lookups",
+    "Type": "OptionSetInfo"
+  }
+]
