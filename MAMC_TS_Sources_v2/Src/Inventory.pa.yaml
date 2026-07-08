@@ -9,7 +9,7 @@
 Screens:
   Inventory:
     Properties:
-      Fill: =RGBA(255, 255, 255, 1)
+      Fill: =gblTheme.Background
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
       OnVisible: =Set(varDefaultMan, Table());
     Children:
@@ -17,7 +17,7 @@ Screens:
           Control: GroupContainer@1.5.0
           Variant: AutoLayout
           Properties:
-            Fill: =RGBA(245, 245, 245, 1)
+            Fill: =gblTheme.Background
             Height: =Parent.Height
             LayoutAlignItems: =LayoutAlignItems.Stretch
             LayoutDirection: =LayoutDirection.Vertical
@@ -196,7 +196,7 @@ Screens:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
                       Properties:
-                        Fill: =RGBA(255, 255, 255, 1)
+                        Fill: =gblTheme.Background
                         FillPortions: =If(And(Inventory.Size = ScreenSize.Small, Or(newMode, isItemSelected)), 0, 5)
                         LayoutAlignItems: =LayoutAlignItems.Center
                         LayoutDirection: =LayoutDirection.Vertical
@@ -282,7 +282,7 @@ Screens:
                             Properties:
                               AlignInContainer: =AlignInContainer.SetByContainer
                               DropShadow: =DropShadow.None
-                              Fill: =RGBA(245, 245, 245, 1)
+                              Fill: =gblTheme.Background
                               FillPortions: =0
                               Height: =44
                               LayoutDirection: =LayoutDirection.Horizontal
@@ -340,9 +340,9 @@ Screens:
                             Control: Gallery@2.15.0
                             Variant: BrowseLayout_Vertical_ThreeTextVariant_pcfCore
                             Properties:
-                              TemplateSize: =160
-                              BorderColor: =RGBA(243, 242, 241, 1)
-                              FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                                TemplateSize: =160
+                                BorderColor: =gblTheme.Border
+                                FocusedBorderColor: =gblTheme.Primary
                               FocusedBorderThickness: =2
                               Items: "=With(\n    {\n        // Input values from controls\n        wSearchText: Trim(SearchInput1_2.Value),\n        wSelectedManufacturers: ManufacturerDropdown.SelectedItems,\n        wShowExpired: varShowExpired\n    },\n    With(\n        {\n            // Step 1: Start with the base data and apply the Search function.\n            // NOTE: The Search() function requires column names to be text strings in quotes.\n            FilteredData: If(\n                IsBlank(wSearchText),\n                Inventories,\n                Search(\n                    Inventories,\n                    wSearchText,\n                    Name, \n                    Barcode, \n                    Batch, \n                    ItemID, \n                    'Item Category'\n                )\n            )\n        },\n        \n        // Step 2: Apply conditional filters on top of the searched data.\n        // NOTE: The Filter() function uses direct column references WITHOUT quotes.\n        SortByColumns(\n            Filter(\n                FilteredData,\n                \n                // Manufacturer Filter: This logic correctly handles a multi-select ComboBox.\n                (IsEmpty(wSelectedManufacturers) || Manufacturer_Lookup in wSelectedManufacturers.Value),\n                \n                // Expired Filter: Applies only if the toggle is on.\n                (Not(wShowExpired) || Expiration < Today())\n            ),\n            \n            // Step 3: Sort the final results.\n            // NOTE: The SortByColumns() function also requires column names in quotes.\n            \"cr31c_name\", SortOrder.Ascending,\n            \"cr31c_expiration\", SortOrder.Ascending\n        )\n    )\n)"
                               LayoutMaxHeight: =
@@ -399,7 +399,7 @@ Screens:
                                     BorderThickness: =1
                                     DisabledFill: =RGBA(0,0,0,0)
                                     Fill: =If(ThisItem.IsSelected, RGBA(98, 100, 167, 0.2), RGBA(0, 0, 0, 0))
-                                    FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                                    FocusedBorderColor: =gblTheme.Primary
                                     Height: =Parent.TemplateHeight
                                     HoverFill: =RGBA(98, 100, 167, 0.2)
                                     OnSelect: =Select(Parent)
@@ -431,7 +431,7 @@ Screens:
                             Control: GroupContainer@1.5.0
                             Variant: AutoLayout
                             Properties:
-                              Fill: =RGBA(255, 255, 255, 1)
+                              Fill: =gblTheme.Background
                               FillPortions: =0
                               Height: =60
                               LayoutDirection: =LayoutDirection.Horizontal
@@ -538,7 +538,7 @@ Screens:
                             Control: GroupContainer@1.5.0
                             Variant: AutoLayout
                             Properties:
-                              Fill: =RGBA(255, 255, 255, 1)
+                              Fill: =gblTheme.Background
                               LayoutDirection: =LayoutDirection.Vertical
                               LayoutGap: =16
                               LayoutMaxHeight: =
@@ -585,7 +585,7 @@ Screens:
                                   Control: Form@2.4.4
                                   Layout: Vertical
                                   Properties:
-                                    BorderColor: =RGBA(243, 242, 241, 1)
+                                    BorderColor: =gblTheme.Border
                                     BorderStyle: =BorderStyle.None
                                     DataSource: =Inventories
                                     DefaultMode: =If(varNewMode, FormMode.New, varEditMode, FormMode.Edit, FormMode.View)
@@ -625,7 +625,7 @@ Screens:
                                         Control: TypedDataCard@1.0.7
                                         Variant: TextualEdit
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cr31c_name"
                                           Default: =ThisItem.Name
                                           DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,Name)
@@ -684,7 +684,7 @@ Screens:
                                         Control: TypedDataCard@1.0.7
                                         Variant: TextualEdit
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cr31c_barcode"
                                           Default: =ThisItem.Barcode
                                           DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,Barcode)
@@ -744,7 +744,7 @@ Screens:
                                         Control: TypedDataCard@1.0.7
                                         Variant: TextualEdit
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cr31c_batch"
                                           Default: =ThisItem.Batch
                                           DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,Batch)
@@ -805,7 +805,7 @@ Screens:
                                         Variant: NumberEdit
                                         IsLocked: true
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cr31c_quantity"
                                           Default: =ThisItem.Quantity
                                           DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,Quantity)
@@ -863,7 +863,7 @@ Screens:
                                         Control: TypedDataCard@1.0.7
                                         Variant: DateTimeEdit
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cr31c_expiration"
                                           Default: =ThisItem.Expiration
                                           DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,Expiration)
@@ -959,7 +959,7 @@ Screens:
                                         Control: TypedDataCard@1.0.7
                                         Variant: TextualEdit
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cr31c_itemid"
                                           Default: =ThisItem.ItemID
                                           DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,ItemID)
@@ -1018,7 +1018,7 @@ Screens:
                                         Control: TypedDataCard@1.0.7
                                         Variant: TextualEdit
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cr31c_manufacturer_lookup"
                                           Default: =ThisItem.Manufacturer_Lookup
                                           DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,Manufacturer_Lookup)
@@ -1088,7 +1088,7 @@ Screens:
                                         Control: TypedDataCard@1.0.7
                                         Variant: TextualEdit
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cr31c_itemcategory"
                                           Default: =ThisItem.'Item Category'
                                           DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Item Category')
@@ -1176,7 +1176,7 @@ Screens:
                                         Variant: ComboBoxView
                                         IsLocked: true
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="modifiedby"
                                           Default: =ThisItem.'Modified By'
                                           DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Modified By')
@@ -1258,7 +1258,7 @@ Screens:
                                         Variant: TextualView
                                         IsLocked: true
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="modifiedon"
                                           Default: =ThisItem.'Modified On'
                                           DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,'Modified On')
@@ -1296,7 +1296,7 @@ Screens:
                                         Variant: TextualEdit
                                         IsLocked: true
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cr31c_cleanedbarcode"
                                           Default: =ThisItem.CleanedBarcode
                                           DisplayName: =DataSourceInfo([@Inventories],DataSourceInfo.DisplayName,CleanedBarcode)

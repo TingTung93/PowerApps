@@ -9,7 +9,7 @@
 Screens:
   PAR_Edit:
     Properties:
-      Fill: =RGBA(255, 255, 255, 1)
+      Fill: =gblTheme.Background
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
     Children:
       - Container6:
@@ -26,7 +26,7 @@ Screens:
                 Properties:
                   BorderColor: =RGBA(0, 0, 0, 1)
                   BorderThickness: =1
-                  FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                  FocusedBorderColor: =gblTheme.Primary
                   FocusedBorderThickness: =2
                   Height: =Parent.Height
                   Items: |+
@@ -52,7 +52,7 @@ Screens:
                         BorderThickness: =1
                         DisabledFill: =RGBA(0,0,0,0)
                         Fill: =RGBA(0,0,0,0)
-                        FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                        FocusedBorderColor: =gblTheme.Primary
                         Height: =Parent.TemplateHeight
                         HoverFill: =RGBA(0,0,0,0)
                         OnSelect: =Select(Parent)

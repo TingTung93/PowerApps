@@ -9,14 +9,14 @@
 Screens:
   Table View:
     Properties:
-      Fill: =RGBA(255, 255, 255, 1)
+      Fill: =gblTheme.Background
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
     Children:
       - ScreenContainer1:
           Control: GroupContainer@1.5.0
           Variant: AutoLayout
           Properties:
-            Fill: =RGBA(245, 245, 245, 1)
+            Fill: =gblTheme.Background
             Height: =Parent.Height
             LayoutAlignItems: =LayoutAlignItems.Stretch
             LayoutDirection: =LayoutDirection.Vertical
@@ -36,10 +36,10 @@ Screens:
                   LayoutDirection: =LayoutDirection.Horizontal
                   LayoutMaxHeight: =
                   LayoutMaxWidth: =
-                  RadiusBottomLeft: =8
-                  RadiusBottomRight: =8
-                  RadiusTopLeft: =8
-                  RadiusTopRight: =8
+                  RadiusBottomLeft: =gblTheme.Radius
+                  RadiusBottomRight: =gblTheme.Radius
+                  RadiusTopLeft: =gblTheme.Radius
+                  RadiusTopRight: =gblTheme.Radius
                 Children:
                   - Header1:
                       Control: Header@0.0.44
@@ -57,10 +57,10 @@ Screens:
                   LayoutMaxHeight: =
                   LayoutMaxWidth: =
                   LayoutWrap: =true
-                  RadiusBottomLeft: =8
-                  RadiusBottomRight: =8
-                  RadiusTopLeft: =8
-                  RadiusTopRight: =8
+                  RadiusBottomLeft: =gblTheme.Radius
+                  RadiusBottomRight: =gblTheme.Radius
+                  RadiusTopLeft: =gblTheme.Radius
+                  RadiusTopRight: =gblTheme.Radius
                   Width: =1000
                 Children:
                   - TextCanvas2:
