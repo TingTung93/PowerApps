@@ -247,7 +247,7 @@ Screens:
                         Items: =colScannedItems
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
-                        TemplateSize: =52
+                        TemplateSize: =70
                         WrapCount: =
                       Children:
                         - Rectangle2:
@@ -258,52 +258,50 @@ Screens:
                               DisabledFill: =RGBA(0,0,0,0)
                               Fill: =RGBA(0,0,0,0)
                               FocusedBorderColor: =RGBA(98, 100, 167, 1)
-                              Height: =48
+                              Height: =Parent.TemplateHeight
                               HoverFill: =RGBA(0,0,0,0)
                               OnSelect: =Select(Parent)
                               PressedFill: =RGBA(0,0,0,0)
                               TabIndex: =0
                               Width: =Parent.TemplateWidth
-                        - NAME:
-                            Control: FluentV8/Label@1.8.6
+                        - HtmlCard:
+                            Control: HtmlViewer@1.0.6
                             Properties:
+                              HtmlText: |-
+                                ="<div style='padding: 12px; font-family: Segoe UI, sans-serif; line-height: 1.5; color: #111827; height: 100%; box-sizing: border-box; overflow: hidden;'>
+                                    <div style='font-weight: 600; font-size: 15px; margin-bottom: 4px;'>" & ThisItem.ProductName & "</div>
+                                    <div style='font-size: 13px; color: #6B7280;'>
+                                        Batch: <span style='font-weight: 500; color: #374151;'>" & ThisItem.Batch & "</span> &nbsp;|&nbsp; 
+                                        Exp: <span style='font-weight: 500; color: #374151;'>" & Text(ThisItem.Expiration, "mm/dd/yyyy") & "</span>
+                                    </div>
+                                </div>"
+                              Height: =Parent.TemplateHeight
+                              Width: =Parent.TemplateWidth - 110
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                        - QtyInput:
+                            Control: TextInput@2.95.0
+                            Properties:
+                              Default: =ThisItem.Quantity
+                              Format: =TextFormat.Number
+                              OnChange: =Patch(colScannedItems, ThisItem, {Quantity: Value(Self.Text)})
+                              Width: =80
+                              Height: =40
+                              X: =Parent.TemplateWidth - 96
+                              Y: =((Parent.TemplateHeight - Self.Height) / 2)
+                              Align: =Align.Center
+                              Size: =16
                               FontWeight: =FontWeight.Semibold
-                              Height: =24
-                              OnSelect: =Select(Parent)
-                              TabIndex: =-1
-                              Text: =ThisItem.ProductName
-                              VerticalAlignment: =VerticalAlign.Top
-                              Width: =Parent.TemplateWidth - Self.X - 8
-                              X: =12
-                              Y: =((Parent.TemplateHeight - 36) / 2) - 4
-                        - BATCH_EXP:
-                            Control: FluentV8/Label@1.8.6
-                            Properties:
-                              FontSize: =9
-                              FontWeight: =FontWeight.Normal
-                              Height: =20
-                              OnSelect: =Select(Parent)
-                              TabIndex: =-1
-                              Text: |-
-                                ="Batch: " & ThisItem.Batch & " | Exp: " & Text(ThisItem.Expiration)
-                              VerticalAlignment: =VerticalAlign.Top
-                              Width: =173
-                              X: =87
-                              Y: =28
-                        - QUANTITY:
-                            Control: FluentV8/Label@1.8.6
-                            Properties:
-                              FontSize: =9
-                              FontWeight: =FontWeight.Normal
-                              Height: =20
-                              OnSelect: =Select(Parent)
-                              TabIndex: =-1
-                              Text: |-
-                                ="Qty: " & ThisItem.Quantity
-                              VerticalAlignment: =VerticalAlign.Top
-                              Width: =209
-                              X: =NAME.X
-                              Y: =28
+                              RadiusBottomLeft: =6
+                              RadiusBottomRight: =6
+                              RadiusTopLeft: =6
+                              RadiusTopRight: =6
+                              BorderThickness: =2
+                              BorderColor: =RGBA(209, 213, 219, 1)
+                              HoverBorderColor: =gblTheme.Primary
+                              FocusedBorderColor: =gblTheme.Primary
             - FooterContainer1_1:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
