@@ -9,7 +9,7 @@
 Screens:
   Registration:
     Properties:
-      Fill: =RGBA(255, 255, 255, 1)
+      Fill: =gblTheme.Background
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
       OnVisible: "=// Check if coming from QuickPick with registration data\nIf(!IsBlank(varRegistrationGTIN),\n   // Pre-populate the registration form with data from QuickPick\n   UpdateContext({\n       ctxRegGTIN: varRegistrationGTIN,\n       ctxRegBatch: varRegistrationBatch,\n       ctxRegExpiry: varRegistrationExpiry,\n       ctxRegBarcode: varRegistrationBarcode\n   });\n   \n   // Clear the registration variables after use\n   Set(varRegistrationGTIN, Blank());\n   Set(varRegistrationBatch, Blank());\n   Set(varRegistrationExpiry, Blank());\n   Set(varRegistrationBarcode, Blank());\n   \n   // Show notification\n   Notify(\"Please register this product before adding to inventory\", NotificationType.Information, 3000)\n)"
     Children:
@@ -17,7 +17,7 @@ Screens:
           Control: GroupContainer@1.5.0
           Variant: AutoLayout
           Properties:
-            Fill: =RGBA(245, 245, 245, 1)
+            Fill: =gblTheme.Background
             Height: =Parent.Height
             LayoutAlignItems: =LayoutAlignItems.Stretch
             LayoutDirection: =LayoutDirection.Vertical
@@ -148,7 +148,7 @@ Screens:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
                       Properties:
-                        Fill: =RGBA(255, 255, 255, 1)
+                        Fill: =gblTheme.Background
                         FillPortions: =If(And(Registration.Size = ScreenSize.Small, Or(newMode, isItemSelected)), 0, 3)
                         LayoutDirection: =LayoutDirection.Vertical
                         LayoutGap: =10
@@ -199,7 +199,7 @@ Screens:
                             Variant: AutoLayout
                             Properties:
                               DropShadow: =DropShadow.None
-                              Fill: =RGBA(245, 245, 245, 1)
+                              Fill: =gblTheme.Background
                               FillPortions: =0
                               Height: =44
                               LayoutDirection: =LayoutDirection.Horizontal
@@ -221,7 +221,7 @@ Screens:
                             Properties:
                               BorderColor: =RGBA(79, 90, 94, 1)
                               BorderThickness: =2
-                              FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                              FocusedBorderColor: =gblTheme.Primary
                               FocusedBorderThickness: =2
                               Items: |+
                                 =SortByColumns(
@@ -285,7 +285,7 @@ Screens:
                                     BorderThickness: =2
                                     DisabledFill: =RGBA(214, 221, 224, 1)
                                     Fill: =RGBA(0, 238, 242, 0.06)
-                                    FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                                    FocusedBorderColor: =gblTheme.Primary
                                     Height: =Parent.TemplateHeight
                                     HoverFill: =RGBA(180, 214, 250, 0.62)
                                     OnSelect: =Select(Parent)
@@ -334,7 +334,7 @@ Screens:
                             Control: GroupContainer@1.5.0
                             Variant: AutoLayout
                             Properties:
-                              Fill: =RGBA(255, 255, 255, 1)
+                              Fill: =gblTheme.Background
                               FillPortions: =0
                               Height: =60
                               LayoutDirection: =LayoutDirection.Horizontal
@@ -431,7 +431,7 @@ Screens:
                             Control: GroupContainer@1.5.0
                             Variant: AutoLayout
                             Properties:
-                              Fill: =RGBA(255, 255, 255, 1)
+                              Fill: =gblTheme.Background
                               LayoutDirection: =LayoutDirection.Vertical
                               LayoutGap: =16
                               LayoutMaxHeight: =
@@ -445,7 +445,7 @@ Screens:
                                   Control: Form@2.4.4
                                   Layout: Vertical
                                   Properties:
-                                    BorderColor: =RGBA(243, 242, 241, 1)
+                                    BorderColor: =gblTheme.Border
                                     BorderStyle: =BorderStyle.None
                                     DataSource: =GTIN_Lookups
                                     DefaultMode: =If(newMode, FormMode.New, editMode, FormMode.Edit, FormMode.View)
@@ -464,7 +464,7 @@ Screens:
                                         Control: TypedDataCard@1.0.7
                                         Variant: BlankCard
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           Height: =77
                                           Width: =459
                                           X: =0
@@ -553,7 +553,7 @@ Screens:
                                         Variant: TextualEdit
                                         IsLocked: true
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cr31c_name"
                                           Default: =ThisItem.ItemName
                                           DisplayName: =DataSourceInfo([@GTIN_Lookups],DataSourceInfo.DisplayName,ItemName)
@@ -616,7 +616,7 @@ Screens:
                                         Variant: TextualEdit
                                         IsLocked: true
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cr31c_itemmanufacturer"
                                           Default: =ThisItem.ItemManufacturer
                                           DisplayName: =DataSourceInfo([@GTIN_Lookups],DataSourceInfo.DisplayName,ItemManufacturer)
@@ -678,7 +678,7 @@ Screens:
                                         Control: TypedDataCard@1.0.7
                                         Variant: TextualEdit
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cr31c_gtin"
                                           Default: =ThisItem.GTIN
                                           DisplayName: =DataSourceInfo([@GTIN_Lookups],DataSourceInfo.DisplayName,GTIN)
@@ -741,7 +741,7 @@ Screens:
                                         Variant: CurrencyEdit
                                         IsLocked: true
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cr31c_unitprice"
                                           Default: =ThisItem.UnitPrice
                                           DisplayName: =DataSourceInfo([@GTIN_Lookups],DataSourceInfo.DisplayName,UnitPrice)
@@ -802,7 +802,7 @@ Screens:
                                         Variant: ComboBoxOptionSetMultiEdit
                                         IsLocked: true
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cr31c_itemcategory"
                                           Default: =ThisItem.ItemCategory
                                           DisplayName: =DataSourceInfo([@GTIN_Lookups],DataSourceInfo.DisplayName,ItemCategory)
@@ -865,7 +865,7 @@ Screens:
                                         Variant: NumberEdit
                                         IsLocked: true
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cr31c_par"
                                           Default: =ThisItem.PAR
                                           DisplayName: =DataSourceInfo([@GTIN_Lookups],DataSourceInfo.DisplayName,PAR)
@@ -927,7 +927,7 @@ Screens:
                                         Variant: ComboBoxOptionSetSingleEdit
                                         IsLocked: true
                                         Properties:
-                                          BorderColor: =RGBA(243, 242, 241, 1)
+                                          BorderColor: =gblTheme.Border
                                           DataField: ="cra16_unitquantities"
                                           Default: =ThisItem.'Unit Quantities'
                                           DisplayName: =DataSourceInfo([@GTIN_Lookups],DataSourceInfo.DisplayName,cra16_unitquantities)

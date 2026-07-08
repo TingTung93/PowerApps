@@ -1184,6 +1184,7 @@ Screens:
                               AccessibleLabel: ="Submit form button"
                               LayoutMaxHeight: =
                               LayoutMaxWidth: =
+                              DisplayMode: =If(InventoryForm_1.Valid, DisplayMode.Edit, DisplayMode.Disabled)
                               OnSelect: =SubmitForm(InventoryForm_1)
                               Text: ="Submit"
                               Width: =120
