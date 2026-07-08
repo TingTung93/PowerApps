@@ -27,4 +27,19 @@ App:
              // The true FNC1 / Group Separator character
           // -> To add another, just add a new line like: {Value: "]A0"}
       );
+
+      // --- UI/UX Refactoring: Global Theme Definition ---
+      Set(gblTheme, {
+          Primary: RGBA(0, 90, 156, 1),       // Professional Healthcare Blue
+          Secondary: RGBA(43, 136, 216, 1),   // Lighter blue for hover states
+          Background: RGBA(243, 244, 246, 1), // Light gray background
+          Surface: RGBA(255, 255, 255, 1),    // White surface for cards/forms
+          Success: RGBA(16, 185, 129, 1),     // Accessible green
+          Warning: RGBA(245, 158, 11, 1),     // Amber for missing/new items
+          Error: RGBA(239, 68, 68, 1),        // Red for critical errors
+          TextMain: RGBA(17, 24, 39, 1),      // High contrast dark text
+          TextMuted: RGBA(107, 114, 128, 1),  // Muted gray for labels
+          Border: RGBA(229, 231, 235, 1),     // Soft border color
+          Radius: 8                           // Standard border radius
+      });
     Theme: =PowerAppsTheme
