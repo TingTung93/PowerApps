@@ -361,97 +361,36 @@ Screens:
                               X: =Parent.X
                               Y: =Parent.Y
                             Children:
-                              - Title4:
-                                  Control: FluentV8/Label@1.8.6
+                              - HtmlCard:
+                                  Control: HtmlViewer@1.0.6
                                   Properties:
-                                    FontWeight: =FontWeight.Semibold
-                                    Height: =24
+                                    HtmlText: |-
+                                      ="<div style='padding: 12px; font-family: Segoe UI, sans-serif; line-height: 1.5; color: #111827;'>
+                                          <div style='font-weight: 600; font-size: 16px; margin-bottom: 4px;'>" & ThisItem.Name & "</div>
+                                          <div style='font-size: 12px; color: #6B7280; margin-bottom: 8px;'>Man: " & ThisItem.Manufacturer_Lookup & "</div>
+                                          <div style='display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px;'>
+                                              <span style='background: " & If(ThisItem.Quantity < 1, "#FEE2E2; color: #DC2626;", "#F3F4F6; color: #374151;") & " padding: 2px 8px; border-radius: 9999px;'>
+                                                  Qty: " & ThisItem.Quantity & " " & LookUp(GTIN_Lookups, ThisItem.ItemID = GTIN, 'Unit Quantities') & "
+                                              </span>
+                                              <span style='background: " & If(ThisItem.Expiration < Today(), "#FEE2E2; color: #DC2626;", If(ThisItem.Expiration <= DateAdd(Today(), 7), "#FFEDD5; color: #C2410C", "#F3F4F6; color: #374151;")) & " padding: 2px 8px; border-radius: 9999px;'>
+                                                  Exp: " & DateValue(ThisItem.Expiration, "en") & "
+                                              </span>
+                                              <span style='background: #F3F4F6; color: #374151; padding: 2px 8px; border-radius: 9999px;'>
+                                                  Lot: " & ThisItem.Batch & "
+                                              </span>
+                                              <span style='background: #E0E7FF; color: #4338CA; padding: 2px 8px; border-radius: 9999px;'>
+                                                  " & ThisItem.'Item Category' & "
+                                              </span>
+                                          </div>
+                                          <div style='font-size: 11px; color: #9CA3AF; margin-top: 8px;'>Last Modified: " & DateValue(ThisItem.'Modified On', "en") & "</div>
+                                      </div>"
+                                    Height: =Parent.TemplateHeight
+                                    Width: =Parent.TemplateWidth
                                     OnSelect: =Select(Parent)
-                                    TabIndex: =-1
-                                    Text: =ThisItem.Name
-                                    VerticalAlignment: =VerticalAlign.Top
-                                    Width: =328
-                                    X: =12
-                                    Y: =2
-                              - Subtitle2:
-                                  Control: FluentV8/Label@1.8.6
-                                  Properties:
-                                    FontSize: =9
-                                    FontWeight: =FontWeight.Normal
-                                    Height: =24
-                                    OnSelect: =Select(Parent)
-                                    TabIndex: =-1
-                                    Text: |-
-                                      ="Man: "& ThisItem.Manufacturer_Lookup
-                                    VerticalAlignment: =VerticalAlign.Top
-                                    Width: =Title4.Width
-                                    X: =Title4.X
-                                    Y: =Title4.Y + Title4.Height - 6
-                              - TextCanvas4:
-                                  Control: Text@0.0.51
-                                  Properties:
-                                    Fill: |-
-                                      =Switch(
-                                          true,
-                                          ThisItem.Quantity < 1,
-                                          RGBA(220, 38, 38, 1),     // Red for expired
-                                          RGBA(68, 68, 68, .0)       // Dark gray for normal
-                                      )
-                                    Height: =28
-                                    Text: |-
-                                      ="Quantity: " & ThisItem.Quantity&" "&LookUp(GTIN_Lookups,ThisItem.ItemID=GTIN, 'Unit Quantities')
-                                    VerticalAlign: =VerticalAlign.Middle
-                                    X: =340
-                                    Y: =3
-                              - TextCanvas4_1:
-                                  Control: Text@0.0.51
-                                  Properties:
-                                    Height: =23
-                                    Text: |-
-                                      ="Category: " & ThisItem.'Item Category'
-                                    Width: =197
-                                    X: =340
-                                    Y: =51
-                              - TextCanvas4_2:
-                                  Control: Text@0.0.51
-                                  Properties:
-                                    Fill: |-
-                                      =Switch(
-                                          true,
-                                          ThisItem.Expiration < Today(),
-                                          RGBA(220, 38, 38, 1),     // Red for expired
-                                          ThisItem.Expiration <= DateAdd(Today(), 7),
-                                          RGBA(234, 88, 12, .2),     // Orange for expiring soon
-                                          ThisItem.Expiration <= DateAdd(Today(), 30),
-                                          RGBA(251, 191, 36, .2),    // Yellow for caution
-                                          RGBA(68, 68, 68, .2)       // Dark gray for normal
-                                      )
-                                    Height: =23
-                                    Text: |-
-                                      ="Exp: " & DateValue(ThisItem.Expiration,"en")
-                                    Width: =115
-                                    X: =12
-                                    Y: =51
-                              - TextCanvas4_3:
-                                  Control: Text@0.0.51
-                                  Properties:
-                                    Height: =23
-                                    Text: |-
-                                      ="Last Modified: " & DateValue(ThisItem.'Modified On', "en")
-                                    Width: =168
-                                    X: =161
-                                    Y: =51
-                              - TextCanvas4_4:
-                                  Control: Text@0.0.51
-                                  Properties:
-                                    AutoHeight: =true
-                                    Height: =18
-                                    Text: |-
-                                      ="Lot: " & ThisItem.Batch
-                                    VerticalAlign: =VerticalAlign.Middle
-                                    Width: =275
-                                    X: =161
-                                    Y: =31
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
                               - Rectangle3:
                                   Control: Rectangle@2.3.0
                                   Properties:

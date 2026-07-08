@@ -128,163 +128,31 @@ Screens:
                               PressedFill: =RGBA(98, 100, 167, 0.2)
                               TabIndex: =0
                               Width: =Parent.TemplateWidth
-                        - Title3:
-                            Control: FluentV8/Label@1.8.6
-                            Properties:
-                              Color: |-
-                                =Switch(
-                                    true,
-                                    ThisItem.Expiration < Today(),
-                                    RGBA(220, 38, 38, 1),
-                                    RGBA(32, 32, 32, 1)
-                                )
-                              FontSize: =14
-                              FontWeight: =FontWeight.Semibold
-                              Height: =43
-                              OnSelect: =Select(Parent)
-                              TabIndex: =-1
-                              Text: =Left(ThisItem.Name, 40) & If(Len(ThisItem.Name) > 40, "...", "")
-                              VerticalAlignment: =VerticalAlign.Top
-                              Width: =417
-                              X: =12
-                              Y: =((Parent.TemplateHeight - 52) / 2) - 4
-                        - Subtitle3:
-                            Control: FluentV8/Label@1.8.6
-                            Properties:
-                              Color: |-
-                                =Switch(
-                                    true,
-                                    ThisItem.Expiration < Today(),
-                                    RGBA(220, 38, 38, 1),     // Red for expired
-                                    ThisItem.Expiration <= DateAdd(Today(), 7),
-                                    RGBA(234, 88, 12, 1),     // Orange for expiring soon
-                                    ThisItem.Expiration <= DateAdd(Today(), 30),
-                                    RGBA(251, 191, 36, 1),    // Yellow for caution
-                                    RGBA(68, 68, 68, 1)       // Dark gray for normal
-                                )
-                              FontSize: =12
-                              FontWeight: |-
-                                =Switch(
-                                    true,
-                                    ThisItem.Expiration < Today(),
-                                    FontWeight.Semibold,
-                                    FontWeight.Normal
-                                )
-                              OnSelect: =Select(Parent)
-                              TabIndex: =-1
-                              Text: |-
-                                ="Expires: " & Text(DateValue(ThisItem.Expiration,"en"), "mm/dd/yyyy") & 
-                                Switch(
-                                    true,
-                                    ThisItem.Expiration < Today(),
-                                    " (EXPIRED)",
-                                    ThisItem.Expiration = Today(),
-                                    " (TODAY)",
-                                    ThisItem.Expiration <= DateAdd(Today(), 7),
-                                    " (" & DateDiff(Today(), ThisItem.Expiration) & " days)",
-                                    ""
-                                )
-                              VerticalAlignment: =VerticalAlign.Top
-                              Width: =210
-                              X: =429
-                        - Body3:
-                            Control: FluentV8/Label@1.8.6
-                            Properties:
-                              AutoHeight: =true
-                              Color: |-
-                                =Switch(
-                                    true,
-                                    ThisItem.Expiration < Today(),
-                                    RGBA(220, 38, 38, 1),
-                                    RGBA(102, 102, 102, 1)
-                                )
-                              FontSize: =11
-                              FontWeight: =FontWeight.Normal
-                              Height: =24
-                              OnSelect: =Select(Parent)
-                              TabIndex: =-1
-                              Text: |-
-                                ="Batch: " & ThisItem.Batch & 
-                                If(
-                                    !IsBlank(ThisItem.Quantity), 
-                                    " • Qty: " & ThisItem.Quantity &" "&LookUp(GTIN_Lookups,ThisItem.ItemID=GTIN, 'Unit Quantities'), 
-                                    ""
-                                ) &
-                                Switch(
-                                    true,
-                                    ThisItem.Expiration < Today(),
-                                    " • ⚠️ EXPIRED",
-                                    ThisItem.Expiration <= DateAdd(Today(), 7),
-                                    " • ⚡ URGENT",
-                                    ""
-                                )
-                              VerticalAlignment: =VerticalAlign.Top
-                              Width: =Title3.Width
-                              X: =12
-                              Y: =40
-                        - Icon2:
-                            Control: Icon@0.0.7
-                            Properties:
-                              Icon: |-
-                                =Switch(
-                                    true,
-                                    ThisItem.Expiration < Today(),
-                                    Icon.Cancel,
-                                    ThisItem.Expiration <= DateAdd(Today(), 7),
-                                    Icon.Warning,
-                                    ThisItem.Expiration <= DateAdd(Today(), 30),
-                                    Icon.Clock,
-                                    Icon.Check
-                                )
-                              IconColor: |-
-                                =Switch(
-                                    true,
-                                    ThisItem.Expiration < Today(),
-                                    RGBA(220, 38, 38, 1),
-                                    ThisItem.Expiration <= DateAdd(Today(), 7),
-                                    RGBA(234, 88, 12, 1),
-                                    ThisItem.Expiration <= DateAdd(Today(), 30),
-                                    RGBA(251, 191, 36, 1),
-                                    RGBA(34, 197, 94, 1)
-                                )
-                              X: =581
-                              Y: =18
-                        - TextCanvas1:
-                            Control: Text@0.0.51
-                            Properties:
-                              Align: ="Center"
-                              AutoHeight: =true
-                              Fill: |-
-                                =Switch(
-                                    true,
-                                    ThisItem.Expiration < Today(),
-                                    RGBA(220, 38, 38, 1),
-                                    ThisItem.Expiration <= DateAdd(Today(), 7),
-                                    RGBA(234, 88, 12, 1),
-                                    RGBA(0, 0, 0, 0)
-                                )
-                              FontColor: |-
-                                =Switch(
-                                    true,
-                                    ThisItem.Expiration < Today(),
-                                    RGBA(255, 255, 255, 1),
-                                    ThisItem.Expiration <= DateAdd(Today(), 7),
-                                    RGBA(255, 255, 255, 1),
-                                    RGBA(68, 68, 68, 1)
-                                )
-                              Height: =38
-                              Text: |-
-                                =Switch(
-                                    true,
-                                    ThisItem.Expiration < Today(),
-                                    "EXPIRED",
-                                    ThisItem.Expiration <= DateAdd(Today(), 30),
-                                    DateDiff(Today(), ThisItem.Expiration) & "d",
-                                    ""
-                                )
-                              Width: =40
-                              X: =577
-                              Y: =50
+                          - HtmlCard:
+                              Control: HtmlViewer@1.0.6
+                              Properties:
+                                HtmlText: |-
+                                  ="<div style='padding: 12px; font-family: Segoe UI, sans-serif; line-height: 1.5; color: #111827;'>
+                                      <div style='display: flex; justify-content: space-between; align-items: flex-start;'>
+                                          <div style='font-weight: 600; font-size: 16px; margin-bottom: 4px;'>" & ThisItem.Name & "</div>
+                                          <div style='font-size: 13px; font-weight: bold; color: " & If(ThisItem.Expiration < Today(), "#DC2626", If(ThisItem.Expiration <= DateAdd(Today(), 7), "#C2410C", "#374151")) & ";'>" & 
+                                              If(ThisItem.Expiration < Today(), "EXPIRED", If(ThisItem.Expiration <= DateAdd(Today(), 30), DateDiff(Today(), ThisItem.Expiration) & "d", "")) & "
+                                          </div>
+                                      </div>
+                                      <div style='font-size: 12px; margin-bottom: 8px; color: " & If(ThisItem.Expiration < Today(), "#DC2626", If(ThisItem.Expiration <= DateAdd(Today(), 7), "#C2410C", "#6B7280")) & ";'>
+                                          Expires: " & Text(DateValue(ThisItem.Expiration, "en"), "mm/dd/yyyy") & "
+                                      </div>
+                                      <div style='font-size: 12px; color: #6B7280;'>
+                                          Batch: " & ThisItem.Batch & If(!IsBlank(ThisItem.Quantity), " • Qty: " & ThisItem.Quantity & " " & LookUp(GTIN_Lookups, ThisItem.ItemID = GTIN, 'Unit Quantities'), "") & "
+                                      </div>
+                                  </div>"
+                                Height: =Parent.TemplateHeight
+                                Width: =Parent.TemplateWidth
+                                OnSelect: =Select(Parent)
+                                PaddingBottom: =0
+                                PaddingLeft: =0
+                                PaddingRight: =0
+                                PaddingTop: =0
                   - RightContainer1_4:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
