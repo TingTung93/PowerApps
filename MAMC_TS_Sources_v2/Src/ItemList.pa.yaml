@@ -71,6 +71,7 @@ Screens:
                       Control: Gallery@2.15.0
                       Variant: BrowseLayout_Vertical_ThreeTextVariant_pcfCore
                       Properties:
+                        TemplateSize: =140
                         AccessibleLabel: ="Items gallery"
                         AlignInContainer: =AlignInContainer.Center
                         BorderColor: =RGBA(243, 242, 241, 1)
@@ -132,7 +133,7 @@ Screens:
                               Control: HtmlViewer@1.0.6
                               Properties:
                                 HtmlText: |-
-                                  ="<div style='padding: 12px; font-family: Segoe UI, sans-serif; line-height: 1.5; color: #111827;'>
+                                  ="<div style='padding: 12px; font-family: Segoe UI, sans-serif; line-height: 1.5; color: #111827; height: 100%; box-sizing: border-box; overflow: hidden;'>
                                       <div style='display: flex; justify-content: space-between; align-items: flex-start;'>
                                           <div style='font-weight: 600; font-size: 16px; margin-bottom: 4px;'>" & ThisItem.Name & "</div>
                                           <div style='font-size: 13px; font-weight: bold; color: " & If(ThisItem.Expiration < Today(), "#DC2626", If(ThisItem.Expiration <= DateAdd(Today(), 7), "#C2410C", "#374151")) & ";'>" & 

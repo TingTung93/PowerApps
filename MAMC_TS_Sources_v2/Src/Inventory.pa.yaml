@@ -340,6 +340,7 @@ Screens:
                             Control: Gallery@2.15.0
                             Variant: BrowseLayout_Vertical_ThreeTextVariant_pcfCore
                             Properties:
+                              TemplateSize: =160
                               BorderColor: =RGBA(243, 242, 241, 1)
                               FocusedBorderColor: =RGBA(98, 100, 167, 1)
                               FocusedBorderThickness: =2
@@ -365,7 +366,7 @@ Screens:
                                   Control: HtmlViewer@1.0.6
                                   Properties:
                                     HtmlText: |-
-                                      ="<div style='padding: 12px; font-family: Segoe UI, sans-serif; line-height: 1.5; color: #111827;'>
+                                      ="<div style='padding: 12px; font-family: Segoe UI, sans-serif; line-height: 1.5; color: #111827; height: 100%; box-sizing: border-box; overflow: hidden;'>
                                           <div style='font-weight: 600; font-size: 16px; margin-bottom: 4px;'>" & ThisItem.Name & "</div>
                                           <div style='font-size: 12px; color: #6B7280; margin-bottom: 8px;'>Man: " & ThisItem.Manufacturer_Lookup & "</div>
                                           <div style='display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px;'>
