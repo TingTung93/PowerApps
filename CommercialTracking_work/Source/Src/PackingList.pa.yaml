@@ -1,0 +1,73 @@
+# Copy this screen into the canvas app. It intentionally uses the existing Tracking list fields.
+Screens:
+  PackingList:
+    Properties:
+      Fill: =RGBA(255, 255, 255, 1)
+      OnVisible: =SetFocus(txtManifestRecipient)
+    Children:
+      - conPackingList:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Height: =Parent.Height
+            LayoutDirection: =LayoutDirection.Vertical
+            PaddingBottom: =24
+            PaddingLeft: =24
+            PaddingRight: =24
+            PaddingTop: =24
+            Width: =Parent.Width
+          Children:
+            - lblPackingTitle:
+                Control: FluentV8/Label@1.8.6
+                Properties:
+                  FontSize: =20
+                  FontWeight: =FontWeight.Semibold
+                  Text: ="Customer Packing List"
+            - txtManifestRecipient:
+                Control: TextInput@0.0.54
+                Properties:
+                  AccessibleLabel: ="Recipient whose packages appear on this packing list"
+                  Value: =varManifestRecipient
+                  LayoutMinHeight: =40
+                  Placeholder: ="Recipient"
+            - lblManifestMeta:
+                Control: FluentV8/Label@1.8.6
+                Properties:
+                  Text: ="Issued " & Text(Now(), "mm/dd/yyyy hh:mm AM/PM") & " • " & CountRows(Filter(Tracking, field_4 = Trim(txtManifestRecipient.Value) && field_3 = "Ready for Pickup")) & " package(s)"
+            - galPackingList:
+                Control: Gallery@2.15.0
+                Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
+                Properties:
+                  AccessibleLabel: ="Packages assigned to the selected recipient"
+                  Items: =Sort(Filter(Tracking, field_4 = Trim(txtManifestRecipient.Value) && field_3 = "Ready for Pickup"), field_6, SortOrder.Descending)
+                  LayoutMinHeight: =320
+                  TemplateSize: =76
+                Children:
+                  - lblTracking:
+                      Control: FluentV8/Label@1.8.6
+                      Properties:
+                        FontWeight: =FontWeight.Semibold
+                        Text: =ThisItem.Title
+                  - lblPackageDetails:
+                      Control: FluentV8/Label@1.8.6
+                      Properties:
+                        Text: =ThisItem.field_1 & " • received " & Text(ThisItem.field_6, "mm/dd/yyyy hh:mm AM/PM")
+                  - imgPackageQr:
+                      Control: Image@2.2.3
+                      Properties:
+                        AccessibleLabel: ="QR code for tracking number " & ThisItem.Title
+                        Height: =64
+                        Image: ="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=" & EncodeUrl("PKG|" & ThisItem.Title)
+                        Width: =64
+                        X: =Parent.TemplateWidth - 80
+            - btnPrintPackingList:
+                Control: FluentV8/Button@1.5.13
+                Properties:
+                  AccessibleLabel: ="Print this customer packing list"
+                  OnSelect: =Print()
+                  Text: ="Print Customer Copy"
+            - btnBackToLedger:
+                Control: FluentV8/Button@1.5.13
+                Properties:
+                  OnSelect: =Navigate(LedgerScreen, ScreenTransition.Fade)
+                  Text: ="Back to Scanner"
