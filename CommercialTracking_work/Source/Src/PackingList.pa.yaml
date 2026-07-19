@@ -3,7 +3,24 @@ Screens:
   PackingList:
     Properties:
       Fill: =RGBA(243, 244, 246, 1)
-      OnVisible: =Refresh(Tracking)
+      OnVisible: |
+        =If(
+            IsBlank(gblRecipient),
+            Clear(colManifestPackages),
+            Refresh(Tracking);
+            ClearCollect(
+                colManifestPackages,
+                Sort(
+                    Filter(
+                        Tracking,
+                        field_4 = gblRecipient &&
+                        (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")
+                    ),
+                    field_6,
+                    SortOrder.Descending
+                )
+            )
+        )
     Children:
       - conPackingList:
           Control: GroupContainer@1.5.0
@@ -36,31 +53,32 @@ Screens:
                   AlignInContainer: =AlignInContainer.Start
                   OnSelect: =Navigate(LedgerScreen, ScreenTransition.Fade)
                   Text: ="Back to Scanner"
+                  Visible: =Not(PackingList.Printing)
             - txtManifestRecipient:
                 Control: TextInput@0.0.54
                 Properties:
                   AccessibleLabel: ="Recipient whose packages appear on this packing list"
                   DisplayMode: =DisplayMode.View
                   LayoutMinHeight: =44
-                  Value: =varManifestRecipient
+                  Value: =gblRecipient
                   Placeholder: ="No recipient selected"
             - lblManifestMeta:
                 Control: FluentV8/Label@1.8.6
                 Properties:
-                  Text: ="Prepared " & Text(Now(), "mm/dd/yyyy hh:mm AM/PM") & " | " & CountRows(Filter(Tracking, field_4 = varManifestRecipient && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock"))) & " package(s)"
+                  Text: ="Prepared " & Text(gblManifestPreparedAt, "mm/dd/yyyy hh:mm AM/PM") & " | " & CountRows(colManifestPackages) & " package(s)"
             - lblEmptyManifest:
                 Control: FluentV8/Label@1.8.6
                 Properties:
                   AutoHeight: =true
-                  Text: ="No packages are currently ready for pickup for this recipient."
-                  Visible: =CountRows(Filter(Tracking, field_4 = varManifestRecipient && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock"))) = 0
+                  Text: =If(IsBlank(gblRecipient), "Return to the scanner and choose a recipient.", "No packages are currently ready for pickup for this recipient.")
+                  Visible: =IsEmpty(colManifestPackages)
             - galPackingList:
                 Control: Gallery@2.15.0
                 Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
                 Properties:
                   AccessibleLabel: ="Packages assigned to the selected recipient"
                   FillPortions: =1
-                  Items: =Sort(Filter(Tracking, field_4 = varManifestRecipient && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")), field_6, SortOrder.Descending)
+                  Items: =colManifestPackages
                   LayoutMinHeight: =320
                   TemplatePadding: =8
                   TemplateSize: =88
@@ -99,11 +117,12 @@ Screens:
                   LayoutDirection: =LayoutDirection.Horizontal
                   LayoutGap: =12
                   LayoutMinHeight: =44
+                  Visible: =Not(PackingList.Printing)
                 Children:
                   - btnPrintPackingList:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Print or save this customer packing list"
-                        DisplayMode: =If(CountRows(galPackingList.AllItems) = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                        DisplayMode: =If(IsEmpty(colManifestPackages), DisplayMode.Disabled, DisplayMode.Edit)
                         OnSelect: =Print()
                         Text: ="Print / Save PDF"

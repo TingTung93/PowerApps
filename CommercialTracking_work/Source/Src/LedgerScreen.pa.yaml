@@ -1,9 +1,9 @@
 # ************************************************************************************************
 # Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
 # Use the maker portal to create and edit your Power Apps.
-# 
+#
 # The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
-# 
+#
 # For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
 # ************************************************************************************************
 Screens:
@@ -13,8 +13,11 @@ Screens:
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
       OnVisible: |
         =If(IsBlank(varScanDirection), UpdateContext({varScanDirection: "Inbound"}));
-        // Preserve the session ledger when returning from History.
-        UpdateContext({varTriggerFocus: true});
+        If(
+            varScanDirection = "Inbound" && IsBlank(gblRecipient),
+            SetFocus(txtRecipient),
+            UpdateContext({varTriggerFocus: true})
+        );
     Children:
       - ScreenContainer1_2:
           Control: GroupContainer@1.5.0
@@ -61,18 +64,20 @@ Screens:
                       Control: FluentV8/TextBox@1.7.2
                       Properties:
                         LayoutMinHeight: =36
-                        Placeholder: |-
-                          ="🔍 Search tracking, carrier, or raw data..."
+                        AccessibleLabel: ="Search the current scan session"
+                        Placeholder: ="Search tracking, carrier, recipient, or label details"
                   - Gallery1_2:
                       Control: Gallery@2.15.0
                       Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
                       Properties:
+                        AccessibleLabel: ="Recent package scans in this session"
                         BorderColor: =RGBA(243, 242, 241, 1)
                         FocusedBorderColor: =RGBA(98, 100, 167, 1)
                         FocusedBorderThickness: =2
                         Items: |
                           =Sort(Filter(colRecentScans, txtSearchLedger_1.Value in TrackingNumber || txtSearchLedger_1.Value in ScanNotes || txtSearchLedger_1.Value in Carrier || txtSearchLedger_1.Value in DisplayAddressee || txtSearchLedger_1.Value in DisplayAddressBlock), Timestamp, SortOrder.Descending)
                         LayoutMinHeight: =200
+                        TabIndex: =0
                         TemplateSize: =190
                       Children:
                         - HtmlText1_2:
@@ -89,11 +94,11 @@ Screens:
                                   </div>
                                   <div style='font-size:13px; color:#605e5c; margin-top:6px;'>
                                     <b>Carrier:</b> " & ThisItem.Carrier & " &nbsp;&bull;&nbsp; <b>Time:</b> " & Text(ThisItem.Timestamp, "hh:mm:ss AM/PM") & "
-                                  </div>" & 
+                                  </div>" &
                                   If(!IsBlank(ThisItem.DisplayAddressee) || !IsBlank(ThisItem.DisplayAddressBlock),
-                                    "<div style='margin-top:6px; font-size:13px; color:#323130;'>" & 
+                                    "<div style='margin-top:6px; font-size:13px; color:#323130;'>" &
                                       If(!IsBlank(ThisItem.DisplayAddressee), "<b>To:</b> " & ThisItem.DisplayAddressee & "<br>", "") &
-                                      If(!IsBlank(ThisItem.DisplayAddressBlock), "<b>Address:</b> " & ThisItem.DisplayAddressBlock, "") & 
+                                      If(!IsBlank(ThisItem.DisplayAddressBlock), "<b>Address:</b> " & ThisItem.DisplayAddressBlock, "") &
                                     "</div>",
                                     ""
                                   ) &
@@ -108,8 +113,8 @@ Screens:
                                      </div>",
                                     ""
                                   ) &
-                                  If(!IsBlank(ThisItem.ScanNotes), 
-                                    "<div style='margin-top:8px; font-size:11px; color:#323130; background:#ffffff; padding:6px; border:1px solid #e1dfdd; border-radius:4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>" & ThisItem.ScanNotes & "</div>", 
+                                  If(!IsBlank(ThisItem.ScanNotes),
+                                    "<div style='margin-top:8px; font-size:11px; color:#323130; background:#ffffff; padding:6px; border:1px solid #e1dfdd; border-radius:4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>" & ThisItem.ScanNotes & "</div>",
                                     ""
                                   ) &
                                 "</div>"
@@ -168,51 +173,166 @@ Screens:
                       Control: FluentV8/Label@1.8.6
                       Properties:
                         AutoHeight: =true
-                        Text: ="Choose a recipient and direction, then scan each package. The scanner stays focused between successful scans."
+                        Text: =If(varScanDirection = "Inbound", "Choose a recipient, then scan each arriving package.", "Scan a package or packing-list QR to mark it picked up.")
                   - txtRecipient:
                       Control: TextInput@0.0.54
                       Properties:
                         AccessibleLabel: ="Designated package recipient"
                         LayoutMinHeight: =44
-                        OnChange: "=UpdateContext({varRecipient: Trim(Self.Value)})"
+                        OnChange: "=Set(gblRecipient, Trim(Self.Value)); If(!IsBlank(gblRecipient) && varScanDirection = \"Inbound\", UpdateContext({varTriggerFocus: true}))"
                         Placeholder: ="Designated recipient (required)"
+                        Value: =gblRecipient
                   - txtBarcodeScanner_2:
                       Control: TextInput@0.0.54
                       Properties:
                         AccessibleLabel: ="Package barcode or packing-list QR scanner"
+                        DisplayMode: =If(varScanDirection = "Inbound" && IsBlank(gblRecipient), DisplayMode.Disabled, DisplayMode.Edit)
                         LayoutMinHeight: =48
-                        OnChange: "=UpdateContext({varRawScan: Trim(txtBarcodeScanner_2.Value)});\nIf(!IsBlank(varRawScan),\n    If(StartsWith(varRawScan, \"[)>\"),\n        UpdateContext({\n            varParsedTracking: Coalesce(\n                Match(varRawScan, \"31Z(?<trk>\\d{20,34})\").trk,\n                Match(varRawScan, \"\\d{34}\").FullMatch,\n                Match(varRawScan, \"\\d{22}\").FullMatch,\n                Match(varRawScan, \"1Z[A-Z0-9]{16}\").FullMatch\n            ),\n            varDetectedCarrier: If(\"FDEG\" in varRawScan || \"FDEN\" in varRawScan || \"FX\" in varRawScan, \"FedEx\", \"UPSN\" in varRawScan, \"UPS\", \"Other\"),\n            varExtractedWeight: Match(varRawScan, \"\\d+(\\.\\d+)?(LB|KG)\").FullMatch,\n            varExtractedPkg: Match(varRawScan, \"\\d+/\\d+\").FullMatch,\n            varExtractedAddressee: Trim(Coalesce(Match(varRawScan, \"11Z(?<addr>[a-zA-Z\\s\\.\\-]+)\").addr, Match(varRawScan, \"12Z(?<addr>[a-zA-Z\\s\\.\\-]+)\").addr)),\n            varExtractedAddressBlock: Trim(Match(varRawScan, \"(?:LB|KG)[A-Z]?(?<block>[A-Za-z0-9\\s\\.\\,\\-]+?)(?:\\d{3,4}Z|11Z|12Z|13Z|31Z)\").block),\n            varScanNotes: \"2D Data: \" & varRawScan\n        }),\n        UpdateContext({\n            varParsedTracking: varRawScan,\n            varDetectedCarrier: If(StartsWith(Lower(varRawScan), \"1z\") && Len(varRawScan) = 18, \"UPS\", IsMatch(varRawScan, \"^\\d{12}$\") || IsMatch(varRawScan, \"^\\d{15}$\") || IsMatch(varRawScan, \"^\\d{20}$\") || IsMatch(varRawScan, \"^\\d{34}$\"), \"FedEx\", (StartsWith(varRawScan, \"92\") || StartsWith(varRawScan, \"93\") || StartsWith(varRawScan, \"94\")) && Len(varRawScan) >= 20, \"USPS\", IsMatch(varRawScan, \"^\\d{10}$\"), \"DHL\", \"Other\"),\n            varExtractedWeight: Blank(),\n            varExtractedPkg: Blank(),\n            varExtractedAddressee: Blank(),\n            varExtractedAddressBlock: Blank(),\n            varScanNotes: Blank()\n        })\n    );\n    Patch(Tracking, Defaults(Tracking), {Title: varParsedTracking, field_1: varDetectedCarrier, field_2: varScanDirection, field_3: \"Arrived on Dock\", field_6: Now(), field_7: varScanNotes});\n    \n    Collect(colRecentScans, {TrackingNumber: varParsedTracking, Carrier: varDetectedCarrier, Timestamp: Now(), ScanNotes: varScanNotes, Direction: varScanDirection, DisplayWeight: varExtractedWeight, DisplayPkg: varExtractedPkg, DisplayAddressee: varExtractedAddressee, DisplayAddressBlock: varExtractedAddressBlock});\n    \n    Reset(txtBarcodeScanner_2);\n    UpdateContext({varTriggerFocus: true});\n);\n"
-                        Placeholder: =If(IsBlank(Trim(txtRecipient.Value)), "Enter a recipient first", "Scan package or QR code")
+                        OnChange: |
+                          =// txtBarcodeScanner_2.OnChange
+                          // Preserves the original 2D parser. Inbound scans receive packages; outbound scans pick them up.
+                          UpdateContext({
+                              varRawScan: Trim(Substitute(Substitute(Self.Value, Char(13), ""), Char(10), "")),
+                              varScanHandled: false,
+                              varParsedTracking: Blank(),
+                              varDetectedCarrier: Blank(),
+                              varExtractedWeight: Blank(),
+                              varExtractedPkg: Blank(),
+                              varExtractedAddressee: Blank(),
+                              varExtractedAddressBlock: Blank(),
+                              varScanNotes: Blank()
+                          });
+
+                          If(
+                              !IsBlank(varRawScan),
+                              If(
+                                  StartsWith(varRawScan, "PKG|"),
+                                  UpdateContext({
+                                      varParsedTracking: Trim(Last(Split(varRawScan, "|")).Value),
+                                      varDetectedCarrier: Blank(),
+                                      varExtractedWeight: Blank(),
+                                      varExtractedPkg: Blank(),
+                                      varExtractedAddressee: Blank(),
+                                      varExtractedAddressBlock: Blank(),
+                                      varScanNotes: "Packing-list QR scanned"
+                                  }),
+                                  StartsWith(varRawScan, "[)>"),
+                                  UpdateContext({
+                                      varParsedTracking: Coalesce(
+                                          Match(varRawScan, "31Z(?<trk>\d{20,34})").trk,
+                                          Match(varRawScan, "\d{34}").FullMatch,
+                                          Match(varRawScan, "\d{22}").FullMatch,
+                                          Match(varRawScan, "1Z[A-Z0-9]{16}").FullMatch
+                                      ),
+                                      varDetectedCarrier: If("FDEG" in varRawScan || "FDEN" in varRawScan || "FX" in varRawScan, "FedEx", "UPSN" in varRawScan, "UPS", "Other"),
+                                      varExtractedWeight: Match(varRawScan, "\d+(\.\d+)?(LB|KG)").FullMatch,
+                                      varExtractedPkg: Match(varRawScan, "\d+/\d+").FullMatch,
+                                      varExtractedAddressee: Trim(Coalesce(Match(varRawScan, "11Z(?<addr>[a-zA-Z\s\.\-]+)").addr, Match(varRawScan, "12Z(?<addr>[a-zA-Z\s\.\-]+)").addr)),
+                                      varExtractedAddressBlock: Trim(Match(varRawScan, "(?:LB|KG)[A-Z]?(?<block>[A-Za-z0-9\s\.,\-]+?)(?:\d{3,4}Z|11Z|12Z|13Z|31Z)").block),
+                                      varScanNotes: "2D carrier label scanned"
+                                  }),
+                                  UpdateContext({
+                                      varParsedTracking: varRawScan,
+                                      varDetectedCarrier: If(
+                                          StartsWith(Lower(varRawScan), "1z") && Len(varRawScan) = 18, "UPS",
+                                          IsMatch(varRawScan, "^\d{12}$|^\d{15}$|^\d{20}$|^\d{34}$"), "FedEx",
+                                          (StartsWith(varRawScan, "92") || StartsWith(varRawScan, "93") || StartsWith(varRawScan, "94")) && Len(varRawScan) >= 20, "USPS",
+                                          IsMatch(varRawScan, "^\d{10}$"), "DHL",
+                                          "Other"
+                                      ),
+                                      varExtractedWeight: Blank(),
+                                      varExtractedPkg: Blank(),
+                                      varExtractedAddressee: Blank(),
+                                      varExtractedAddressBlock: Blank(),
+                                      varScanNotes: Blank()
+                                  })
+                              );
+
+                              If(
+                                  IsBlank(varParsedTracking),
+                                  Notify("No supported tracking number was found in the scan.", NotificationType.Error),
+
+                                  varScanDirection = "Outbound",
+                                  With(
+                                      {pickupRecord: LookUp(Tracking, Title = varParsedTracking && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock"))},
+                                      If(
+                                          IsBlank(pickupRecord),
+                                          Notify("No package awaiting pickup was found for this tracking number.", NotificationType.Warning),
+                                          IfError(
+                                              Patch(Tracking, pickupRecord, {field_2: "Outbound", field_3: "Picked Up", SignedOutDateTime: Now()});
+                                              Collect(colRecentScans, {TrackingId: pickupRecord.ID, TrackingNumber: pickupRecord.Title, Recipient: pickupRecord.field_4, Carrier: pickupRecord.field_1, Timestamp: Now(), ScanNotes: "Picked up", Direction: "Outbound", DisplayWeight: Blank(), DisplayPkg: Blank(), DisplayAddressee: pickupRecord.field_4, DisplayAddressBlock: Blank()});
+                                              UpdateContext({varScanHandled: true});
+                                              Notify("Package picked up by " & pickupRecord.field_4 & ".", NotificationType.Success),
+                                              Notify("Pickup could not be saved: " & FirstError.Message, NotificationType.Error)
+                                          )
+                                      )
+                                  ),
+
+                                  IsBlank(gblRecipient),
+                                  Reset(txtBarcodeScanner_2);
+                                  SetFocus(txtRecipient);
+                                  Notify("Enter a designated recipient before scanning an inbound package.", NotificationType.Warning),
+
+                                  With(
+                                      {activeRecord: LookUp(Tracking, Title = varParsedTracking && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock"))},
+                                      If(
+                                          !IsBlank(activeRecord),
+                                          UpdateContext({varScanHandled: true});
+                                          Notify("This package is already assigned to " & Coalesce(activeRecord.field_4, "a recipient") & ".", NotificationType.Warning),
+                                          IfError(
+                                              Set(varSavedTracking, Patch(Tracking, Defaults(Tracking), {Title: varParsedTracking, field_1: varDetectedCarrier, field_2: "Inbound", field_3: "Ready for Pickup", field_4: gblRecipient, field_6: Now(), field_7: varScanNotes}));
+                                              Collect(colRecentScans, {TrackingId: varSavedTracking.ID, TrackingNumber: varParsedTracking, Recipient: gblRecipient, Carrier: varDetectedCarrier, Timestamp: Now(), ScanNotes: varScanNotes, Direction: "Inbound", DisplayWeight: varExtractedWeight, DisplayPkg: varExtractedPkg, DisplayAddressee: varExtractedAddressee, DisplayAddressBlock: varExtractedAddressBlock});
+                                              UpdateContext({varScanHandled: true});
+                                              Notify("Package assigned to " & gblRecipient & ".", NotificationType.Success),
+                                              Notify("The package could not be saved: " & FirstError.Message, NotificationType.Error)
+                                          )
+                                      )
+                                  )
+                              );
+
+                              If(
+                                  varScanHandled,
+                                  Reset(txtBarcodeScanner_2);
+                                  UpdateContext({varTriggerFocus: true})
+                              )
+                          )
+                        Placeholder: =If(IsBlank(gblRecipient), "Enter a recipient first", "Scan package or QR code")
                   - DirectionToggle_2:
                       Control: FluentV8/Toggle@1.6.7
                       Properties:
+                        AccessibleLabel: ="Switch between inbound receiving and outbound pickup"
                         Checked: =varScanDirection = "Inbound"
                         LayoutMinHeight: =40
                         OffText: ="Outbound"
                         OnCheck: |
-                          =UpdateContext({varScanDirection: "Inbound"})
+                          =UpdateContext({varScanDirection: "Inbound"});
+                          If(IsBlank(gblRecipient), SetFocus(txtRecipient), UpdateContext({varTriggerFocus: true}))
                         OnText: ="Inbound"
                         OnUncheck: |
-                          =UpdateContext({varScanDirection: "Outbound"})
+                          =UpdateContext({varScanDirection: "Outbound"});
+                          UpdateContext({varTriggerFocus: true})
                   - lblManifestHint:
                       Control: FluentV8/Label@1.8.6
                       Properties:
                         AutoHeight: =true
-                        Text: =If(IsBlank(Trim(txtRecipient.Value)), "Recipient required before scanning", "Receiving for " & Trim(txtRecipient.Value) & " | " & CountRows(colRecentScans) & " scan(s) this session")
+                        Text: =If(varScanDirection = "Outbound", "Pickup mode | " & CountRows(colRecentScans) & " session scan(s)", If(IsBlank(gblRecipient), "Recipient required before scanning", "Receiving for " & gblRecipient & " | " & CountRows(colRecentScans) & " session scan(s)"))
                   - btnViewHistory:
                       Control: FluentV8/Button@1.5.13
                       Properties:
+                        AccessibleLabel: ="Open package database history"
                         OnSelect: =Navigate(History, ScreenTransition.Fade)
                         Text: ="View Database History"
                   - btnCreatePackingList:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open the designated recipient's packing list"
-                        OnSelect: =If(IsBlank(Trim(txtRecipient.Value)), Notify("Enter a designated recipient before creating a packing list.", NotificationType.Warning), Set(varManifestRecipient, Trim(txtRecipient.Value)); Navigate(PackingList, ScreenTransition.Fade))
+                        DisplayMode: =If(IsBlank(gblRecipient), DisplayMode.Disabled, DisplayMode.Edit)
+                        OnSelect: =If(IsBlank(gblRecipient), Notify("Enter a designated recipient before creating a packing list.", NotificationType.Warning), Set(gblManifestPreparedAt, Now()); Navigate(PackingList, ScreenTransition.Fade))
                         Text: ="Create Packing List"
                   - btnClearScans_1:
                       Control: FluentV8/Button@1.5.13
                       Properties:
+                        AccessibleLabel: ="Clear recent scans from this local session"
                         OnSelect: =Clear(colRecentScans)
                         Text: ="Clear Local Ledger"
                   - tmrFocusScanner_1:

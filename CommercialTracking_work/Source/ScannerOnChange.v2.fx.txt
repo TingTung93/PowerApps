@@ -1,13 +1,23 @@
 // txtBarcodeScanner_2.OnChange
 // Preserves the original 2D parser. Inbound scans receive packages; outbound scans pick them up.
-UpdateContext({varRawScan: Trim(Self.Value), varScanHandled: false});
+UpdateContext({
+    varRawScan: Trim(Substitute(Substitute(Self.Value, Char(13), ""), Char(10), "")),
+    varScanHandled: false,
+    varParsedTracking: Blank(),
+    varDetectedCarrier: Blank(),
+    varExtractedWeight: Blank(),
+    varExtractedPkg: Blank(),
+    varExtractedAddressee: Blank(),
+    varExtractedAddressBlock: Blank(),
+    varScanNotes: Blank()
+});
 
 If(
     !IsBlank(varRawScan),
     If(
         StartsWith(varRawScan, "PKG|"),
         UpdateContext({
-            varParsedTracking: Last(Split(varRawScan, "|")).Value,
+            varParsedTracking: Trim(Last(Split(varRawScan, "|")).Value),
             varDetectedCarrier: Blank(),
             varExtractedWeight: Blank(),
             varExtractedPkg: Blank(),
@@ -53,7 +63,7 @@ If(
 
         varScanDirection = "Outbound",
         With(
-            {pickupRecord: LookUp(Tracking, Title = varParsedTracking && field_3 <> "Picked Up")},
+            {pickupRecord: LookUp(Tracking, Title = varParsedTracking && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock"))},
             If(
                 IsBlank(pickupRecord),
                 Notify("No package awaiting pickup was found for this tracking number.", NotificationType.Warning),
@@ -67,20 +77,22 @@ If(
             )
         ),
 
-        IsBlank(Trim(txtRecipient.Value)),
+        IsBlank(gblRecipient),
+        Reset(txtBarcodeScanner_2);
+        SetFocus(txtRecipient);
         Notify("Enter a designated recipient before scanning an inbound package.", NotificationType.Warning),
 
         With(
-            {activeRecord: LookUp(Tracking, Title = varParsedTracking && field_3 <> "Picked Up")},
+            {activeRecord: LookUp(Tracking, Title = varParsedTracking && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock"))},
             If(
                 !IsBlank(activeRecord),
                 UpdateContext({varScanHandled: true});
                 Notify("This package is already assigned to " & Coalesce(activeRecord.field_4, "a recipient") & ".", NotificationType.Warning),
                 IfError(
-                    Set(varSavedTracking, Patch(Tracking, Defaults(Tracking), {Title: varParsedTracking, field_1: varDetectedCarrier, field_2: "Inbound", field_3: "Ready for Pickup", field_4: Trim(txtRecipient.Value), field_6: Now(), field_7: varScanNotes}));
-                    Collect(colRecentScans, {TrackingId: varSavedTracking.ID, TrackingNumber: varParsedTracking, Recipient: Trim(txtRecipient.Value), Carrier: varDetectedCarrier, Timestamp: Now(), ScanNotes: varScanNotes, Direction: "Inbound", DisplayWeight: varExtractedWeight, DisplayPkg: varExtractedPkg, DisplayAddressee: varExtractedAddressee, DisplayAddressBlock: varExtractedAddressBlock});
+                    Set(varSavedTracking, Patch(Tracking, Defaults(Tracking), {Title: varParsedTracking, field_1: varDetectedCarrier, field_2: "Inbound", field_3: "Ready for Pickup", field_4: gblRecipient, field_6: Now(), field_7: varScanNotes}));
+                    Collect(colRecentScans, {TrackingId: varSavedTracking.ID, TrackingNumber: varParsedTracking, Recipient: gblRecipient, Carrier: varDetectedCarrier, Timestamp: Now(), ScanNotes: varScanNotes, Direction: "Inbound", DisplayWeight: varExtractedWeight, DisplayPkg: varExtractedPkg, DisplayAddressee: varExtractedAddressee, DisplayAddressBlock: varExtractedAddressBlock});
                     UpdateContext({varScanHandled: true});
-                    Notify("Package assigned to " & Trim(txtRecipient.Value) & ".", NotificationType.Success),
+                    Notify("Package assigned to " & gblRecipient & ".", NotificationType.Success),
                     Notify("The package could not be saved: " & FirstError.Message, NotificationType.Error)
                 )
             )

@@ -8,4 +8,5 @@
 # ************************************************************************************************
 App:
   Properties:
+    OnStart: =Set(gblRecipient, ""); Set(gblManifestPreparedAt, Now())
     Theme: =PowerAppsTheme

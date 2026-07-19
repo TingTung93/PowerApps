@@ -11,6 +11,7 @@ Screens:
     Properties:
       Fill: =RGBA(245, 245, 245, 1)
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      OnVisible: =Refresh(Tracking)
     Children:
       - MainContainer_History:
           Control: GroupContainer@1.5.0
@@ -46,35 +47,47 @@ Screens:
                   - btnBackToScanner:
                       Control: FluentV8/Button@1.5.13
                       Properties:
+                        AccessibleLabel: ="Return to the package scanner"
                         OnSelect: =Navigate(LedgerScreen, ScreenTransition.Fade)
                         Text: ="Back to Scanner"
             - txtSearchDatabase:
                 Control: FluentV8/TextBox@1.7.2
                 Properties:
+                  AccessibleLabel: ="Search package history by tracking number, carrier, recipient, status, or notes"
                   LayoutMinHeight: =40
-                  Placeholder: |-
-                    ="🔍 Search backend database by Tracking Number, Carrier, or Notes..."
+                  Placeholder: ="Search tracking, carrier, recipient, status, or notes"
             - Gallery_History:
                 Control: Gallery@2.15.0
                 Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
                 Properties:
+                  AccessibleLabel: ="Package history search results"
                   BorderColor: =RGBA(0, 0, 0, 0)
                   FillPortions: =5
                   FocusedBorderColor: =RGBA(98, 100, 167, 1)
                   FocusedBorderThickness: =2
                   Items: |
-                    =Sort(
-                        Filter(Tracking, 
-                            IsBlank(txtSearchDatabase.Value) ||
-                            txtSearchDatabase.Value in Title || 
-                            txtSearchDatabase.Value in field_1 || 
-                            txtSearchDatabase.Value in field_7
-                        ), 
-                        field_6, 
-                        SortOrder.Descending
+                    =With(
+                        {query: Trim(txtSearchDatabase.Value)},
+                        Sort(
+                            If(
+                                IsBlank(query),
+                                Tracking,
+                                Filter(
+                                    Tracking,
+                                    StartsWith(Title, query) ||
+                                    StartsWith(field_1, query) ||
+                                    StartsWith(field_4, query) ||
+                                    StartsWith(field_3, query) ||
+                                    StartsWith(field_7, query)
+                                )
+                            ),
+                            field_6,
+                            SortOrder.Descending
+                        )
                     )
                   LayoutMinHeight: =400
-                  TemplateSize: =140
+                  TabIndex: =0
+                  TemplateSize: =170
                 Children:
                   - HtmlText_HistoryCard:
                       Control: HtmlViewer@2.1.0
@@ -90,7 +103,10 @@ Screens:
                             </div>
                             <div style='font-size:13px; color:#605e5c; margin-top:6px;'>
                               <b>Carrier:</b> " & ThisItem.field_1 & " &nbsp;&bull;&nbsp; <b>Logged:</b> " & Text(ThisItem.field_6, "mm/dd/yyyy hh:mm AM/PM") & "
-                            </div>" & 
+                            </div>
+                            <div style='font-size:13px; color:#323130; margin-top:6px;'>
+                              <b>Recipient:</b> " & Coalesce(ThisItem.field_4, "Unassigned") & " &nbsp;&bull;&nbsp; <b>Status:</b> " & Coalesce(ThisItem.field_3, "Unknown") & "
+                            </div>" &
                             If(!IsBlank(ThisItem.field_7), 
                               "<div style='margin-top:8px; font-size:11px; color:#323130; background:#faf9f8; padding:6px; border:1px solid #e1dfdd; border-radius:4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>" & ThisItem.field_7 & "</div>", 
                               ""
