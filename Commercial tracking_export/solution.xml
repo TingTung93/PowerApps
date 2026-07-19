@@ -1,0 +1,26 @@
+<ImportExportXml version="9.2.26062.168" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26062.168" OrganizationSchemaType="Core" CRMServerServiceabilityVersion="9.2.26062.00168">
+  <SolutionManifest>
+    <UniqueName>ExportComponents4efbdffeabdd4f8e83ef855494cba171</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="ExportComponents4efbdffeabdd4f8e83ef855494cba171" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions />
+    <Version>1.0</Version>
+    <Managed>0</Managed>
+    <Publisher>
+      <UniqueName>Crf31e9</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="CDS Default Publisher" languagecode="1033" />
+      </LocalizedNames>
+      <Descriptions />
+      <EMailAddress xsi:nil="true"></EMailAddress>
+      <SupportingWebsiteUrl xsi:nil="true"></SupportingWebsiteUrl>
+      <CustomizationPrefix>cr1ab</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>61325</CustomizationOptionValuePrefix>
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="300" schemaName="cr1ab_commercialtracking_8342c" behavior="0" />
+    </RootComponents>
+    <MissingDependencies />
+  </SolutionManifest>
+</ImportExportXml>

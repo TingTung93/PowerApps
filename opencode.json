@@ -1,0 +1,25 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "asksage/gpt-5.4",
+  "autoupdate": false,
+  "share": "disabled",
+  "provider": {
+    "asksage": {
+      "npm": "@ai-sdk/openai",
+      "name": "Ask Sage",
+      "options": {
+        "baseURL": "https://api.asksage.ai/server/openai/v1",
+        "apiKey": "{env:ASKSAGE_API_KEY}"
+      },
+      "models": {
+        "gpt-5.5": {
+          "name": "GPT-5.5",
+          "limit": {
+            "context": 128000,
+            "output": 16384
+          }
+        }
+      }
+    }
+  }
+}
