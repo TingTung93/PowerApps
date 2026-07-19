@@ -208,7 +208,7 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open the designated recipient's packing list"
-                        OnSelect: "=If(IsBlank(Trim(txtRecipient.Value)), Notify(\"Enter a designated recipient before creating a packing list.\", NotificationType.Warning), Navigate(PackingList, ScreenTransition.Fade, {locManifestRecipient: Trim(txtRecipient.Value)}))"
+                        OnSelect: =If(IsBlank(Trim(txtRecipient.Value)), Notify("Enter a designated recipient before creating a packing list.", NotificationType.Warning), Set(varManifestRecipient, Trim(txtRecipient.Value)); Navigate(PackingList, ScreenTransition.Fade))
                         Text: ="Create Packing List"
                   - btnClearScans_1:
                       Control: FluentV8/Button@1.5.13

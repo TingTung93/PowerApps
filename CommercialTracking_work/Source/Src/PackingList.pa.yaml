@@ -29,31 +29,38 @@ Screens:
                   FontSize: =20
                   FontWeight: =FontWeight.Semibold
                   Text: ="Customer Packing List"
+            - btnBackToLedger:
+                Control: FluentV8/Button@1.5.13
+                Properties:
+                  AccessibleLabel: ="Return to the package scanner"
+                  AlignInContainer: =AlignInContainer.Start
+                  OnSelect: =Navigate(LedgerScreen, ScreenTransition.Fade)
+                  Text: ="Back to Scanner"
             - txtManifestRecipient:
                 Control: TextInput@0.0.54
                 Properties:
                   AccessibleLabel: ="Recipient whose packages appear on this packing list"
                   DisplayMode: =DisplayMode.View
                   LayoutMinHeight: =44
-                  Value: =locManifestRecipient
+                  Value: =varManifestRecipient
                   Placeholder: ="No recipient selected"
             - lblManifestMeta:
                 Control: FluentV8/Label@1.8.6
                 Properties:
-                  Text: ="Prepared " & Text(Now(), "mm/dd/yyyy hh:mm AM/PM") & " | " & CountRows(Filter(Tracking, field_4 = locManifestRecipient && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock"))) & " package(s)"
+                  Text: ="Prepared " & Text(Now(), "mm/dd/yyyy hh:mm AM/PM") & " | " & CountRows(Filter(Tracking, field_4 = varManifestRecipient && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock"))) & " package(s)"
             - lblEmptyManifest:
                 Control: FluentV8/Label@1.8.6
                 Properties:
                   AutoHeight: =true
                   Text: ="No packages are currently ready for pickup for this recipient."
-                  Visible: =CountRows(Filter(Tracking, field_4 = locManifestRecipient && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock"))) = 0
+                  Visible: =CountRows(Filter(Tracking, field_4 = varManifestRecipient && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock"))) = 0
             - galPackingList:
                 Control: Gallery@2.15.0
                 Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
                 Properties:
                   AccessibleLabel: ="Packages assigned to the selected recipient"
                   FillPortions: =1
-                  Items: =Sort(Filter(Tracking, field_4 = locManifestRecipient && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")), field_6, SortOrder.Descending)
+                  Items: =Sort(Filter(Tracking, field_4 = varManifestRecipient && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")), field_6, SortOrder.Descending)
                   LayoutMinHeight: =320
                   TemplatePadding: =8
                   TemplateSize: =88
@@ -100,8 +107,3 @@ Screens:
                         DisplayMode: =If(CountRows(galPackingList.AllItems) = 0, DisplayMode.Disabled, DisplayMode.Edit)
                         OnSelect: =Print()
                         Text: ="Print / Save PDF"
-                  - btnBackToLedger:
-                      Control: FluentV8/Button@1.5.13
-                      Properties:
-                        OnSelect: =Navigate(LedgerScreen, ScreenTransition.Fade)
-                        Text: ="Back to Scanner"
