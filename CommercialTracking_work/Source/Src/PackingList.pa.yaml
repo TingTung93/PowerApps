@@ -2,19 +2,25 @@
 Screens:
   PackingList:
     Properties:
-      Fill: =RGBA(255, 255, 255, 1)
-      OnVisible: =SetFocus(txtManifestRecipient)
+      Fill: =RGBA(243, 244, 246, 1)
+      OnVisible: =Refresh(Tracking)
     Children:
       - conPackingList:
           Control: GroupContainer@1.5.0
           Variant: AutoLayout
           Properties:
+            Fill: =RGBA(255, 255, 255, 1)
             Height: =Parent.Height
             LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =12
             PaddingBottom: =24
             PaddingLeft: =24
             PaddingRight: =24
             PaddingTop: =24
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
             Width: =Parent.Width
           Children:
             - lblPackingTitle:
@@ -27,31 +33,48 @@ Screens:
                 Control: TextInput@0.0.54
                 Properties:
                   AccessibleLabel: ="Recipient whose packages appear on this packing list"
-                  Value: =varManifestRecipient
-                  LayoutMinHeight: =40
-                  Placeholder: ="Recipient"
+                  DisplayMode: =DisplayMode.View
+                  LayoutMinHeight: =44
+                  Value: =locManifestRecipient
+                  Placeholder: ="No recipient selected"
             - lblManifestMeta:
                 Control: FluentV8/Label@1.8.6
                 Properties:
-                  Text: ="Issued " & Text(Now(), "mm/dd/yyyy hh:mm AM/PM") & " • " & CountRows(Filter(Tracking, field_4 = Trim(txtManifestRecipient.Value) && field_3 = "Ready for Pickup")) & " package(s)"
+                  Text: ="Prepared " & Text(Now(), "mm/dd/yyyy hh:mm AM/PM") & " | " & CountRows(Filter(Tracking, field_4 = locManifestRecipient && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock"))) & " package(s)"
+            - lblEmptyManifest:
+                Control: FluentV8/Label@1.8.6
+                Properties:
+                  AutoHeight: =true
+                  Text: ="No packages are currently ready for pickup for this recipient."
+                  Visible: =CountRows(Filter(Tracking, field_4 = locManifestRecipient && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock"))) = 0
             - galPackingList:
                 Control: Gallery@2.15.0
                 Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
                 Properties:
                   AccessibleLabel: ="Packages assigned to the selected recipient"
-                  Items: =Sort(Filter(Tracking, field_4 = Trim(txtManifestRecipient.Value) && field_3 = "Ready for Pickup"), field_6, SortOrder.Descending)
+                  FillPortions: =1
+                  Items: =Sort(Filter(Tracking, field_4 = locManifestRecipient && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")), field_6, SortOrder.Descending)
                   LayoutMinHeight: =320
-                  TemplateSize: =76
+                  TemplatePadding: =8
+                  TemplateSize: =88
                 Children:
                   - lblTracking:
                       Control: FluentV8/Label@1.8.6
                       Properties:
                         FontWeight: =FontWeight.Semibold
+                        Height: =28
                         Text: =ThisItem.Title
+                        Width: =Parent.TemplateWidth - 112
+                        X: =12
+                        Y: =10
                   - lblPackageDetails:
                       Control: FluentV8/Label@1.8.6
                       Properties:
-                        Text: =ThisItem.field_1 & " • received " & Text(ThisItem.field_6, "mm/dd/yyyy hh:mm AM/PM")
+                        Height: =24
+                        Width: =Parent.TemplateWidth - 112
+                        X: =12
+                        Y: =42
+                        Text: =ThisItem.field_1 & " | received " & Text(ThisItem.field_6, "mm/dd/yyyy hh:mm AM/PM")
                   - imgPackageQr:
                       Control: Image@2.2.3
                       Properties:
@@ -59,15 +82,26 @@ Screens:
                         Height: =64
                         Image: ="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=" & EncodeUrl("PKG|" & ThisItem.Title)
                         Width: =64
-                        X: =Parent.TemplateWidth - 80
-            - btnPrintPackingList:
-                Control: FluentV8/Button@1.5.13
+                        X: =Parent.TemplateWidth - 76
+                        Y: =8
+            - conPackingActions:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
                 Properties:
-                  AccessibleLabel: ="Print this customer packing list"
-                  OnSelect: =Print()
-                  Text: ="Print Customer Copy"
-            - btnBackToLedger:
-                Control: FluentV8/Button@1.5.13
-                Properties:
-                  OnSelect: =Navigate(LedgerScreen, ScreenTransition.Fade)
-                  Text: ="Back to Scanner"
+                  FillPortions: =0
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =12
+                  LayoutMinHeight: =44
+                Children:
+                  - btnPrintPackingList:
+                      Control: FluentV8/Button@1.5.13
+                      Properties:
+                        AccessibleLabel: ="Print or save this customer packing list"
+                        DisplayMode: =If(CountRows(galPackingList.AllItems) = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                        OnSelect: =Print()
+                        Text: ="Print / Save PDF"
+                  - btnBackToLedger:
+                      Control: FluentV8/Button@1.5.13
+                      Properties:
+                        OnSelect: =Navigate(LedgerScreen, ScreenTransition.Fade)
+                        Text: ="Back to Scanner"

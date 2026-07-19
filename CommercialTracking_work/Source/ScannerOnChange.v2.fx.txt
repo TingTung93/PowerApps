@@ -1,0 +1,95 @@
+// txtBarcodeScanner_2.OnChange
+// Preserves the original 2D parser. Inbound scans receive packages; outbound scans pick them up.
+UpdateContext({varRawScan: Trim(Self.Value), varScanHandled: false});
+
+If(
+    !IsBlank(varRawScan),
+    If(
+        StartsWith(varRawScan, "PKG|"),
+        UpdateContext({
+            varParsedTracking: Last(Split(varRawScan, "|")).Value,
+            varDetectedCarrier: Blank(),
+            varExtractedWeight: Blank(),
+            varExtractedPkg: Blank(),
+            varExtractedAddressee: Blank(),
+            varExtractedAddressBlock: Blank(),
+            varScanNotes: "Packing-list QR scanned"
+        }),
+        StartsWith(varRawScan, "[)>"),
+        UpdateContext({
+            varParsedTracking: Coalesce(
+                Match(varRawScan, "31Z(?<trk>\d{20,34})").trk,
+                Match(varRawScan, "\d{34}").FullMatch,
+                Match(varRawScan, "\d{22}").FullMatch,
+                Match(varRawScan, "1Z[A-Z0-9]{16}").FullMatch
+            ),
+            varDetectedCarrier: If("FDEG" in varRawScan || "FDEN" in varRawScan || "FX" in varRawScan, "FedEx", "UPSN" in varRawScan, "UPS", "Other"),
+            varExtractedWeight: Match(varRawScan, "\d+(\.\d+)?(LB|KG)").FullMatch,
+            varExtractedPkg: Match(varRawScan, "\d+/\d+").FullMatch,
+            varExtractedAddressee: Trim(Coalesce(Match(varRawScan, "11Z(?<addr>[a-zA-Z\s\.\-]+)").addr, Match(varRawScan, "12Z(?<addr>[a-zA-Z\s\.\-]+)").addr)),
+            varExtractedAddressBlock: Trim(Match(varRawScan, "(?:LB|KG)[A-Z]?(?<block>[A-Za-z0-9\s\.,\-]+?)(?:\d{3,4}Z|11Z|12Z|13Z|31Z)").block),
+            varScanNotes: "2D carrier label scanned"
+        }),
+        UpdateContext({
+            varParsedTracking: varRawScan,
+            varDetectedCarrier: If(
+                StartsWith(Lower(varRawScan), "1z") && Len(varRawScan) = 18, "UPS",
+                IsMatch(varRawScan, "^\d{12}$|^\d{15}$|^\d{20}$|^\d{34}$"), "FedEx",
+                (StartsWith(varRawScan, "92") || StartsWith(varRawScan, "93") || StartsWith(varRawScan, "94")) && Len(varRawScan) >= 20, "USPS",
+                IsMatch(varRawScan, "^\d{10}$"), "DHL",
+                "Other"
+            ),
+            varExtractedWeight: Blank(),
+            varExtractedPkg: Blank(),
+            varExtractedAddressee: Blank(),
+            varExtractedAddressBlock: Blank(),
+            varScanNotes: Blank()
+        })
+    );
+
+    If(
+        IsBlank(varParsedTracking),
+        Notify("No supported tracking number was found in the scan.", NotificationType.Error),
+
+        varScanDirection = "Outbound",
+        With(
+            {pickupRecord: LookUp(Tracking, Title = varParsedTracking && field_3 <> "Picked Up")},
+            If(
+                IsBlank(pickupRecord),
+                Notify("No package awaiting pickup was found for this tracking number.", NotificationType.Warning),
+                IfError(
+                    Patch(Tracking, pickupRecord, {field_2: "Outbound", field_3: "Picked Up", SignedOutDateTime: Now()});
+                    Collect(colRecentScans, {TrackingId: pickupRecord.ID, TrackingNumber: pickupRecord.Title, Recipient: pickupRecord.field_4, Carrier: pickupRecord.field_1, Timestamp: Now(), ScanNotes: "Picked up", Direction: "Outbound", DisplayWeight: Blank(), DisplayPkg: Blank(), DisplayAddressee: pickupRecord.field_4, DisplayAddressBlock: Blank()});
+                    UpdateContext({varScanHandled: true});
+                    Notify("Package picked up by " & pickupRecord.field_4 & ".", NotificationType.Success),
+                    Notify("Pickup could not be saved: " & FirstError.Message, NotificationType.Error)
+                )
+            )
+        ),
+
+        IsBlank(Trim(txtRecipient.Value)),
+        Notify("Enter a designated recipient before scanning an inbound package.", NotificationType.Warning),
+
+        With(
+            {activeRecord: LookUp(Tracking, Title = varParsedTracking && field_3 <> "Picked Up")},
+            If(
+                !IsBlank(activeRecord),
+                UpdateContext({varScanHandled: true});
+                Notify("This package is already assigned to " & Coalesce(activeRecord.field_4, "a recipient") & ".", NotificationType.Warning),
+                IfError(
+                    Set(varSavedTracking, Patch(Tracking, Defaults(Tracking), {Title: varParsedTracking, field_1: varDetectedCarrier, field_2: "Inbound", field_3: "Ready for Pickup", field_4: Trim(txtRecipient.Value), field_6: Now(), field_7: varScanNotes}));
+                    Collect(colRecentScans, {TrackingId: varSavedTracking.ID, TrackingNumber: varParsedTracking, Recipient: Trim(txtRecipient.Value), Carrier: varDetectedCarrier, Timestamp: Now(), ScanNotes: varScanNotes, Direction: "Inbound", DisplayWeight: varExtractedWeight, DisplayPkg: varExtractedPkg, DisplayAddressee: varExtractedAddressee, DisplayAddressBlock: varExtractedAddressBlock});
+                    UpdateContext({varScanHandled: true});
+                    Notify("Package assigned to " & Trim(txtRecipient.Value) & ".", NotificationType.Success),
+                    Notify("The package could not be saved: " & FirstError.Message, NotificationType.Error)
+                )
+            )
+        )
+    );
+
+    If(
+        varScanHandled,
+        Reset(txtBarcodeScanner_2);
+        UpdateContext({varTriggerFocus: true})
+    )
+)

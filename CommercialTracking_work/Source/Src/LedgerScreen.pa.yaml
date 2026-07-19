@@ -20,7 +20,7 @@ Screens:
           Control: GroupContainer@1.5.0
           Variant: AutoLayout
           Properties:
-            Fill: =RGBA(245, 245, 245, 1)
+            Fill: =RGBA(243, 244, 246, 1)
             Height: =Parent.Height
             LayoutAlignItems: =LayoutAlignItems.Stretch
             LayoutDirection: =LayoutDirection.Horizontal
@@ -37,6 +37,7 @@ Screens:
                 Variant: AutoLayout
                 Properties:
                   Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =3
                   LayoutAlignItems: =LayoutAlignItems.Stretch
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =12
@@ -96,6 +97,10 @@ Screens:
                                     "</div>",
                                     ""
                                   ) &
+                                  If(!IsBlank(ThisItem.Recipient),
+                                    "<div style='margin-top:6px; font-size:13px; color:#323130;'><b>Designated recipient:</b> " & ThisItem.Recipient & "</div>",
+                                    ""
+                                  ) &
                                   If(!IsBlank(ThisItem.DisplayWeight) || !IsBlank(ThisItem.DisplayPkg),
                                     "<div style='margin-top:8px; display:flex; gap:10px;'>
                                       <span style='background:#e1dfdd; padding:2px 6px; border-radius:4px; font-size:11px;'><b>Weight:</b> " & Coalesce(ThisItem.DisplayWeight, "Unknown") & "</span>
@@ -118,9 +123,19 @@ Screens:
                               HoverColor: =RGBA(201, 36, 43, 1)
                               Icon: =Icon.Trash
                               OnSelect: |
-                                =Remove(colRecentScans, ThisItem);
-                                RemoveIf(Tracking, Title = ThisItem.TrackingNumber);
-                              Tooltip: ="Delete this scan from ledger and database"
+                                =If(
+                                    IsBlank(ThisItem.TrackingId),
+                                    Remove(colRecentScans, ThisItem);
+                                    Notify("This older local entry had no database ID and was removed only from this session.", NotificationType.Warning),
+                                    IfError(
+                                        Patch(Tracking, LookUp(Tracking, ID = ThisItem.TrackingId), {field_3: "Voided"});
+                                        Remove(colRecentScans, ThisItem),
+                                        Notify("The database record could not be voided: " & FirstError.Message, NotificationType.Error)
+                                    )
+                                )
+                              AccessibleLabel: ="Void this scan"
+                              TabIndex: =0
+                              Tooltip: ="Void this scan and remove it from the local ledger"
                               Width: =20
                               X: =Parent.TemplateWidth - 48
                               Y: =16
@@ -129,9 +144,11 @@ Screens:
                 Variant: AutoLayout
                 Properties:
                   Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =2
                   LayoutAlignItems: =LayoutAlignItems.Stretch
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =16
+                  LayoutMinWidth: =340
                   PaddingBottom: =16
                   PaddingLeft: =16
                   PaddingRight: =16
@@ -144,15 +161,28 @@ Screens:
                   - lblControlHeader_1:
                       Control: FluentV8/Label@1.8.6
                       Properties:
-                        FontSize: =14
+                        FontSize: =18
                         FontWeight: =FontWeight.Semibold
-                        Text: ="Control Panel"
+                        Text: ="Receive Packages"
+                  - lblControlInstructions:
+                      Control: FluentV8/Label@1.8.6
+                      Properties:
+                        AutoHeight: =true
+                        Text: ="Choose a recipient and direction, then scan each package. The scanner stays focused between successful scans."
+                  - txtRecipient:
+                      Control: TextInput@0.0.54
+                      Properties:
+                        AccessibleLabel: ="Designated package recipient"
+                        LayoutMinHeight: =44
+                        OnChange: "=UpdateContext({varRecipient: Trim(Self.Value)})"
+                        Placeholder: ="Designated recipient (required)"
                   - txtBarcodeScanner_2:
                       Control: TextInput@0.0.54
                       Properties:
-                        LayoutMinHeight: =40
+                        AccessibleLabel: ="Package barcode or packing-list QR scanner"
+                        LayoutMinHeight: =48
                         OnChange: "=UpdateContext({varRawScan: Trim(txtBarcodeScanner_2.Value)});\nIf(!IsBlank(varRawScan),\n    If(StartsWith(varRawScan, \"[)>\"),\n        UpdateContext({\n            varParsedTracking: Coalesce(\n                Match(varRawScan, \"31Z(?<trk>\\d{20,34})\").trk,\n                Match(varRawScan, \"\\d{34}\").FullMatch,\n                Match(varRawScan, \"\\d{22}\").FullMatch,\n                Match(varRawScan, \"1Z[A-Z0-9]{16}\").FullMatch\n            ),\n            varDetectedCarrier: If(\"FDEG\" in varRawScan || \"FDEN\" in varRawScan || \"FX\" in varRawScan, \"FedEx\", \"UPSN\" in varRawScan, \"UPS\", \"Other\"),\n            varExtractedWeight: Match(varRawScan, \"\\d+(\\.\\d+)?(LB|KG)\").FullMatch,\n            varExtractedPkg: Match(varRawScan, \"\\d+/\\d+\").FullMatch,\n            varExtractedAddressee: Trim(Coalesce(Match(varRawScan, \"11Z(?<addr>[a-zA-Z\\s\\.\\-]+)\").addr, Match(varRawScan, \"12Z(?<addr>[a-zA-Z\\s\\.\\-]+)\").addr)),\n            varExtractedAddressBlock: Trim(Match(varRawScan, \"(?:LB|KG)[A-Z]?(?<block>[A-Za-z0-9\\s\\.\\,\\-]+?)(?:\\d{3,4}Z|11Z|12Z|13Z|31Z)\").block),\n            varScanNotes: \"2D Data: \" & varRawScan\n        }),\n        UpdateContext({\n            varParsedTracking: varRawScan,\n            varDetectedCarrier: If(StartsWith(Lower(varRawScan), \"1z\") && Len(varRawScan) = 18, \"UPS\", IsMatch(varRawScan, \"^\\d{12}$\") || IsMatch(varRawScan, \"^\\d{15}$\") || IsMatch(varRawScan, \"^\\d{20}$\") || IsMatch(varRawScan, \"^\\d{34}$\"), \"FedEx\", (StartsWith(varRawScan, \"92\") || StartsWith(varRawScan, \"93\") || StartsWith(varRawScan, \"94\")) && Len(varRawScan) >= 20, \"USPS\", IsMatch(varRawScan, \"^\\d{10}$\"), \"DHL\", \"Other\"),\n            varExtractedWeight: Blank(),\n            varExtractedPkg: Blank(),\n            varExtractedAddressee: Blank(),\n            varExtractedAddressBlock: Blank(),\n            varScanNotes: Blank()\n        })\n    );\n    Patch(Tracking, Defaults(Tracking), {Title: varParsedTracking, field_1: varDetectedCarrier, field_2: varScanDirection, field_3: \"Arrived on Dock\", field_6: Now(), field_7: varScanNotes});\n    \n    Collect(colRecentScans, {TrackingNumber: varParsedTracking, Carrier: varDetectedCarrier, Timestamp: Now(), ScanNotes: varScanNotes, Direction: varScanDirection, DisplayWeight: varExtractedWeight, DisplayPkg: varExtractedPkg, DisplayAddressee: varExtractedAddressee, DisplayAddressBlock: varExtractedAddressBlock});\n    \n    Reset(txtBarcodeScanner_2);\n    UpdateContext({varTriggerFocus: true});\n);\n"
-                        Placeholder: ="""Scan here"""
+                        Placeholder: =If(IsBlank(Trim(txtRecipient.Value)), "Enter a recipient first", "Scan package or QR code")
                   - DirectionToggle_2:
                       Control: FluentV8/Toggle@1.6.7
                       Properties:
@@ -164,17 +194,11 @@ Screens:
                         OnText: ="Inbound"
                         OnUncheck: |
                           =UpdateContext({varScanDirection: "Outbound"})
-                  - txtRecipient:
-                      Control: TextInput@0.0.54
-                      Properties:
-                        AccessibleLabel: ="Designated package recipient"
-                        LayoutMinHeight: =40
-                        OnChange: =UpdateContext({varRecipient: Trim(Self.Value)})
-                        Placeholder: ="Designated recipient (required before scanning)"
                   - lblManifestHint:
                       Control: FluentV8/Label@1.8.6
                       Properties:
-                        Text: ="Packing-list QR payload format: PKG|<tracking number>."
+                        AutoHeight: =true
+                        Text: =If(IsBlank(Trim(txtRecipient.Value)), "Recipient required before scanning", "Receiving for " & Trim(txtRecipient.Value) & " | " & CountRows(colRecentScans) & " scan(s) this session")
                   - btnViewHistory:
                       Control: FluentV8/Button@1.5.13
                       Properties:
@@ -184,7 +208,7 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open the designated recipient's packing list"
-                        OnSelect: =If(IsBlank(Trim(txtRecipient.Value)), Notify("Enter a designated recipient before creating a packing list.", NotificationType.Warning), UpdateContext({varManifestRecipient: Trim(txtRecipient.Value)}); Navigate(PackingList, ScreenTransition.Fade))
+                        OnSelect: "=If(IsBlank(Trim(txtRecipient.Value)), Notify(\"Enter a designated recipient before creating a packing list.\", NotificationType.Warning), Navigate(PackingList, ScreenTransition.Fade, {locManifestRecipient: Trim(txtRecipient.Value)}))"
                         Text: ="Create Packing List"
                   - btnClearScans_1:
                       Control: FluentV8/Button@1.5.13
