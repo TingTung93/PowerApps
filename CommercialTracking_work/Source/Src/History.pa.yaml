@@ -1,0 +1,100 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  History:
+    Properties:
+      Fill: =RGBA(245, 245, 245, 1)
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+    Children:
+      - MainContainer_History:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(245, 245, 245, 1)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =16
+            PaddingBottom: =24
+            PaddingLeft: =24
+            PaddingRight: =24
+            PaddingTop: =24
+            Width: =Parent.Width
+          Children:
+            - HeaderContainer_History:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =16
+                  LayoutMinHeight: =60
+                Children:
+                  - lblHistoryTitle:
+                      Control: FluentV8/Label@1.8.6
+                      Properties:
+                        AutoHeight: =true
+                        FontSize: =20
+                        FontWeight: =FontWeight.Semibold
+                        Text: ="Package History & Search"
+                  - btnBackToScanner:
+                      Control: FluentV8/Button@1.5.13
+                      Properties:
+                        OnSelect: =Navigate(LedgerScreen, ScreenTransition.Fade)
+                        Text: ="Back to Scanner"
+            - txtSearchDatabase:
+                Control: FluentV8/TextBox@1.7.2
+                Properties:
+                  LayoutMinHeight: =40
+                  Placeholder: |-
+                    ="🔍 Search backend database by Tracking Number, Carrier, or Notes..."
+            - Gallery_History:
+                Control: Gallery@2.15.0
+                Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  FillPortions: =5
+                  FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                  FocusedBorderThickness: =2
+                  Items: |
+                    =Sort(
+                        Filter(Tracking, 
+                            IsBlank(txtSearchDatabase.Value) ||
+                            txtSearchDatabase.Value in Title || 
+                            txtSearchDatabase.Value in field_1 || 
+                            txtSearchDatabase.Value in field_7
+                        ), 
+                        field_6, 
+                        SortOrder.Descending
+                    )
+                  LayoutMinHeight: =400
+                  TemplateSize: =140
+                Children:
+                  - HtmlText_HistoryCard:
+                      Control: HtmlViewer@2.1.0
+                      Properties:
+                        DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =Parent.TemplateHeight
+                        HtmlText: |
+                          ="<div style='padding:12px; border: 1px solid #edebe9; border-radius: 6px; background-color: #ffffff; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.05);'>
+                            <div style='display:flex; justify-content:space-between; align-items:center;'>
+                              <b style='font-size:16px; color:#323130;'>" & ThisItem.Title & "</b>
+                              <span style='font-size:11px; font-weight:bold; padding:3px 8px; border-radius:12px; background-color:" & If(ThisItem.field_2="Inbound", "#dff6dd; color:#107c10;", "#fde7e9; color:#a4262c;") & "'>" & Upper(ThisItem.field_2) & "</span>
+                            </div>
+                            <div style='font-size:13px; color:#605e5c; margin-top:6px;'>
+                              <b>Carrier:</b> " & ThisItem.field_1 & " &nbsp;&bull;&nbsp; <b>Logged:</b> " & Text(ThisItem.field_6, "mm/dd/yyyy hh:mm AM/PM") & "
+                            </div>" & 
+                            If(!IsBlank(ThisItem.field_7), 
+                              "<div style='margin-top:8px; font-size:11px; color:#323130; background:#faf9f8; padding:6px; border:1px solid #e1dfdd; border-radius:4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>" & ThisItem.field_7 & "</div>", 
+                              ""
+                            ) &
+                          "</div>"
+                        Size: =10.5
+                        Width: =Parent.TemplateWidth - 16
