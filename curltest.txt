@@ -1,0 +1,4 @@
+curl.exe -X POST "https://api.asksage.ai/server/openai/v1/chat/completions" `
+     -H "Content-Type: application/json" `
+     -H "Authorization: Bearer 5f59f5307b34c3c8e2d0f33ee006dc206497fbe3263b025dde4beb34a4d84743" `
+     -d '{"model": "gpt-4o", "messages": [{"role": "user", "content": "test"}]}'
