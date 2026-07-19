@@ -1,0 +1,202 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  LedgerScreen:
+    Properties:
+      Fill: =RGBA(255, 255, 255, 1)
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      OnVisible: |
+        =If(IsBlank(varScanDirection), UpdateContext({varScanDirection: "Inbound"}));
+        // Preserve the session ledger when returning from History.
+        UpdateContext({varTriggerFocus: true});
+    Children:
+      - ScreenContainer1_2:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(245, 245, 245, 1)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Horizontal
+            LayoutGap: =16
+            LayoutWrap: =true
+            PaddingBottom: =16
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =16
+            Width: =Parent.Width
+          Children:
+            - LeftContainer1_2:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =12
+                  LayoutMinWidth: =400
+                  PaddingBottom: =16
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =16
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                Children:
+                  - lblLedgerHeader_1:
+                      Control: FluentV8/Label@1.8.6
+                      Properties:
+                        FontSize: =14
+                        FontWeight: =FontWeight.Semibold
+                        Text: ="Recent Scans (Ledger)"
+                  - txtSearchLedger_1:
+                      Control: FluentV8/TextBox@1.7.2
+                      Properties:
+                        LayoutMinHeight: =36
+                        Placeholder: |-
+                          ="🔍 Search tracking, carrier, or raw data..."
+                  - Gallery1_2:
+                      Control: Gallery@2.15.0
+                      Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
+                      Properties:
+                        BorderColor: =RGBA(243, 242, 241, 1)
+                        FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                        FocusedBorderThickness: =2
+                        Items: |
+                          =Sort(Filter(colRecentScans, txtSearchLedger_1.Value in TrackingNumber || txtSearchLedger_1.Value in ScanNotes || txtSearchLedger_1.Value in Carrier || txtSearchLedger_1.Value in DisplayAddressee || txtSearchLedger_1.Value in DisplayAddressBlock), Timestamp, SortOrder.Descending)
+                        LayoutMinHeight: =200
+                        TemplateSize: =190
+                      Children:
+                        - HtmlText1_2:
+                            Control: HtmlViewer@2.1.0
+                            Properties:
+                              DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =Parent.TemplateHeight
+                              HtmlText: |
+                                ="<div style='padding:12px 45px 12px 12px; border: 1px solid #edebe9; border-radius: 6px; background-color: #faf9f8; box-sizing: border-box;'>
+                                  <div style='display:flex; justify-content:space-between; align-items:center;'>
+                                    <b style='font-size:16px; color:#323130;'>" & ThisItem.TrackingNumber & "</b>
+                                    <span style='font-size:11px; font-weight:bold; padding:3px 8px; border-radius:12px; background-color:" & If(ThisItem.Direction="Inbound", "#dff6dd; color:#107c10;", "#fde7e9; color:#a4262c;") & "'>" & Upper(ThisItem.Direction) & "</span>
+                                  </div>
+                                  <div style='font-size:13px; color:#605e5c; margin-top:6px;'>
+                                    <b>Carrier:</b> " & ThisItem.Carrier & " &nbsp;&bull;&nbsp; <b>Time:</b> " & Text(ThisItem.Timestamp, "hh:mm:ss AM/PM") & "
+                                  </div>" & 
+                                  If(!IsBlank(ThisItem.DisplayAddressee) || !IsBlank(ThisItem.DisplayAddressBlock),
+                                    "<div style='margin-top:6px; font-size:13px; color:#323130;'>" & 
+                                      If(!IsBlank(ThisItem.DisplayAddressee), "<b>To:</b> " & ThisItem.DisplayAddressee & "<br>", "") &
+                                      If(!IsBlank(ThisItem.DisplayAddressBlock), "<b>Address:</b> " & ThisItem.DisplayAddressBlock, "") & 
+                                    "</div>",
+                                    ""
+                                  ) &
+                                  If(!IsBlank(ThisItem.DisplayWeight) || !IsBlank(ThisItem.DisplayPkg),
+                                    "<div style='margin-top:8px; display:flex; gap:10px;'>
+                                      <span style='background:#e1dfdd; padding:2px 6px; border-radius:4px; font-size:11px;'><b>Weight:</b> " & Coalesce(ThisItem.DisplayWeight, "Unknown") & "</span>
+                                      <span style='background:#e1dfdd; padding:2px 6px; border-radius:4px; font-size:11px;'><b>Package:</b> " & Coalesce(ThisItem.DisplayPkg, "Unknown") & "</span>
+                                     </div>",
+                                    ""
+                                  ) &
+                                  If(!IsBlank(ThisItem.ScanNotes), 
+                                    "<div style='margin-top:8px; font-size:11px; color:#323130; background:#ffffff; padding:6px; border:1px solid #e1dfdd; border-radius:4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>" & ThisItem.ScanNotes & "</div>", 
+                                    ""
+                                  ) &
+                                "</div>"
+                              Size: =10.5
+                              Width: =Parent.TemplateWidth - 16
+                        - icnDeleteScan_2:
+                            Control: Classic/Icon@2.5.0
+                            Properties:
+                              Color: =RGBA(164, 38, 44, 1)
+                              Height: =20
+                              HoverColor: =RGBA(201, 36, 43, 1)
+                              Icon: =Icon.Trash
+                              OnSelect: |
+                                =Remove(colRecentScans, ThisItem);
+                                RemoveIf(Tracking, Title = ThisItem.TrackingNumber);
+                              Tooltip: ="Delete this scan from ledger and database"
+                              Width: =20
+                              X: =Parent.TemplateWidth - 48
+                              Y: =16
+            - RightContainer1_2:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =16
+                  PaddingBottom: =16
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =16
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                Children:
+                  - lblControlHeader_1:
+                      Control: FluentV8/Label@1.8.6
+                      Properties:
+                        FontSize: =14
+                        FontWeight: =FontWeight.Semibold
+                        Text: ="Control Panel"
+                  - txtBarcodeScanner_2:
+                      Control: TextInput@0.0.54
+                      Properties:
+                        LayoutMinHeight: =40
+                        OnChange: "=UpdateContext({varRawScan: Trim(txtBarcodeScanner_2.Value)});\nIf(!IsBlank(varRawScan),\n    If(StartsWith(varRawScan, \"[)>\"),\n        UpdateContext({\n            varParsedTracking: Coalesce(\n                Match(varRawScan, \"31Z(?<trk>\\d{20,34})\").trk,\n                Match(varRawScan, \"\\d{34}\").FullMatch,\n                Match(varRawScan, \"\\d{22}\").FullMatch,\n                Match(varRawScan, \"1Z[A-Z0-9]{16}\").FullMatch\n            ),\n            varDetectedCarrier: If(\"FDEG\" in varRawScan || \"FDEN\" in varRawScan || \"FX\" in varRawScan, \"FedEx\", \"UPSN\" in varRawScan, \"UPS\", \"Other\"),\n            varExtractedWeight: Match(varRawScan, \"\\d+(\\.\\d+)?(LB|KG)\").FullMatch,\n            varExtractedPkg: Match(varRawScan, \"\\d+/\\d+\").FullMatch,\n            varExtractedAddressee: Trim(Coalesce(Match(varRawScan, \"11Z(?<addr>[a-zA-Z\\s\\.\\-]+)\").addr, Match(varRawScan, \"12Z(?<addr>[a-zA-Z\\s\\.\\-]+)\").addr)),\n            varExtractedAddressBlock: Trim(Match(varRawScan, \"(?:LB|KG)[A-Z]?(?<block>[A-Za-z0-9\\s\\.\\,\\-]+?)(?:\\d{3,4}Z|11Z|12Z|13Z|31Z)\").block),\n            varScanNotes: \"2D Data: \" & varRawScan\n        }),\n        UpdateContext({\n            varParsedTracking: varRawScan,\n            varDetectedCarrier: If(StartsWith(Lower(varRawScan), \"1z\") && Len(varRawScan) = 18, \"UPS\", IsMatch(varRawScan, \"^\\d{12}$\") || IsMatch(varRawScan, \"^\\d{15}$\") || IsMatch(varRawScan, \"^\\d{20}$\") || IsMatch(varRawScan, \"^\\d{34}$\"), \"FedEx\", (StartsWith(varRawScan, \"92\") || StartsWith(varRawScan, \"93\") || StartsWith(varRawScan, \"94\")) && Len(varRawScan) >= 20, \"USPS\", IsMatch(varRawScan, \"^\\d{10}$\"), \"DHL\", \"Other\"),\n            varExtractedWeight: Blank(),\n            varExtractedPkg: Blank(),\n            varExtractedAddressee: Blank(),\n            varExtractedAddressBlock: Blank(),\n            varScanNotes: Blank()\n        })\n    );\n    Patch(Tracking, Defaults(Tracking), {Title: varParsedTracking, field_1: varDetectedCarrier, field_2: varScanDirection, field_3: \"Arrived on Dock\", field_6: Now(), field_7: varScanNotes});\n    \n    Collect(colRecentScans, {TrackingNumber: varParsedTracking, Carrier: varDetectedCarrier, Timestamp: Now(), ScanNotes: varScanNotes, Direction: varScanDirection, DisplayWeight: varExtractedWeight, DisplayPkg: varExtractedPkg, DisplayAddressee: varExtractedAddressee, DisplayAddressBlock: varExtractedAddressBlock});\n    \n    Reset(txtBarcodeScanner_2);\n    UpdateContext({varTriggerFocus: true});\n);\n"
+                        Placeholder: ="""Scan here"""
+                  - DirectionToggle_2:
+                      Control: FluentV8/Toggle@1.6.7
+                      Properties:
+                        Checked: =varScanDirection = "Inbound"
+                        LayoutMinHeight: =40
+                        OffText: ="Outbound"
+                        OnCheck: |
+                          =UpdateContext({varScanDirection: "Inbound"})
+                        OnText: ="Inbound"
+                        OnUncheck: |
+                          =UpdateContext({varScanDirection: "Outbound"})
+                  - txtRecipient:
+                      Control: TextInput@0.0.54
+                      Properties:
+                        AccessibleLabel: ="Designated package recipient"
+                        LayoutMinHeight: =40
+                        OnChange: =UpdateContext({varRecipient: Trim(Self.Value)})
+                        Placeholder: ="Designated recipient (required before scanning)"
+                  - lblManifestHint:
+                      Control: FluentV8/Label@1.8.6
+                      Properties:
+                        Text: ="Packing-list QR payload format: PKG|<tracking number>."
+                  - btnViewHistory:
+                      Control: FluentV8/Button@1.5.13
+                      Properties:
+                        OnSelect: =Navigate(History, ScreenTransition.Fade)
+                        Text: ="View Database History"
+                  - btnCreatePackingList:
+                      Control: FluentV8/Button@1.5.13
+                      Properties:
+                        AccessibleLabel: ="Open the designated recipient's packing list"
+                        OnSelect: =If(IsBlank(Trim(txtRecipient.Value)), Notify("Enter a designated recipient before creating a packing list.", NotificationType.Warning), UpdateContext({varManifestRecipient: Trim(txtRecipient.Value)}); Navigate(PackingList, ScreenTransition.Fade))
+                        Text: ="Create Packing List"
+                  - btnClearScans_1:
+                      Control: FluentV8/Button@1.5.13
+                      Properties:
+                        OnSelect: =Clear(colRecentScans)
+                        Text: ="Clear Local Ledger"
+                  - tmrFocusScanner_1:
+                      Control: Timer@2.1.0
+                      Properties:
+                        Duration: =50
+                        OnTimerEnd: |
+                          =UpdateContext({varTriggerFocus: false});
+                          SetFocus(txtBarcodeScanner_2);
+                        Start: =varTriggerFocus
+                        Visible: =false

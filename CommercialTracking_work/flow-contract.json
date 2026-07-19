@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GeneratePackingList",
+  "description": "Scaffold only. Connect this contract to a Power Automate flow when document generation is approved.",
+  "request": {
+    "recipient": "string",
+    "manifestId": "string",
+    "issuedBy": "string",
+    "packageIds": ["number"]
+  },
+  "response": {
+    "archiveUrl": "string",
+    "fileName": "string",
+    "generatedAt": "date-time"
+  },
+  "qr": {
+    "urlTemplate": "https://api.qrserver.com/v1/create-qr-code/?size=100x100&data={payload}",
+    "payloadTemplate": "PKG|{trackingNumber}"
+  }
+}
