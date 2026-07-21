@@ -134,8 +134,10 @@ Screens:
                                     Notify("This older local entry had no database ID and was removed only from this session.", NotificationType.Warning),
                                     IfError(
                                         Patch(Tracking, LookUp(Tracking, ID = ThisItem.TrackingId), {field_3: "Voided"});
-                                        Remove(colRecentScans, ThisItem),
-                                        Notify("The database record could not be voided: " & FirstError.Message, NotificationType.Error)
+                                        Remove(colRecentScans, ThisItem);
+                                        true,
+                                        Notify("The database record could not be voided: " & FirstError.Message, NotificationType.Error);
+                                        false
                                     )
                                 )
                               AccessibleLabel: ="Void this scan"
@@ -254,8 +256,13 @@ Screens:
 
                                   varScanDirection = "Outbound",
                                   With(
-                                      {pickupRecord: LookUp(Tracking, Title = varParsedTracking && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock"))},
+                                      {
+                                          pickupMatches: Filter(Tracking, Title = varParsedTracking && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")),
+                                          pickupRecord: First(SortByColumns(Filter(Tracking, Title = varParsedTracking && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")), "ID", SortOrder.Descending))
+                                      },
                                       If(
+                                          CountRows(pickupMatches) > 1,
+                                          Notify("Multiple active records exist for this tracking number. Resolve the duplicate entries before pickup.", NotificationType.Error),
                                           IsBlank(pickupRecord),
                                           Notify("No package awaiting pickup was found for this tracking number.", NotificationType.Warning),
                                           IfError(
@@ -274,8 +281,14 @@ Screens:
                                   Notify("Enter a designated recipient before scanning an inbound package.", NotificationType.Warning),
 
                                   With(
-                                      {activeRecord: LookUp(Tracking, Title = varParsedTracking && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock"))},
+                                      {
+                                          activeMatches: Filter(Tracking, Title = varParsedTracking && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")),
+                                          activeRecord: First(SortByColumns(Filter(Tracking, Title = varParsedTracking && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")), "ID", SortOrder.Descending))
+                                      },
                                       If(
+                                          CountRows(activeMatches) > 1,
+                                          UpdateContext({varScanHandled: true});
+                                          Notify("This tracking number already has multiple active records. Resolve the duplicates before scanning it again.", NotificationType.Error),
                                           !IsBlank(activeRecord),
                                           UpdateContext({varScanHandled: true});
                                           Notify("This package is already assigned to " & Coalesce(activeRecord.field_4, "a recipient") & ".", NotificationType.Warning),

@@ -14,10 +14,39 @@
       "models": {
         "gpt-5.4-gov": {
           "name": "GPT-5.4 (Gov)",
-          "limit": {
-            "context": 128000,
-            "output": 16384
-          }
+          "limit": { "context": 128000, "output": 16384 }
+        },
+        "gpt-o3-mini-gov": {
+          "name": "GPT-o3 Mini (Gov)",
+          "limit": { "context": 128000, "output": 16384 }
+        },
+        "google-claude-48-opus": {
+          "name": "Claude Opus 4.8 (Google)",
+          "limit": { "context": 200000, "output": 8192 }
+        },
+        "google-claude-sonnet-5": {
+          "name": "Claude Sonnet 5 (Google)",
+          "limit": { "context": 200000, "output": 8192 }
+        },
+        "aws-bedrock-claude-45-sonnet-gov": {
+          "name": "Claude Sonnet 4.5 (Gov/Bedrock)",
+          "limit": { "context": 200000, "output": 8192 }
+        },
+        "google-gemini-3.1-pro-com": {
+          "name": "Gemini 3.1 Pro",
+          "limit": { "context": 2000000, "output": 8192 }
+        },
+        "google-gemini-3.5-flash-gov": {
+          "name": "Gemini 3.5 Flash (Gov)",
+          "limit": { "context": 2000000, "output": 8192 }
+        },
+        "aws-bedrock-nova-pro-gov": {
+          "name": "Amazon Nova Pro (Gov)",
+          "limit": { "context": 300000, "output": 8192 }
+        },
+        "aws-bedrock-nemotron-super-3-120b-gov": {
+          "name": "Nemotron Super 3 120B (Gov)",
+          "limit": { "context": 128000, "output": 4096 }
         }
       }
     }
