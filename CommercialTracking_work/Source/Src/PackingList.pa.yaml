@@ -3,24 +3,7 @@ Screens:
   PackingList:
     Properties:
       Fill: =RGBA(243, 244, 246, 1)
-      OnVisible: |
-        =If(
-            IsBlank(gblRecipient),
-            Clear(colManifestPackages),
-            Refresh(Tracking);
-            ClearCollect(
-                colManifestPackages,
-                Sort(
-                    Filter(
-                        Tracking,
-                        field_4 = gblRecipient &&
-                        (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")
-                    ),
-                    field_6,
-                    SortOrder.Descending
-                )
-            )
-        )
+      OnVisible: =Blank()
     Children:
       - conPackingList:
           Control: GroupContainer@1.5.0
@@ -65,50 +48,53 @@ Screens:
             - lblManifestMeta:
                 Control: FluentV8/Label@1.8.6
                 Properties:
-                  Text: ="Prepared " & Text(gblManifestPreparedAt, "mm/dd/yyyy hh:mm AM/PM") & " | " & CountRows(colManifestPackages) & " package(s)"
+                  Text: ="Prepared " & Text(gblManifestPreparedAt, "mm/dd/yyyy hh:mm AM/PM") & " | " & CountRows(galPackingList.AllItems) & " package(s)"
             - lblEmptyManifest:
                 Control: FluentV8/Label@1.8.6
                 Properties:
                   AutoHeight: =true
                   Text: =If(IsBlank(gblRecipient), "Return to the scanner and choose a recipient.", "No packages are currently ready for pickup for this recipient.")
-                  Visible: =IsEmpty(colManifestPackages)
+                  Visible: =IsEmpty(galPackingList.AllItems)
             - galPackingList:
                 Control: Gallery@2.15.0
                 Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
                 Properties:
                   AccessibleLabel: ="Packages assigned to the selected recipient"
                   FillPortions: =1
-                  Items: =colManifestPackages
+                  Items: |
+                    =If(
+                        IsBlank(gblRecipient),
+                        Filter(Tracking, false),
+                        Sort(
+                            Filter(
+                                Tracking,
+                                field_4 = gblRecipient &&
+                                (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")
+                            ),
+                            field_6,
+                            SortOrder.Descending
+                        )
+                    )
                   LayoutMinHeight: =320
                   TemplatePadding: =8
-                  TemplateSize: =88
+                  TemplateSize: =92
                 Children:
-                  - lblTracking:
-                      Control: FluentV8/Label@1.8.6
+                  - htmlPackingListCard:
+                      Control: HtmlViewer@2.1.0
                       Properties:
-                        FontWeight: =FontWeight.Semibold
-                        Height: =28
-                        Text: =ThisItem.Title
-                        Width: =Parent.TemplateWidth - 112
-                        X: =12
-                        Y: =10
-                  - lblPackageDetails:
-                      Control: FluentV8/Label@1.8.6
-                      Properties:
-                        Height: =24
-                        Width: =Parent.TemplateWidth - 112
-                        X: =12
-                        Y: =42
-                        Text: =ThisItem.field_1 & " | received " & Text(ThisItem.field_6, "mm/dd/yyyy hh:mm AM/PM")
-                  - imgPackageQr:
-                      Control: Image@2.2.3
-                      Properties:
-                        AccessibleLabel: ="QR code for tracking number " & ThisItem.Title
-                        Height: =64
-                        Image: ="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=" & EncodeUrl("PKG|" & ThisItem.Title)
-                        Width: =64
-                        X: =Parent.TemplateWidth - 76
-                        Y: =8
+                        DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =Parent.TemplateHeight
+                        HtmlText: |
+                          ="<div style='display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px; border:1px solid #edebe9; border-radius:6px; background-color:#faf9f8; box-sizing:border-box;'>
+                            <div style='min-width:0; flex:1;'>
+                              <div style='font-size:15px; font-weight:600; color:#323130; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;'>" & Substitute(Substitute(Substitute(ThisItem.Title, "&", "&amp;"), "<", "&lt;"), ">", "&gt;") & "</div>
+                              <div style='margin-top:6px; font-size:12px; color:#605e5c; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;'><b>Carrier:</b> " & Substitute(Substitute(Substitute(Coalesce(ThisItem.field_1, "Unknown"), "&", "&amp;"), "<", "&lt;"), ">", "&gt;") & " &nbsp;&bull;&nbsp; <b>Received:</b> " & Text(ThisItem.field_6, "[$-en-US]mm/dd/yyyy hh:mm AM/PM") & "</div>
+                            </div>
+                            <img alt='QR code for tracking number " & Substitute(Substitute(Substitute(ThisItem.Title, "&", "&amp;"), "<", "&lt;"), ">", "&gt;") & "' src='https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=" & EncodeUrl("PKG|" & ThisItem.Title) & "' style='width:64px; height:64px; flex:0 0 64px;' />
+                          </div>"
+                        Size: =10.5
+                        Width: =Parent.TemplateWidth - 16
             - conPackingActions:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
@@ -123,6 +109,12 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Print or save this customer packing list"
-                        DisplayMode: =If(IsEmpty(colManifestPackages), DisplayMode.Disabled, DisplayMode.Edit)
+                        DisplayMode: =If(IsEmpty(galPackingList.AllItems), DisplayMode.Disabled, DisplayMode.Edit)
                         OnSelect: =Print()
                         Text: ="Print / Save PDF"
+                  - btnRefreshPackingList:
+                      Control: FluentV8/Button@1.5.13
+                      Properties:
+                        AccessibleLabel: ="Refresh package data for this packing list"
+                        OnSelect: =Refresh(Tracking)
+                        Text: ="Refresh"

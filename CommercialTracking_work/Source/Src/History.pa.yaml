@@ -11,7 +11,7 @@ Screens:
     Properties:
       Fill: =RGBA(245, 245, 245, 1)
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
-      OnVisible: =Refresh(Tracking)
+      OnVisible: =Refresh(Tracking); Set(gblHistoryRecordId, Blank())
     Children:
       - MainContainer_History:
           Control: GroupContainer@1.5.0
@@ -50,12 +50,219 @@ Screens:
                         AccessibleLabel: ="Return to the package scanner"
                         OnSelect: =Navigate(LedgerScreen, ScreenTransition.Fade)
                         Text: ="Back to Scanner"
+                  - btnRefreshHistory:
+                      Control: FluentV8/Button@1.5.13
+                      Properties:
+                        AccessibleLabel: ="Refresh package history results"
+                        OnSelect: =Refresh(Tracking)
+                        Text: ="Refresh"
             - txtSearchDatabase:
                 Control: FluentV8/TextBox@1.7.2
                 Properties:
-                  AccessibleLabel: ="Search package history by tracking number, carrier, recipient, status, or notes"
+                  AccessibleLabel: ="Search package history by tracking number, carrier, recipient, status, or notes. Enter at least 3 characters for a full search."
                   LayoutMinHeight: =40
-                  Placeholder: ="Search tracking, carrier, recipient, status, or notes"
+                  OnChange: =Set(gblHistorySearchQuery, Trim(Self.Value))
+                  Placeholder: ="Search tracking, carrier, recipient, status, or notes (3+ chars)"
+            - conHistorySearchActions:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  FillPortions: =0
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =12
+                  LayoutMinHeight: =40
+                Children:
+                  - btnApplyHistorySearch:
+                      Control: FluentV8/Button@1.5.13
+                      Properties:
+                        AccessibleLabel: ="Apply the history search"
+                        OnSelect: =Set(gblHistorySearchQuery, Trim(txtSearchDatabase.Value))
+                        Text: ="Search"
+                  - btnClearHistorySearch:
+                      Control: FluentV8/Button@1.5.13
+                      Properties:
+                        AccessibleLabel: ="Clear the history search and show recent packages"
+                        OnSelect: =Set(gblHistorySearchQuery, ""); Reset(txtSearchDatabase)
+                        Text: ="Clear"
+                  - lblHistorySearchHint:
+                      Control: FluentV8/Label@1.8.6
+                      Properties:
+                        AutoHeight: =true
+                        Text: =If(Len(Trim(Coalesce(gblHistorySearchQuery, ""))) >= 3, "Showing search results for \"" & gblHistorySearchQuery & "\".", "Showing the most recent 30 days until a 3+ character search is applied.")
+            - conHistoryEditor:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  FillPortions: =0
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =12
+                  LayoutMinHeight: =240
+                  PaddingBottom: =16
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =16
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                Children:
+                  - lblHistoryEditorTitle:
+                      Control: FluentV8/Label@1.8.6
+                      Properties:
+                        FontSize: =16
+                        FontWeight: =FontWeight.Semibold
+                        Text: ="Edit Selected Package"
+                  - lblHistoryEditorHint:
+                      Control: FluentV8/Label@1.8.6
+                      Properties:
+                        AutoHeight: =true
+                        Text: |
+                          =If(
+                              IsBlank(gblHistoryRecordId),
+                              "Choose a package from history to update it or re-assign it.",
+                              "Editing " & Coalesce(LookUp(Tracking, ID = gblHistoryRecordId).Title, "the selected package") & " | Current status: " & Coalesce(LookUp(Tracking, ID = gblHistoryRecordId).field_3, "Unknown")
+                          )
+                  - txtHistoryRecipient:
+                      Control: TextInput@0.0.54
+                      Properties:
+                        AccessibleLabel: ="Recipient for the selected history record"
+                        DisplayMode: =If(IsBlank(gblHistoryRecordId), DisplayMode.Disabled, DisplayMode.Edit)
+                        LayoutMinHeight: =44
+                        Placeholder: ="Recipient"
+                        Value: =If(IsBlank(gblHistoryRecordId), "", Coalesce(LookUp(Tracking, ID = gblHistoryRecordId).field_4, ""))
+                  - txtHistoryCarrier:
+                      Control: TextInput@0.0.54
+                      Properties:
+                        AccessibleLabel: ="Carrier for the selected history record"
+                        DisplayMode: =If(IsBlank(gblHistoryRecordId), DisplayMode.Disabled, DisplayMode.Edit)
+                        LayoutMinHeight: =44
+                        Placeholder: ="Carrier"
+                        Value: =If(IsBlank(gblHistoryRecordId), "", Coalesce(LookUp(Tracking, ID = gblHistoryRecordId).field_1, ""))
+                  - txtHistoryNotes:
+                      Control: TextInput@0.0.54
+                      Properties:
+                        AccessibleLabel: ="Notes for the selected history record"
+                        DisplayMode: =If(IsBlank(gblHistoryRecordId), DisplayMode.Disabled, DisplayMode.Edit)
+                        Height: =80
+                        Mode: =TextMode.MultiLine
+                        Placeholder: ="Notes or label details"
+                        Value: |
+                          =If(
+                              IsBlank(gblHistoryRecordId),
+                              "",
+                              Trim(
+                                  Substitute(
+                                      Substitute(
+                                          Substitute(
+                                              Substitute(
+                                                  Substitute(
+                                                      Substitute(
+                                                          Coalesce(LookUp(Tracking, ID = gblHistoryRecordId).field_7, ""),
+                                                          Char(13) & Char(10),
+                                                          " "
+                                                      ),
+                                                      Char(10),
+                                                      " "
+                                                  ),
+                                                  Char(92) & "r" & Char(92) & "n",
+                                                  " "
+                                              ),
+                                              Char(92) & "n",
+                                              " "
+                                          ),
+                                          Char(92) & "/",
+                                          "/"
+                                      ),
+                                      Char(92) & """",
+                                      """"
+                                  )
+                              )
+                          )
+                  - conHistoryEditorActions:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        FillPortions: =0
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =12
+                        LayoutMinHeight: =44
+                        LayoutWrap: =true
+                      Children:
+                        - btnSaveHistoryChanges:
+                            Control: FluentV8/Button@1.5.13
+                            Properties:
+                              AccessibleLabel: ="Save edits to the selected history record"
+                              DisplayMode: =If(IsBlank(gblHistoryRecordId), DisplayMode.Disabled, DisplayMode.Edit)
+                              OnSelect: |
+                                =With(
+                                    {
+                                        selectedRecord: LookUp(Tracking, ID = gblHistoryRecordId),
+                                        updatedRecipient: Trim(txtHistoryRecipient.Value),
+                                        updatedCarrier: Trim(txtHistoryCarrier.Value),
+                                        updatedNotes: Trim(txtHistoryNotes.Value)
+                                    },
+                                    If(
+                                        IsBlank(selectedRecord),
+                                        Notify("Select a package to edit.", NotificationType.Warning),
+                                        IfError(
+                                            Patch(
+                                                Tracking,
+                                                selectedRecord,
+                                                {
+                                                    field_1: If(IsBlank(updatedCarrier), Blank(), updatedCarrier),
+                                                    field_4: If(IsBlank(updatedRecipient), Blank(), updatedRecipient),
+                                                    field_7: If(IsBlank(updatedNotes), Blank(), updatedNotes)
+                                                }
+                                            );
+                                            Refresh(Tracking);
+                                            Reset(txtHistoryRecipient);
+                                            Reset(txtHistoryCarrier);
+                                            Reset(txtHistoryNotes);
+                                            Notify("Package details updated.", NotificationType.Success),
+                                            Notify("The package could not be updated: " & FirstError.Message, NotificationType.Error)
+                                        )
+                                    )
+                                )
+                              Text: ="Save Changes"
+                        - btnReassignHistoryPackage:
+                            Control: FluentV8/Button@1.5.13
+                            Properties:
+                              AccessibleLabel: ="Re-assign the selected package to the current scanner recipient"
+                              DisplayMode: =If(IsBlank(gblHistoryRecordId) || IsBlank(Trim(Coalesce(gblRecipient, ""))), DisplayMode.Disabled, DisplayMode.Edit)
+                              OnSelect: |
+                                =With(
+                                    {selectedRecord: LookUp(Tracking, ID = gblHistoryRecordId)},
+                                    If(
+                                        IsBlank(selectedRecord),
+                                        Notify("Select a package to re-assign.", NotificationType.Warning),
+                                        IfError(
+                                            Patch(
+                                                Tracking,
+                                                selectedRecord,
+                                                {
+                                                    field_2: "Inbound",
+                                                    field_3: "Ready for Pickup",
+                                                    field_4: gblRecipient,
+                                                    SignedOutDateTime: Blank()
+                                                }
+                                            );
+                                            Refresh(Tracking);
+                                            Reset(txtHistoryRecipient);
+                                            Notify("Package re-assigned to " & gblRecipient & ".", NotificationType.Success),
+                                            Notify("The package could not be re-assigned: " & FirstError.Message, NotificationType.Error)
+                                        )
+                                    )
+                                )
+                              Text: =If(IsBlank(Trim(Coalesce(gblRecipient, ""))), "Assign to Scanner Recipient", "Assign to " & gblRecipient)
+                        - btnUseHistoryRecipient:
+                            Control: FluentV8/Button@1.5.13
+                            Properties:
+                              AccessibleLabel: ="Load the selected package recipient into the scanner"
+                              DisplayMode: =If(IsBlank(gblHistoryRecordId) || IsBlank(Trim(Coalesce(LookUp(Tracking, ID = gblHistoryRecordId).field_4, ""))), DisplayMode.Disabled, DisplayMode.Edit)
+                              OnSelect: =Set(gblRecipient, Trim(Coalesce(LookUp(Tracking, ID = gblHistoryRecordId).field_4, ""))); Navigate(LedgerScreen, ScreenTransition.Fade)
+                              Text: ="Load Recipient in Scanner"
             - Gallery_History:
                 Control: Gallery@2.15.0
                 Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
@@ -67,11 +274,10 @@ Screens:
                   FocusedBorderThickness: =2
                   Items: |
                     =With(
-                        {query: Trim(txtSearchDatabase.Value)},
+                        {query: Trim(Coalesce(gblHistorySearchQuery, ""))},
                         Sort(
                             If(
-                                IsBlank(query),
-                                Tracking,
+                                Len(query) >= 3,
                                 Filter(
                                     Tracking,
                                     StartsWith(Title, query) ||
@@ -79,6 +285,10 @@ Screens:
                                     StartsWith(field_4, query) ||
                                     StartsWith(field_3, query) ||
                                     StartsWith(field_7, query)
+                                ),
+                                Filter(
+                                    Tracking,
+                                    field_6 >= DateAdd(Today(), -30, TimeUnit.Days)
                                 )
                             ),
                             field_6,
@@ -96,21 +306,74 @@ Screens:
                         Font: =Font.'Segoe UI'
                         Height: =Parent.TemplateHeight
                         HtmlText: |
-                          ="<div style='padding:12px; border: 1px solid #edebe9; border-radius: 6px; background-color: #ffffff; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.05);'>
-                            <div style='display:flex; justify-content:space-between; align-items:center;'>
-                              <b style='font-size:16px; color:#323130;'>" & ThisItem.Title & "</b>
-                              <span style='font-size:11px; font-weight:bold; padding:3px 8px; border-radius:12px; background-color:" & If(ThisItem.field_2="Inbound", "#dff6dd; color:#107c10;", "#fde7e9; color:#a4262c;") & "'>" & Upper(ThisItem.field_2) & "</span>
-                            </div>
-                            <div style='font-size:13px; color:#605e5c; margin-top:6px;'>
-                              <b>Carrier:</b> " & ThisItem.field_1 & " &nbsp;&bull;&nbsp; <b>Logged:</b> " & Text(ThisItem.field_6, "mm/dd/yyyy hh:mm AM/PM") & "
-                            </div>
-                            <div style='font-size:13px; color:#323130; margin-top:6px;'>
-                              <b>Recipient:</b> " & Coalesce(ThisItem.field_4, "Unassigned") & " &nbsp;&bull;&nbsp; <b>Status:</b> " & Coalesce(ThisItem.field_3, "Unknown") & "
-                            </div>" &
-                            If(!IsBlank(ThisItem.field_7), 
-                              "<div style='margin-top:8px; font-size:11px; color:#323130; background:#faf9f8; padding:6px; border:1px solid #e1dfdd; border-radius:4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>" & ThisItem.field_7 & "</div>", 
-                              ""
-                            ) &
-                          "</div>"
+                          =With(
+                              {
+                                  cleanNotes: Trim(
+                                      Substitute(
+                                          Substitute(
+                                              Substitute(
+                                                  Substitute(
+                                                      Substitute(
+                                                          Substitute(
+                                                              Substitute(
+                                                                  Coalesce(ThisItem.field_7, ""),
+                                                                  Char(13) & Char(10),
+                                                                  " "
+                                                              ),
+                                                              Char(10),
+                                                              " "
+                                                          ),
+                                                          Char(92) & "r" & Char(92) & "n",
+                                                          " "
+                                                      ),
+                                                      Char(92) & "n",
+                                                      " "
+                                                  ),
+                                                  Char(92) & "/",
+                                                  "/"
+                                              ),
+                                              Char(92) & """",
+                                              """"
+                                          ),
+                                          "  ",
+                                          " "
+                                      )
+                                  )
+                              },
+                              "<div style='padding:12px 52px 12px 12px; border: 1px solid " & If(gblHistoryRecordId = ThisItem.ID, "#6264a7", "#edebe9") & "; border-radius: 6px; background-color: #ffffff; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.05);'>
+                                <div style='display:flex; justify-content:space-between; align-items:center;'>
+                                  <b style='font-size:16px; color:#323130;'>" & ThisItem.Title & "</b>
+                                  <span style='font-size:11px; font-weight:bold; padding:3px 8px; border-radius:12px; background-color:" & If(ThisItem.field_2="Inbound", "#dff6dd; color:#107c10;", "#fde7e9; color:#a4262c;") & "'>" & Upper(ThisItem.field_2) & "</span>
+                                </div>
+                                <div style='font-size:13px; color:#605e5c; margin-top:6px;'>
+                                  <b>Carrier:</b> " & Coalesce(ThisItem.field_1, "Unknown") & " &nbsp;&bull;&nbsp; <b>Logged:</b> " & Text(ThisItem.field_6, "[$-en-US]mm/dd/yyyy hh:mm AM/PM") & "
+                                </div>
+                                <div style='font-size:13px; color:#323130; margin-top:6px;'>
+                                  <b>Recipient:</b> " & Coalesce(ThisItem.field_4, "Unassigned") & " &nbsp;&bull;&nbsp; <b>Status:</b> " & Coalesce(ThisItem.field_3, "Unknown") & "
+                                </div>
+                                <div style='font-size:12px; color:#605e5c; margin-top:6px;'>
+                                  <b>Created By:</b> " & Coalesce(ThisItem.Author.DisplayName, ThisItem.Author.Email, "Unknown") & "
+                                </div>" &
+                                If(
+                                    !IsBlank(cleanNotes),
+                                    "<div style='margin-top:8px; font-size:11px; color:#323130; background:#faf9f8; padding:6px; border:1px solid #e1dfdd; border-radius:4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>" & Substitute(Substitute(Substitute(cleanNotes, "&", "&amp;"), "<", "&lt;"), ">", "&gt;") & "</div>",
+                                    ""
+                                ) &
+                              "</div>"
+                          )
                         Size: =10.5
-                        Width: =Parent.TemplateWidth - 16
+                        Width: =Parent.TemplateWidth - 56
+                  - icnEditHistoryRecord:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        AccessibleLabel: ="Load this package into the history editor"
+                        Color: =If(gblHistoryRecordId = ThisItem.ID, RGBA(98, 100, 167, 1), RGBA(96, 94, 92, 1))
+                        Height: =20
+                        HoverColor: =RGBA(98, 100, 167, 1)
+                        Icon: =Icon.Edit
+                        OnSelect: =Set(gblHistoryRecordId, ThisItem.ID); Reset(txtHistoryRecipient); Reset(txtHistoryCarrier); Reset(txtHistoryNotes)
+                        TabIndex: =0
+                        Tooltip: ="Edit or re-assign this package"
+                        Width: =20
+                        X: =Parent.TemplateWidth - 36
+                        Y: =16
