@@ -61,7 +61,7 @@ After adding the screen and formulas in Power Apps Studio:
 
 The canvas app currently uses `Print()` for a customer copy or browser PDF. Automated archive generation is intentionally deferred.
 
-When ready, create a Power Automate flow using the contract in [`flow-contract.json`](./flow-contract.json). The flow should:
+When ready, create a Power Automate flow using the contract in [`flow-contract.json`](./flow-contract/.json). The flow should:
 
 1. Receive the recipient, manifest ID, issuing user, and package IDs from Power Apps.
 2. Retrieve the matching SharePoint records server-side.
