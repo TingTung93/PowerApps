@@ -140,7 +140,7 @@ Screens:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
-                  Height: =If(gblPackingListPrintMode, 70, 92)
+                  Height: =If(gblPackingListPrintMode, 76, 98)
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =6
                   LayoutMinHeight: =16
@@ -154,7 +154,7 @@ Screens:
                         DisabledBorderColor: =RGBA(200, 198, 196, 1)
                         FillPortions: =1
                         Font: =Font.'Segoe UI'
-                        Height: =If(gblPackingListPrintMode, 70, 92)
+                        Height: =If(gblPackingListPrintMode, 76, 98)
                         HtmlText: |
                           ="<div style='border:1px solid #d2d0ce; border-radius:6px; background:linear-gradient(135deg,#f8fbff 0%,#eef6ff 100%); padding:5px 5px; color:#201f1e; overflow:hidden;'>
                             <div style='font-size:12px; line-height:1.1; font-weight:700; text-align:left;'>" & If(gblManifestMode = "Recipient", "High-Value Recipient Custody Manifest", "Inbound Receiving Manifest") & "</div>
@@ -164,9 +164,10 @@ Screens:
                                 "Recipient: " & Substitute(Substitute(Substitute(Coalesce(gblRecipient, "Not selected"), "&", "&amp;"), "<", "&lt;"), ">", "&gt;"),
                                 IsBlank(gblReceivingLocation),
                                 "Receiving location not selected",
-                                "Location: " & Substitute(Substitute(Substitute(gblReceivingLocation, "&", "&amp;"), "<", "&lt;"), ">", "&gt;")
+                                "Location: " & Substitute(Substitute(Substitute(Coalesce(First(colPackingList).Location, gblReceivingLocation), "&", "&amp;"), "<", "&lt;"), ">", "&gt;")
                             ) &
                             "</div>
+                            <div style='margin-top:2px; font-size:9px; line-height:1; color:#605e5c; text-align:left;'>Manifest ID: " & Substitute(Substitute(Substitute(Coalesce(gblManifestId, "Not assigned"), "&", "&amp;"), "<", "&lt;"), ">", "&gt;") & "</div>
                             <table style='width:100%; margin-top:3px; border-collapse:separate; border-spacing:3px 0; table-layout:fixed;'>
                               <tr>
                                 <td style='width:37%; vertical-align:top; background-color:#ffffff; border:1px solid #c7e0f4; border-radius:5px; padding:3px 6px;'>
@@ -244,6 +245,7 @@ Screens:
                                     "<td style='width:25%; height:25px; padding:1px 3px; border-right:1px solid #edebe9; border-bottom:1px solid #edebe9; vertical-align:middle; overflow:hidden;'>
                                       <div style='font-size:6px; line-height:1; color:#605e5c; white-space:nowrap;'>#" & Text(_itemIndex, "000") & " &nbsp;" &
                                         Substitute(Substitute(Substitute(Coalesce(_manifestItem.field_1, "Unknown"), "&", "&amp;"), "<", "&lt;"), ">", "&gt;") & " &nbsp;&bull;&nbsp; " &
+                                        Substitute(Substitute(Substitute(Coalesce(_manifestItem.Location, "No location"), "&", "&amp;"), "<", "&lt;"), ">", "&gt;") & " &nbsp;&bull;&nbsp; " &
                                         Substitute(Substitute(Substitute(Coalesce(_manifestItem.field_3, "Unknown"), "&", "&amp;"), "<", "&lt;"), ">", "&gt;") &
                                       "</div>
                                       <div style='margin-top:1px; font-size:7px; line-height:1; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;'>" &
@@ -390,7 +392,9 @@ Screens:
                                 ),
                                 ">",
                                 "&gt;"
-                            ) & "</div></td>" & "<td style='padding:3px 4px; border-bottom:1px solid #edebe9; vertical-align:middle;'><div style='font-size:9px; line-height:1.05; font-weight:600; color:#323130; word-break:break-word;'>" & Substitute(
+                            ) & "</div><div style='margin-top:2px; font-size:8px; line-height:1.05; color:#605e5c;'>" &
+                            Substitute(Substitute(Substitute(Coalesce(Location, "No location"), "&", "&amp;"), "<", "&lt;"), ">", "&gt;") &
+                            "</div></td>" & "<td style='padding:3px 4px; border-bottom:1px solid #edebe9; vertical-align:middle;'><div style='font-size:9px; line-height:1.05; font-weight:600; color:#323130; word-break:break-word;'>" & Substitute(
                                 Substitute(
                                     Substitute(
                                         Coalesce(
@@ -471,8 +475,37 @@ Screens:
                   Duration: =250
                   OnTimerEnd: |
                     =Set(gblPackingListPrintPending, false);
-                    Print();
-                    Set(gblPackingListResetChrome, true)
+                    Set(varManifestPrintedAt, Now());
+                    IfError(
+                        ForAll(
+                            colPackingList As manifestRecord,
+                            Patch(
+                                Tracking,
+                                LookUp(Tracking, ID = manifestRecord.ID),
+                                {
+                                    ManifestID: gblManifestId,
+                                    ManifestPrintedBy: {
+                                        '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+                                        Claims: "i:0#.f|membership|" & Lower(User().Email),
+                                        Department: "",
+                                        DisplayName: User().FullName,
+                                        Email: User().Email,
+                                        JobTitle: "",
+                                        Picture: ""
+                                    },
+                                    field_7: Coalesce(manifestRecord.field_7 & Char(10), "") &
+                                        Text(varManifestPrintedAt, "[$-en-US]mm/dd/yyyy hh:mm:ss AM/PM") &
+                                        " | " & User().FullName & " (" & User().Email & ")" &
+                                        " | Manifest printed: " & gblManifestId
+                                }
+                            )
+                        );
+                        If(gblManifestMode = "Inbound", Set(gblLastInboundManifestPrintedAt, varManifestPrintedAt));
+                        Print();
+                        Set(gblPackingListResetChrome, true),
+                        Notify("Manifest audit fields could not be saved: " & FirstError.Message, NotificationType.Error);
+                        Set(gblPackingListPrintMode, false)
+                    )
                   Start: =gblPackingListPrintPending
                   Visible: =false
             - tmrPackingListResetChrome:

@@ -57,7 +57,7 @@ Screens:
                       Properties:
                         AccessibleLabel: ="Search the current scan session"
                         LayoutMinHeight: =36
-                        Placeholder: ="Search tracking, carrier, recipient, or label details"
+                        Placeholder: ="Search tracking, carrier, recipient, location, or label details"
                   - Gallery1_2:
                       Control: Gallery@2.15.0
                       Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
@@ -67,7 +67,7 @@ Screens:
                         FocusedBorderColor: =RGBA(98, 100, 167, 1)
                         FocusedBorderThickness: =2
                         Items: |
-                          =Sort(Filter(colRecentScans, txtSearchLedger_1.Value in TrackingNumber || txtSearchLedger_1.Value in ScanNotes || txtSearchLedger_1.Value in Carrier || txtSearchLedger_1.Value in DisplayAddressee || txtSearchLedger_1.Value in DisplayAddressBlock), Timestamp, SortOrder.Descending)
+                          =Sort(Filter(colRecentScans, txtSearchLedger_1.Value in TrackingNumber || txtSearchLedger_1.Value in ScanNotes || txtSearchLedger_1.Value in Carrier || txtSearchLedger_1.Value in Location || txtSearchLedger_1.Value in DisplayAddressee || txtSearchLedger_1.Value in DisplayAddressBlock), Timestamp, SortOrder.Descending)
                         LayoutMinHeight: =200
                         TabIndex: =0
                         TemplateSize: =190
@@ -87,7 +87,8 @@ Screens:
                                   </div>
                                   <div style='font-size:13px; color:#605e5c; margin-top:6px;'>
                                     <b>Carrier:</b> " & ThisItem.Carrier & " &nbsp;&bull;&nbsp; <b>Time:</b> " & Text(ThisItem.Timestamp, "hh:mm:ss AM/PM") & "
-                                  </div>" &
+                                  </div>
+                                  <div style='font-size:13px; color:#323130; margin-top:6px;'><b>Location:</b> " & Coalesce(ThisItem.Location, "Not recorded") & "</div>" &
                                   If(!IsBlank(ThisItem.DisplayAddressee) || !IsBlank(ThisItem.DisplayAddressBlock),
                                     "<div style='margin-top:6px; font-size:13px; color:#323130;'>" &
                                       If(!IsBlank(ThisItem.DisplayAddressee), "<b>To:</b> " & ThisItem.DisplayAddressee & "<br>", "") &
@@ -477,6 +478,7 @@ Screens:
                                                                   TrackingNumber: _record.Title,
                                                                   Recipient: _record.field_4,
                                                                   Carrier: _record.field_1,
+                                                                  Location: _record.Location,
                                                                   Timestamp: Now(),
                                                                   ScanNotes: _auditEntry,
                                                                   Direction: "Outbound",
@@ -538,6 +540,21 @@ Screens:
                                                               Tracking,
                                                               _record,
                                                               {
+                                                                  Location: gblReceivingLocation,
+                                                                  ReceivedAt: Coalesce(_record.ReceivedAt, _record.field_6, Now()),
+                                                                  ReceivedBy: If(
+                                                                      IsBlank(_record.ReceivedBy),
+                                                                      {
+                                                                          '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+                                                                          Claims: "i:0#.f|membership|" & Lower(User().Email),
+                                                                          Department: "",
+                                                                          DisplayName: User().FullName,
+                                                                          Email: User().Email,
+                                                                          JobTitle: "",
+                                                                          Picture: ""
+                                                                      },
+                                                                      _record.ReceivedBy
+                                                                  ),
                                                                   field_7: If(
                                                                       IsBlank(_record.field_7),
                                                                       _auditEntry,
@@ -552,6 +569,7 @@ Screens:
                                                                   TrackingNumber: _record.Title,
                                                                   Recipient: _record.field_4,
                                                                   Carrier: _record.field_1,
+                                                                  Location: gblReceivingLocation,
                                                                   Timestamp: Now(),
                                                                   ScanNotes: _auditEntry & " | Repeat scan; existing active record retained",
                                                                   Direction: "Inbound",
@@ -585,7 +603,18 @@ Screens:
                                                                   field_3: "Ready for Pickup",
                                                                   field_4: Blank(),
                                                                   field_6: Now(),
-                                                                  field_7: _auditEntry
+                                                                  field_7: _auditEntry,
+                                                                  Location: gblReceivingLocation,
+                                                                  ReceivedAt: Now(),
+                                                                  ReceivedBy: {
+                                                                      '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+                                                                      Claims: "i:0#.f|membership|" & Lower(User().Email),
+                                                                      Department: "",
+                                                                      DisplayName: User().FullName,
+                                                                      Email: User().Email,
+                                                                      JobTitle: "",
+                                                                      Picture: ""
+                                                                  }
                                                               }
                                                           )
                                                       );
@@ -596,6 +625,7 @@ Screens:
                                                               TrackingNumber: _trk,
                                                               Recipient: Blank(),
                                                               Carrier: _carrier,
+                                                              Location: gblReceivingLocation,
                                                               Timestamp: Now(),
                                                               ScanNotes: _auditEntry,
                                                               Direction: "Inbound",
@@ -643,7 +673,7 @@ Screens:
                       Control: FluentV8/Label@1.8.6
                       Properties:
                         AutoHeight: =true
-                        Text: =If(varScanDirection = "Outbound", "Pickup mode | " & CountRows(colRecentScans) & " session scan(s)", If(IsBlank(gblReceivingLocation), "Receiving location required before scanning", "Blind receiving at " & gblReceivingLocation & " | " & CountRows(colRecentScans) & " session scan(s)"))
+                        Text: =If(varScanDirection = "Outbound", "Pickup mode | " & CountRows(colRecentScans) & " session scan(s)", If(IsBlank(gblReceivingLocation), "Receiving location required before scanning", "Blind receiving at " & gblReceivingLocation & " | " & CountRows(colRecentScans) & " session scan(s) | " & CountRows(Filter(colRecentScans, Direction = "Inbound" && !IsBlank(TrackingId) && (IsBlank(gblLastInboundManifestPrintedAt) || Timestamp > gblLastInboundManifestPrintedAt))) & " unprinted"))
                   - btnViewHistory:
                       Control: FluentV8/Button@1.5.13
                       Properties:
@@ -664,7 +694,7 @@ Screens:
                         AccessibleLabel: ="Open the inbound receiving manifest for this scan session"
                         LayoutMinHeight: =32
                         DisplayMode: =If(CountRows(Filter(colRecentScans, Direction = "Inbound" && !IsBlank(TrackingId))) = 0, DisplayMode.Disabled, DisplayMode.Edit)
-                        OnSelect: =Set(gblManifestMode, "Inbound"); Set(gblManifestPreparedAt, Now()); Navigate(PackingList, ScreenTransition.Fade)
+                        OnSelect: =Set(gblManifestMode, "Inbound"); Set(gblManifestId, "MNF-" & Text(Now(), "[$-en-US]yyyymmdd-hhnnss") & "-" & Upper(Left(Substitute(Text(GUID()), "-", ""), 6))); Set(gblManifestPreparedAt, Now()); Navigate(PackingList, ScreenTransition.Fade)
                         Text: ="Print Inbound Manifest"
                   - btnCreateRecipientManifest:
                       Control: FluentV8/Button@1.5.13
@@ -672,15 +702,38 @@ Screens:
                         AccessibleLabel: ="Open a custody manifest for the selected recipient"
                         LayoutMinHeight: =32
                         DisplayMode: =If(IsBlank(Trim(Coalesce(gblRecipient, ""))), DisplayMode.Disabled, DisplayMode.Edit)
-                        OnSelect: =Set(gblManifestMode, "Recipient"); Set(gblManifestPreparedAt, Now()); Navigate(PackingList, ScreenTransition.Fade)
+                        OnSelect: =Set(gblManifestMode, "Recipient"); Set(gblManifestId, "MNF-" & Text(Now(), "[$-en-US]yyyymmdd-hhnnss") & "-" & Upper(Left(Substitute(Text(GUID()), "-", ""), 6))); Set(gblManifestPreparedAt, Now()); Navigate(PackingList, ScreenTransition.Fade)
                         Text: ="Print Recipient Custody List"
                   - btnClearScans_1:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Clear recent scans from this local session"
                         LayoutMinHeight: =32
-                        OnSelect: =Clear(colRecentScans)
-                        Text: ="Clear Local Ledger"
+                        OnSelect: |
+                          =If(
+                              CountRows(
+                                  Filter(
+                                      colRecentScans,
+                                      Direction = "Inbound" &&
+                                      !IsBlank(TrackingId) &&
+                                      (IsBlank(gblLastInboundManifestPrintedAt) || Timestamp > gblLastInboundManifestPrintedAt)
+                                  )
+                              ) > 0 && !varConfirmClearScans,
+                              UpdateContext({varConfirmClearScans: true});
+                              Notify("This session contains unprinted inbound records. Select Clear again within 8 seconds to confirm.", NotificationType.Warning),
+                              Clear(colRecentScans);
+                              UpdateContext({varConfirmClearScans: false});
+                              Notify("The local scan ledger was cleared.", NotificationType.Success)
+                          )
+                        Text: =If(varConfirmClearScans, "Confirm Clear Unprinted Ledger", "Clear Local Ledger")
+                  - tmrClearScansConfirmation:
+                      Control: Timer@2.1.0
+                      Properties:
+                        Duration: =8000
+                        OnTimerEnd: |-
+                          =UpdateContext({varConfirmClearScans: false})
+                        Start: =varConfirmClearScans
+                        Visible: =false
                   - tmrFocusScanner_1:
                       Control: Timer@2.1.0
                       Properties:
