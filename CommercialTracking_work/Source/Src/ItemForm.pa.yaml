@@ -87,8 +87,8 @@ Screens:
                   BorderColor: =RGBA(243, 242, 241, 1)
                   DataField: ="field_1"
                   Default: =ThisItem.Carrier
-                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,field_1)
-                  MaxLength: =DataSourceInfo([@Tracking], DataSourceInfo.MaxLength, field_1)
+                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,Carrier)
+                  MaxLength: =DataSourceInfo([@Tracking], DataSourceInfo.MaxLength, Carrier)
                   Required: =false
                   Update: =DataCardValue2.Value
                   Width: =1365
@@ -152,8 +152,8 @@ Screens:
                   BorderColor: =RGBA(243, 242, 241, 1)
                   DataField: ="field_2"
                   Default: =ThisItem.Direction
-                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,field_2)
-                  MaxLength: =DataSourceInfo([@Tracking], DataSourceInfo.MaxLength, field_2)
+                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,Direction)
+                  MaxLength: =DataSourceInfo([@Tracking], DataSourceInfo.MaxLength, Direction)
                   Required: =false
                   Update: =DataCardValue3.Value
                   Width: =1365
@@ -217,8 +217,8 @@ Screens:
                   BorderColor: =RGBA(243, 242, 241, 1)
                   DataField: ="field_3"
                   Default: =ThisItem.Status
-                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,field_3)
-                  MaxLength: =DataSourceInfo([@Tracking], DataSourceInfo.MaxLength, field_3)
+                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,Status)
+                  MaxLength: =DataSourceInfo([@Tracking], DataSourceInfo.MaxLength, Status)
                   Required: =false
                   Update: =DataCardValue4.Value
                   Width: =1365
@@ -282,8 +282,8 @@ Screens:
                   BorderColor: =RGBA(243, 242, 241, 1)
                   DataField: ="field_4"
                   Default: =ThisItem.Recipient
-                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,field_4)
-                  MaxLength: =DataSourceInfo([@Tracking], DataSourceInfo.MaxLength, field_4)
+                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,Recipient)
+                  MaxLength: =DataSourceInfo([@Tracking], DataSourceInfo.MaxLength, Recipient)
                   Required: =false
                   Update: =DataCardValue5.Value
                   Width: =1365
@@ -347,8 +347,8 @@ Screens:
                   BorderColor: =RGBA(243, 242, 241, 1)
                   DataField: ="field_5"
                   Default: =ThisItem.Sender
-                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,field_5)
-                  MaxLength: =DataSourceInfo([@Tracking], DataSourceInfo.MaxLength, field_5)
+                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,Sender)
+                  MaxLength: =DataSourceInfo([@Tracking], DataSourceInfo.MaxLength, Sender)
                   Required: =false
                   Update: =DataCardValue6.Value
                   Width: =1365
@@ -412,7 +412,7 @@ Screens:
                   BorderColor: =RGBA(243, 242, 241, 1)
                   DataField: ="field_6"
                   Default: =ThisItem.LoggedDateTime
-                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,field_6)
+                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,LoggedDateTime)
                   Required: =false
                   Update: =If(Not IsBlank(DateValue1.Value), DateTime(Year(DateValue1.Value), Month(DateValue1.Value), Day(DateValue1.Value), Value(HourValue1.Selected.Value), Value(MinuteValue1.Selected.Value), Second(DateValue1.Value)))
                   Width: =1365
@@ -565,8 +565,8 @@ Screens:
                   BorderColor: =RGBA(243, 242, 241, 1)
                   DataField: ="field_7"
                   Default: =ThisItem.Notes
-                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,field_7)
-                  MaxLength: =DataSourceInfo([@Tracking], DataSourceInfo.MaxLength, field_7)
+                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,Notes)
+                  MaxLength: =DataSourceInfo([@Tracking], DataSourceInfo.MaxLength, Notes)
                   Required: =false
                   Update: =DataCardValue7.Value
                   Width: =1365
@@ -875,8 +875,8 @@ Screens:
                   BorderColor: =RGBA(243, 242, 241, 1)
                   DataField: ="Location"
                   Default: =ThisItem.Location
-                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,'Location')
-                  MaxLength: =DataSourceInfo([@Tracking], DataSourceInfo.MaxLength, 'Location')
+                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,Location)
+                  MaxLength: =DataSourceInfo([@Tracking], DataSourceInfo.MaxLength, Location)
                   Required: =false
                   Update: =DataCardValue9.Value
                   Width: =1365
@@ -940,7 +940,7 @@ Screens:
                   BorderColor: =RGBA(243, 242, 241, 1)
                   DataField: ="{Attachments}"
                   Default: =ThisItem.Attachments
-                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,'{Attachments}')
+                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,Attachments)
                   Required: =false
                   Update: =DataCardValue10.Attachments
                   Width: =455
@@ -1051,3 +1051,405 @@ Screens:
                         Width: =30
                         Wrap: =false
                         Y: =DataCardKey12.Y
+            - ManifestID_DataCard1:
+                Control: TypedDataCard@1.0.7
+                Variant: PcfCoreTextualEditCard
+                IsLocked: true
+                Properties:
+                  BorderColor: =RGBA(243, 242, 241, 1)
+                  DataField: ="ManifestID"
+                  Default: =ThisItem.ManifestID
+                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,ManifestID)
+                  MaxLength: =DataSourceInfo([@Tracking], DataSourceInfo.MaxLength, ManifestID)
+                  Required: =false
+                  Update: =DataCardValue11.Value
+                  Width: =455
+                  X: =0
+                  Y: =4
+                Children:
+                  - DataCardKey13:
+                      Control: FluentV8/Label@1.8.6
+                      MetadataKey: FieldName
+                      Properties:
+                        AutoHeight: =true
+                        FontSize: =9
+                        Height: =22
+                        Text: =Parent.DisplayName
+                        Tooltip: =Parent.DisplayName
+                        VerticalAlignment: =VerticalAlign.Bottom
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =10
+                  - DataCardValue11:
+                      Control: FluentV8/TextBox@1.7.2
+                      MetadataKey: FieldValue
+                      Properties:
+                        AccessibleLabel: =Parent.DisplayName
+                        DisplayMode: =Parent.DisplayMode
+                        Required: =Parent.Required
+                        Tooltip: =Parent.DisplayName
+                        Value: =Parent.Default
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =DataCardKey13.Y + DataCardKey13.Height + 4
+                  - ErrorMessage13:
+                      Control: FluentV8/Label@1.8.6
+                      MetadataKey: ErrorMessage
+                      Properties:
+                        AutoHeight: =true
+                        Color: =Color.Red
+                        FontSize: =9
+                        Height: =30
+                        Text: =Parent.Error
+                        Tooltip: =Parent.Error
+                        Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =DataCardValue11.Y + DataCardValue11.Height
+                  - StarVisible13:
+                      Control: FluentV8/Label@1.8.6
+                      MetadataKey: FieldRequired
+                      Properties:
+                        Alignment: =Align.Center
+                        Height: =30
+                        Text: ="*"
+                        Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =30
+                        Y: =DataCardKey13.Y
+            - ManifestPrintedBy_DataCard1:
+                Control: TypedDataCard@1.0.7
+                Variant: PcfCoreComboBoxEditCard
+                IsLocked: true
+                Properties:
+                  BorderColor: =RGBA(243, 242, 241, 1)
+                  DataField: ="ManifestPrintedBy"
+                  Default: =ThisItem.ManifestPrintedBy
+                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,ManifestPrintedBy)
+                  Required: =false
+                  Update: =DataCardValue12.Selected
+                  Width: =455
+                  X: =1
+                  Y: =4
+                Children:
+                  - DataCardKey14:
+                      Control: FluentV8/Label@1.8.6
+                      MetadataKey: FieldName
+                      Properties:
+                        AutoHeight: =true
+                        FontSize: =9
+                        Height: =22
+                        Text: =Parent.DisplayName
+                        Tooltip: =Parent.DisplayName
+                        VerticalAlignment: =VerticalAlign.Bottom
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =10
+                  - DataCardValue12:
+                      Control: Classic/ComboBox@2.4.0
+                      MetadataKey: FieldValue
+                      Properties:
+                        AccessibleLabel: =If(Parent.Required, Substitute("{0}. Required.", "{0}", Parent.DisplayName), Parent.DisplayName)
+                        BorderColor: =RGBA(243, 242, 241, 1)
+                        ChevronBackground: =RGBA(243, 242, 241, 1)
+                        ChevronDisabledBackground: =RGBA(243, 242, 241, 1)
+                        ChevronDisabledFill: =RGBA(200, 198, 196, 1)
+                        ChevronFill: =RGBA(96, 94, 92, 1)
+                        ChevronHoverBackground: =RGBA(243, 242, 241, 1)
+                        ChevronHoverFill: =RGBA(96, 94, 92, 1)
+                        Color: =RGBA(37, 36, 35, 1)
+                        DefaultSelectedItems: =Parent.Default
+                        DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                        DisabledColor: =RGBA(200, 198, 196, 1)
+                        DisabledFill: =RGBA(243, 242, 241, 1)
+                        DisplayMode: =Parent.DisplayMode
+                        Fill: =RGBA(243, 242, 241, 1)
+                        FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =32
+                        HoverBorderColor: =ColorFade(RGBA(98, 100, 167, 1), -30%)
+                        HoverColor: =RGBA(37, 36, 35, 1)
+                        HoverFill: =RGBA(243, 242, 241, 1)
+                        Items: =Choices([@Tracking].ManifestPrintedBy)
+                        PaddingLeft: =12
+                        PressedBorderColor: =ColorFade(RGBA(98, 100, 167, 1), -30%)
+                        PressedColor: =RGBA(255, 255, 255, 1)
+                        PressedFill: =RGBA(243, 242, 241, 1)
+                        SelectMultiple: =false
+                        SelectionColor: =RGBA(37, 36, 35, 1)
+                        SelectionFill: =RGBA(237, 235, 233, 1)
+                        Size: =10.5
+                        Tooltip: =Parent.DisplayName
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =DataCardKey14.Y + DataCardKey14.Height + 4
+                  - ErrorMessage14:
+                      Control: FluentV8/Label@1.8.6
+                      MetadataKey: ErrorMessage
+                      Properties:
+                        AutoHeight: =true
+                        Color: =Color.Red
+                        FontSize: =9
+                        Height: =30
+                        Text: =Parent.Error
+                        Tooltip: =Parent.Error
+                        Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =DataCardValue12.Y + DataCardValue12.Height
+                  - StarVisible14:
+                      Control: FluentV8/Label@1.8.6
+                      MetadataKey: FieldRequired
+                      Properties:
+                        Alignment: =Align.Center
+                        Height: =20
+                        Text: ="*"
+                        VerticalAlignment: =VerticalAlign.Bottom
+                        Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =30
+                        Y: =DataCardKey14.Y
+            - ReceivedAt_DataCard1:
+                Control: TypedDataCard@1.0.7
+                Variant: PcfCoreDateTimeEditCard
+                IsLocked: true
+                Properties:
+                  BorderColor: =RGBA(243, 242, 241, 1)
+                  DataField: ="ReceivedAt"
+                  Default: =ThisItem.ReceivedAt
+                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,ReceivedAt)
+                  Required: =false
+                  Update: =If(Not IsBlank(DateValue3.Value), DateTime(Year(DateValue3.Value), Month(DateValue3.Value), Day(DateValue3.Value), Value(HourValue3.Selected.Value), Value(MinuteValue3.Selected.Value), Second(DateValue3.Value)))
+                  Width: =455
+                  X: =2
+                  Y: =4
+                Children:
+                  - DataCardKey15:
+                      Control: FluentV8/Label@1.8.6
+                      MetadataKey: FieldName
+                      Properties:
+                        AutoHeight: =true
+                        FontSize: =9
+                        Height: =22
+                        Text: =Parent.DisplayName
+                        Tooltip: =Parent.DisplayName
+                        VerticalAlignment: =VerticalAlign.Bottom
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =10
+                  - DateValue3:
+                      Control: FluentV8/DatePicker@1.5.9
+                      MetadataKey: DateFieldValue
+                      Properties:
+                        AccessibleLabel: =If(Parent.Required, Substitute("{0}. Required.", "{0}", Parent.DisplayName), Parent.DisplayName)
+                        DisplayMode: =Parent.DisplayMode
+                        Tooltip: =Parent.DisplayName
+                        Value: =Parent.Default
+                        Width: =(Parent.Width - 48) / 2
+                        X: =24
+                        Y: =DataCardKey15.Y + DataCardKey15.Height + 4
+                  - HourValue3:
+                      Control: Classic/ComboBox@2.4.0
+                      MetadataKey: HourFieldValue
+                      Properties:
+                        BorderColor: =RGBA(243, 242, 241, 1)
+                        ChevronBackground: =RGBA(243, 242, 241, 1)
+                        ChevronDisabledBackground: =RGBA(243, 242, 241, 1)
+                        ChevronDisabledFill: =RGBA(200, 198, 196, 1)
+                        ChevronFill: =RGBA(96, 94, 92, 1)
+                        ChevronHoverBackground: =RGBA(243, 242, 241, 1)
+                        ChevronHoverFill: =RGBA(96, 94, 92, 1)
+                        Color: =RGBA(37, 36, 35, 1)
+                        DefaultSelectedItems: =[Text(Hour(Parent.Default),"00")]
+                        DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                        DisabledColor: =RGBA(200, 198, 196, 1)
+                        DisabledFill: =RGBA(243, 242, 241, 1)
+                        DisplayMode: =Parent.DisplayMode
+                        Fill: =RGBA(243, 242, 241, 1)
+                        FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =28
+                        HoverBorderColor: =ColorFade(RGBA(98, 100, 167, 1), -30%)
+                        HoverColor: =RGBA(37, 36, 35, 1)
+                        HoverFill: =RGBA(243, 242, 241, 1)
+                        IsSearchable: =false
+                        Items: =["00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23"]
+                        PaddingLeft: =12
+                        PressedBorderColor: =ColorFade(RGBA(98, 100, 167, 1), -30%)
+                        PressedColor: =RGBA(255, 255, 255, 1)
+                        PressedFill: =RGBA(243, 242, 241, 1)
+                        SelectMultiple: =false
+                        SelectionColor: =RGBA(37, 36, 35, 1)
+                        SelectionFill: =RGBA(237, 235, 233, 1)
+                        Size: =10.5
+                        Tooltip: =Parent.DisplayName
+                        Width: =DateValue3.Width / 2 - 10
+                        X: =DateValue3.X + DateValue3.Width + 10
+                        Y: =DateValue3.Y + 1
+                  - Separator3:
+                      Control: FluentV8/Label@1.8.6
+                      MetadataKey: HourMinuteSeparator
+                      Properties:
+                        Alignment: =Align.Center
+                        Height: =HourValue3.Height
+                        Text: =":"
+                        VerticalAlignment: =VerticalAlign.Middle
+                        Width: =10
+                        X: =HourValue3.X + HourValue3.Width
+                        Y: =HourValue3.Y
+                  - MinuteValue3:
+                      Control: Classic/ComboBox@2.4.0
+                      MetadataKey: MinuteFieldValue
+                      Properties:
+                        BorderColor: =RGBA(243, 242, 241, 1)
+                        ChevronBackground: =RGBA(243, 242, 241, 1)
+                        ChevronDisabledBackground: =RGBA(243, 242, 241, 1)
+                        ChevronDisabledFill: =RGBA(200, 198, 196, 1)
+                        ChevronFill: =RGBA(96, 94, 92, 1)
+                        ChevronHoverBackground: =RGBA(243, 242, 241, 1)
+                        ChevronHoverFill: =RGBA(96, 94, 92, 1)
+                        Color: =RGBA(37, 36, 35, 1)
+                        DefaultSelectedItems: =[Text(Minute(Parent.Default),"00")]
+                        DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                        DisabledColor: =RGBA(200, 198, 196, 1)
+                        DisabledFill: =RGBA(243, 242, 241, 1)
+                        DisplayMode: =Parent.DisplayMode
+                        Fill: =RGBA(243, 242, 241, 1)
+                        FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =28
+                        HoverBorderColor: =ColorFade(RGBA(98, 100, 167, 1), -30%)
+                        HoverColor: =RGBA(37, 36, 35, 1)
+                        HoverFill: =RGBA(243, 242, 241, 1)
+                        IsSearchable: =false
+                        Items: =["00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59"]
+                        PaddingLeft: =12
+                        PressedBorderColor: =ColorFade(RGBA(98, 100, 167, 1), -30%)
+                        PressedColor: =RGBA(255, 255, 255, 1)
+                        PressedFill: =RGBA(243, 242, 241, 1)
+                        SelectMultiple: =false
+                        SelectionColor: =RGBA(37, 36, 35, 1)
+                        SelectionFill: =RGBA(237, 235, 233, 1)
+                        Size: =10.5
+                        Tooltip: =Parent.DisplayName
+                        Width: =HourValue3.Width
+                        X: =HourValue3.X + HourValue3.Width + Separator3.Width
+                        Y: =HourValue3.Y + 1
+                  - ErrorMessage15:
+                      Control: FluentV8/Label@1.8.6
+                      MetadataKey: ErrorMessage
+                      Properties:
+                        AutoHeight: =true
+                        Color: =Color.Red
+                        FontSize: =9
+                        Height: =30
+                        Text: =Parent.Error
+                        Tooltip: =Parent.Error
+                        Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =DateValue3.Y + DateValue3.Height
+                  - StarVisible15:
+                      Control: FluentV8/Label@1.8.6
+                      MetadataKey: FieldRequired
+                      Properties:
+                        Alignment: =Align.Center
+                        Height: =20
+                        Text: ="*"
+                        VerticalAlignment: =VerticalAlign.Bottom
+                        Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =30
+                        Y: =DataCardKey15.Y
+            - ReceivedBy_DataCard1:
+                Control: TypedDataCard@1.0.7
+                Variant: PcfCoreComboBoxEditCard
+                IsLocked: true
+                Properties:
+                  BorderColor: =RGBA(243, 242, 241, 1)
+                  DataField: ="ReceivedBy"
+                  Default: =ThisItem.ReceivedBy
+                  DisplayName: =DataSourceInfo([@Tracking],DataSourceInfo.DisplayName,ReceivedBy)
+                  Required: =false
+                  Update: =DataCardValue13.Selected
+                  Width: =455
+                  X: =0
+                  Y: =5
+                Children:
+                  - DataCardKey16:
+                      Control: FluentV8/Label@1.8.6
+                      MetadataKey: FieldName
+                      Properties:
+                        AutoHeight: =true
+                        FontSize: =9
+                        Height: =22
+                        Text: =Parent.DisplayName
+                        Tooltip: =Parent.DisplayName
+                        VerticalAlignment: =VerticalAlign.Bottom
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =10
+                  - DataCardValue13:
+                      Control: Classic/ComboBox@2.4.0
+                      MetadataKey: FieldValue
+                      Properties:
+                        AccessibleLabel: =If(Parent.Required, Substitute("{0}. Required.", "{0}", Parent.DisplayName), Parent.DisplayName)
+                        BorderColor: =RGBA(243, 242, 241, 1)
+                        ChevronBackground: =RGBA(243, 242, 241, 1)
+                        ChevronDisabledBackground: =RGBA(243, 242, 241, 1)
+                        ChevronDisabledFill: =RGBA(200, 198, 196, 1)
+                        ChevronFill: =RGBA(96, 94, 92, 1)
+                        ChevronHoverBackground: =RGBA(243, 242, 241, 1)
+                        ChevronHoverFill: =RGBA(96, 94, 92, 1)
+                        Color: =RGBA(37, 36, 35, 1)
+                        DefaultSelectedItems: =Parent.Default
+                        DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                        DisabledColor: =RGBA(200, 198, 196, 1)
+                        DisabledFill: =RGBA(243, 242, 241, 1)
+                        DisplayMode: =Parent.DisplayMode
+                        Fill: =RGBA(243, 242, 241, 1)
+                        FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        Height: =32
+                        HoverBorderColor: =ColorFade(RGBA(98, 100, 167, 1), -30%)
+                        HoverColor: =RGBA(37, 36, 35, 1)
+                        HoverFill: =RGBA(243, 242, 241, 1)
+                        Items: =Choices([@Tracking].ReceivedBy)
+                        PaddingLeft: =12
+                        PressedBorderColor: =ColorFade(RGBA(98, 100, 167, 1), -30%)
+                        PressedColor: =RGBA(255, 255, 255, 1)
+                        PressedFill: =RGBA(243, 242, 241, 1)
+                        SelectMultiple: =false
+                        SelectionColor: =RGBA(37, 36, 35, 1)
+                        SelectionFill: =RGBA(237, 235, 233, 1)
+                        Size: =10.5
+                        Tooltip: =Parent.DisplayName
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =DataCardKey16.Y + DataCardKey16.Height + 4
+                  - ErrorMessage16:
+                      Control: FluentV8/Label@1.8.6
+                      MetadataKey: ErrorMessage
+                      Properties:
+                        AutoHeight: =true
+                        Color: =Color.Red
+                        FontSize: =9
+                        Height: =30
+                        Text: =Parent.Error
+                        Tooltip: =Parent.Error
+                        Visible: =And(!IsBlank(Parent.Error), Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =DataCardValue13.Y + DataCardValue13.Height
+                  - StarVisible16:
+                      Control: FluentV8/Label@1.8.6
+                      MetadataKey: FieldRequired
+                      Properties:
+                        Alignment: =Align.Center
+                        Height: =20
+                        Text: ="*"
+                        VerticalAlignment: =VerticalAlign.Bottom
+                        Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =30
+                        Y: =DataCardKey16.Y
