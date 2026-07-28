@@ -55,6 +55,7 @@ After adding the screen and formulas in Power Apps Studio:
 - Configure keyboard-wedge scanners to send an Enter/Return suffix so the text input's `OnChange` fires after each scan.
 - Test normal carrier barcodes, supported 2D labels, and printed `PKG|...` QR codes.
 - Confirm the scanner does not add unwanted prefixes, suffixes, or control characters.
+- Confirm the fixed receiving-location choices in `LedgerScreen.pa.yaml` match the production locations. The supplied list is `Main Receiving`, `Loading Dock`, `Mailroom`, and `Warehouse`.
 - Test both **Inbound** receiving and **Outbound** pickup modes.
 
 ## 5. Deferred PDF archive flow
@@ -74,9 +75,11 @@ Create the archive library with versioning, retention, and least-privilege permi
 
 ## 6. Production acceptance checks
 
-- Scan two inbound packages for one recipient and confirm both appear on that recipient's packing list.
-- Confirm another recipient cannot see those packages on their packing list.
-- Print the packing list and scan each inline QR code.
+- Select each allowed receiving location and confirm inbound scanning works without entering a recipient.
+- Confirm every inbound and outbound scan appends a Notes line containing the timestamp, signed-in user, and location.
+- Scan an already-active inbound package and confirm no duplicate record is created and the repeat scan is appended to Notes.
+- Assign test packages to a recipient, create that recipient's packing list, and confirm another recipient cannot see those packages.
+- Print a packing list containing at least 16 items on one page and scan several of the compact inline QR codes.
 - In Outbound mode, confirm a QR scan marks only the intended record as `Picked Up` and sets `SignedOutDateTime`.
 - Confirm duplicate inbound scans do not create duplicate active records.
 - Confirm voiding a Ledger entry changes only the record identified by its SharePoint ID.

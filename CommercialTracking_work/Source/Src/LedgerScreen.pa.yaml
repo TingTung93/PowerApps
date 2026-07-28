@@ -6,8 +6,8 @@ Screens:
       OnVisible: |
         =If(IsBlank(varScanDirection), UpdateContext({varScanDirection: "Inbound"}));
         If(
-            varScanDirection = "Inbound" && IsBlank(gblRecipient),
-            SetFocus(txtRecipient),
+            varScanDirection = "Inbound" && IsBlank(gblReceivingLocation),
+            SetFocus(cmbReceivingLocation),
             UpdateContext({varTriggerFocus: true})
         );
     Children:
@@ -168,21 +168,33 @@ Screens:
                       Control: FluentV8/Label@1.8.6
                       Properties:
                         AutoHeight: =true
-                        Text: =If(varScanDirection = "Inbound", "Choose a recipient, then scan each arriving package.", "Scan a package or packing-list QR to mark it picked up.")
+                        Text: =If(varScanDirection = "Inbound", "Choose a receiving location, then blind scan each arriving package. No recipient is required.", "Scan a package or packing-list QR to mark it picked up.")
+                  - cmbReceivingLocation:
+                      Control: ComboBox@0.0.51
+                      Properties:
+                        AccessibleLabel: ="Receiving location"
+                        DefaultSelectedItems: =If(IsBlank(gblReceivingLocation), Table(), [gblReceivingLocation])
+                        InputTextPlaceholder: ="Select receiving location"
+                        Items: =["Main Receiving", "Loading Dock", "Mailroom", "Warehouse"]
+                        LayoutMinHeight: =44
+                        OnChange: |-
+                          =Set(gblReceivingLocation, Coalesce(Self.Selected.Value, ""));
+                          If(!IsBlank(gblReceivingLocation) && varScanDirection = "Inbound", UpdateContext({varTriggerFocus: true}))
+                        SelectMultiple: =false
                   - txtRecipient:
                       Control: TextInput@0.0.54
                       Properties:
-                        AccessibleLabel: ="Designated package recipient"
+                        AccessibleLabel: ="Optional recipient used to create a packing list"
                         LayoutMinHeight: =44
                         OnChange: |-
                           =Set(gblRecipient, Trim(Self.Value)); If(!IsBlank(gblRecipient) && varScanDirection = "Inbound", UpdateContext({varTriggerFocus: true}))
-                        Placeholder: ="Designated recipient (required)"
+                        Placeholder: ="Packing-list recipient (optional)"
                         Value: =gblRecipient
                   - txtBarcodeScanner_2:
                       Control: TextInput@0.0.54
                       Properties:
                         AccessibleLabel: ="Package barcode or packing-list QR scanner"
-                        DisplayMode: =If(varScanDirection = "Inbound" && IsBlank(gblRecipient), DisplayMode.Disabled, DisplayMode.Edit)
+                        DisplayMode: =If(varScanDirection = "Inbound" && IsBlank(gblReceivingLocation), DisplayMode.Disabled, DisplayMode.Edit)
                         LayoutMinHeight: =48
                         OnChange: |
                           =// 1. Capture scan immediately so the control can reset
@@ -368,6 +380,20 @@ Screens:
                                               ),
                                               "2D Label",
                                               Blank()
+                                          ),
+                                          _auditEntry: Text(
+                                              Now(),
+                                              "[$-en-US]mm/dd/yyyy hh:mm:ss AM/PM"
+                                          ) & " | " & User().FullName & " (" & User().Email & ") | Location: " & If(
+                                              varScanDirection = "Inbound",
+                                              gblReceivingLocation,
+                                              "Outbound pickup"
+                                          ) & If(
+                                              StartsWith(varRawScan, "PKG|"),
+                                              " | Packing-list QR",
+                                              StartsWith(varRawScan, "[)>"),
+                                              " | 2D label",
+                                              ""
                                           )
                                       },
                                       // 3. Database Execution
@@ -416,15 +442,20 @@ Screens:
                                                                   field_2: "Outbound",
                                                                   field_3: "Picked Up",
                                                                   SignedOutDateTime: Now(),
-                                                                  SignedOutBy: {
+                                                                   SignedOutBy: {
                                                                       '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
                                                                       Claims: "i:0#.f|membership|" & Lower(User().Email),
                                                                       Department: "",
                                                                       DisplayName: User().FullName,
                                                                       Email: User().Email,
                                                                       JobTitle: "",
-                                                                      Picture: ""
-                                                                  }
+                                                                       Picture: ""
+                                                                   },
+                                                                   field_7: If(
+                                                                       IsBlank(_record.field_7),
+                                                                       _auditEntry,
+                                                                       _record.field_7 & Char(10) & _auditEntry
+                                                                   )
                                                               }
                                                           );
                                                           Collect(
@@ -435,7 +466,7 @@ Screens:
                                                                   Recipient: _record.field_4,
                                                                   Carrier: _record.field_1,
                                                                   Timestamp: Now(),
-                                                                  ScanNotes: "Picked up",
+                                                                  ScanNotes: _auditEntry,
                                                                   Direction: "Outbound",
                                                                   DisplayWeight: Blank(),
                                                                   DisplayPkg: Blank(),
@@ -456,10 +487,10 @@ Screens:
                                               )
                                           ),
                                           // INBOUND LOGIC
-                                          IsBlank(gblRecipient),
-                                          SetFocus(txtRecipient);
+                                          IsBlank(gblReceivingLocation),
+                                          SetFocus(cmbReceivingLocation);
                                           Notify(
-                                              "Enter a designated recipient before scanning an inbound package.",
+                                              "Select a receiving location before scanning an inbound package.",
                                               NotificationType.Warning
                                           ),
                                           With(
@@ -484,12 +515,45 @@ Screens:
                                                       NotificationType.Error
                                                   ),
                                                   !IsEmpty(_activeMatches),
-                                                  Notify(
-                                                      "This package is already assigned to " & Coalesce(
-                                                          First(_activeMatches).field_4,
-                                                          "a recipient"
-                                                      ) & ".",
-                                                      NotificationType.Warning
+                                                  With(
+                                                      {_record: First(_activeMatches)},
+                                                      IfError(
+                                                          Patch(
+                                                              Tracking,
+                                                              _record,
+                                                              {
+                                                                  field_7: If(
+                                                                      IsBlank(_record.field_7),
+                                                                      _auditEntry,
+                                                                      _record.field_7 & Char(10) & _auditEntry
+                                                                  )
+                                                              }
+                                                          );
+                                                          Collect(
+                                                              colRecentScans,
+                                                              {
+                                                                  TrackingId: Blank(),
+                                                                  TrackingNumber: _record.Title,
+                                                                  Recipient: _record.field_4,
+                                                                  Carrier: _record.field_1,
+                                                                  Timestamp: Now(),
+                                                                  ScanNotes: _auditEntry & " | Repeat scan; existing active record retained",
+                                                                  Direction: "Inbound",
+                                                                  DisplayWeight: _weight,
+                                                                  DisplayPkg: _pkg,
+                                                                  DisplayAddressee: _addressee,
+                                                                  DisplayAddressBlock: _addressBlock
+                                                              }
+                                                          );
+                                                          Notify(
+                                                              "Package was already active; this scan was added to its notes.",
+                                                              NotificationType.Warning
+                                                          ),
+                                                          Notify(
+                                                              "The repeat scan could not be added to notes: " & FirstError.Message,
+                                                              NotificationType.Error
+                                                          )
+                                                      )
                                                   ),
                                                   // Process new inbound
                                                   IfError(
@@ -503,9 +567,9 @@ Screens:
                                                                   field_1: _carrier,
                                                                   field_2: "Inbound",
                                                                   field_3: "Ready for Pickup",
-                                                                  field_4: gblRecipient,
+                                                                  field_4: Blank(),
                                                                   field_6: Now(),
-                                                                  field_7: _notes
+                                                                  field_7: _auditEntry
                                                               }
                                                           )
                                                       );
@@ -514,10 +578,10 @@ Screens:
                                                           {
                                                               TrackingId: varSavedTracking.ID,
                                                               TrackingNumber: _trk,
-                                                              Recipient: gblRecipient,
+                                                              Recipient: Blank(),
                                                               Carrier: _carrier,
                                                               Timestamp: Now(),
-                                                              ScanNotes: _notes,
+                                                              ScanNotes: _auditEntry,
                                                               Direction: "Inbound",
                                                               DisplayWeight: _weight,
                                                               DisplayPkg: _pkg,
@@ -526,7 +590,7 @@ Screens:
                                                           }
                                                       );
                                                       Notify(
-                                                          "Package assigned to " & gblRecipient & ".",
+                                                          "Package received at " & gblReceivingLocation & ".",
                                                           NotificationType.Success
                                                       ),
                                                       Notify(
@@ -543,7 +607,7 @@ Screens:
                           // 4. Clean up and refocus for the next scan immediately
                           Reset(txtBarcodeScanner_2);
                           UpdateContext({varTriggerFocus: true});
-                        Placeholder: =If(IsBlank(gblRecipient), "Enter a recipient first", "Scan package or QR code")
+                        Placeholder: =If(varScanDirection = "Inbound" && IsBlank(gblReceivingLocation), "Select a receiving location first", "Scan package or QR code")
                         TriggerOutput: ='TextInputCanvas.TriggerOutput'.Keypress
                   - DirectionToggle_2:
                       Control: FluentV8/Toggle@1.6.7
@@ -554,7 +618,7 @@ Screens:
                         OffText: ="Outbound"
                         OnCheck: |
                           =UpdateContext({varScanDirection: "Inbound"});
-                          If(IsBlank(gblRecipient), SetFocus(txtRecipient), UpdateContext({varTriggerFocus: true}))
+                          If(IsBlank(gblReceivingLocation), SetFocus(cmbReceivingLocation), UpdateContext({varTriggerFocus: true}))
                         OnText: ="Inbound"
                         OnUncheck: |
                           =UpdateContext({varScanDirection: "Outbound"});
@@ -563,7 +627,7 @@ Screens:
                       Control: FluentV8/Label@1.8.6
                       Properties:
                         AutoHeight: =true
-                        Text: =If(varScanDirection = "Outbound", "Pickup mode | " & CountRows(colRecentScans) & " session scan(s)", If(IsBlank(gblRecipient), "Recipient required before scanning", "Receiving for " & gblRecipient & " | " & CountRows(colRecentScans) & " session scan(s)"))
+                        Text: =If(varScanDirection = "Outbound", "Pickup mode | " & CountRows(colRecentScans) & " session scan(s)", If(IsBlank(gblReceivingLocation), "Receiving location required before scanning", "Blind receiving at " & gblReceivingLocation & " | " & CountRows(colRecentScans) & " session scan(s)"))
                   - btnViewHistory:
                       Control: FluentV8/Button@1.5.13
                       Properties:

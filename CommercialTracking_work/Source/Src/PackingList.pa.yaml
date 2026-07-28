@@ -89,11 +89,11 @@ Screens:
             Fill: =RGBA(255, 255, 255, 1)
             Height: =1056
             LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =If(gblPackingListPrintMode, 10, 8)
-            PaddingBottom: =12
-            PaddingLeft: =12
-            PaddingRight: =12
-            PaddingTop: =12
+            LayoutGap: =If(gblPackingListPrintMode, 4, 6)
+            PaddingBottom: =If(gblPackingListPrintMode, 6, 10)
+            PaddingLeft: =If(gblPackingListPrintMode, 6, 10)
+            PaddingRight: =If(gblPackingListPrintMode, 6, 10)
+            PaddingTop: =If(gblPackingListPrintMode, 6, 10)
             RadiusBottomLeft: =If(gblPackingListPrintMode, 0, 8)
             RadiusBottomRight: =If(gblPackingListPrintMode, 0, 8)
             RadiusTopLeft: =If(gblPackingListPrintMode, 0, 8)
@@ -106,8 +106,7 @@ Screens:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
-                  Height: |+
-                    =100
+                  Height: =If(gblPackingListPrintMode, 70, 92)
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =6
                   LayoutMinHeight: =16
@@ -121,9 +120,9 @@ Screens:
                         DisabledBorderColor: =RGBA(200, 198, 196, 1)
                         FillPortions: =1
                         Font: =Font.'Segoe UI'
-                        Height: =100
+                        Height: =If(gblPackingListPrintMode, 70, 92)
                         HtmlText: |
-                          ="<div style='border:1px solid #d2d0ce; border-radius:10px; background:linear-gradient(135deg,#f8fbff 0%,#eef6ff 100%); padding:12px 5px; color:#201f1e; overflow:hidden;'>
+                          ="<div style='border:1px solid #d2d0ce; border-radius:6px; background:linear-gradient(135deg,#f8fbff 0%,#eef6ff 100%); padding:5px 5px; color:#201f1e; overflow:hidden;'>
                             <div style='font-size:12px; line-height:1.1; font-weight:700; text-align:left;'>Package Responsibility List</div>
                             <div style='margin-top:4px; font-size:12px; line-height:1.15; font-weight:600; color:#0f548c; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;'>" &
                             If(
@@ -134,15 +133,15 @@ Screens:
                             "</div>
                             <table style='width:100%; margin-top:3px; border-collapse:separate; border-spacing:3px 0; table-layout:fixed;'>
                               <tr>
-                                <td style='width:37%; vertical-align:top; background-color:#ffffff; border:1px solid #c7e0f4; border-radius:8px; padding:8px 10px;'>
+                                <td style='width:37%; vertical-align:top; background-color:#ffffff; border:1px solid #c7e0f4; border-radius:5px; padding:3px 6px;'>
                                   <div style='font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#605e5c;'>Prepared</div>
                                   <div style='font-size:12px; line-height:1.15; font-weight:700; color:#201f1e; margin-top:2px;'>" & Text(gblManifestPreparedAt, "mm/dd/yyyy hh:mm AM/PM") & "</div>
                                 </td>
-                                <td style='width:22%; vertical-align:top; background-color:#ffffff; border:1px solid #c7e0f4; border-radius:8px; padding:8px 10px; text-align:center;'>
+                                <td style='width:22%; vertical-align:top; background-color:#ffffff; border:1px solid #c7e0f4; border-radius:5px; padding:3px 6px; text-align:center;'>
                                   <div style='font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#605e5c;'>Packages</div>
                                   <div style='font-size:15px; line-height:1.05; font-weight:700; color:#0f548c; margin-top:2px;'>" & CountRows(colPackingList) & "</div>
                                 </td>
-                                <td style='width:41%; vertical-align:top; background-color:#ffffff; border:1px solid #c7e0f4; border-radius:8px; padding:8px 10px;'>
+                                <td style='width:41%; vertical-align:top; background-color:#ffffff; border:1px solid #c7e0f4; border-radius:5px; padding:3px 6px;'>
                                   <div style='font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#605e5c;'>Use</div>
                                   <div style='font-size:12px; line-height:1.15; font-weight:700; color:#201f1e; margin-top:2px;'>Inbound and outbound custody</div>
                                 </td>
@@ -185,11 +184,11 @@ Screens:
                       <table style='width:100%; border-collapse:collapse; table-layout:fixed; font-family:Segoe UI, Arial, sans-serif; font-size:12px; color:#323130;'>
                         <thead>
                           <tr style='background-color:#f3f2f1;'>
-                            <th style='text-align:left; padding:7px 6px; width:30%; border-bottom:1px solid #d2d0ce; font-size:12px; text-transform:uppercase; letter-spacing:.04em;'>Tracking</th>
-                            <th style='text-align:center; padding:7px 6px; width:14%; border-bottom:1px solid #d2d0ce; font-size:12px; text-transform:uppercase; letter-spacing:.04em;'>QR</th>
-                            <th style='text-align:left; padding:7px 6px; width:22%; border-bottom:1px solid #d2d0ce; font-size:12px; text-transform:uppercase; letter-spacing:.04em;'>Custody</th>
-                            <th style='text-align:left; padding:7px 6px; width:16%; border-bottom:1px solid #d2d0ce; font-size:12px; text-transform:uppercase; letter-spacing:.04em;'>Carrier</th>
-                            <th style='text-align:left; padding:7px 6px; width:24%; border-bottom:1px solid #d2d0ce; font-size:12px; text-transform:uppercase; letter-spacing:.04em;'>Recorded</th>
+                            <th style='text-align:left; padding:3px 4px; width:31%; border-bottom:1px solid #d2d0ce; font-size:9px; text-transform:uppercase; letter-spacing:.03em;'>Tracking</th>
+                            <th style='text-align:center; padding:3px 2px; width:10%; border-bottom:1px solid #d2d0ce; font-size:9px; text-transform:uppercase;'>QR</th>
+                            <th style='text-align:left; padding:3px 4px; width:23%; border-bottom:1px solid #d2d0ce; font-size:9px; text-transform:uppercase; letter-spacing:.03em;'>Custody</th>
+                            <th style='text-align:left; padding:3px 4px; width:14%; border-bottom:1px solid #d2d0ce; font-size:9px; text-transform:uppercase; letter-spacing:.03em;'>Carrier</th>
+                            <th style='text-align:left; padding:3px 4px; width:22%; border-bottom:1px solid #d2d0ce; font-size:9px; text-transform:uppercase; letter-spacing:.03em;'>Recorded</th>
                           </tr>
                         </thead>
                         <tbody>" & If(
@@ -197,7 +196,7 @@ Screens:
                         "<tr><td colspan='5' style='padding:12px 8px; color:#605e5c;'>No active packages are currently available for this recipient.</td></tr>",
                         Concat(
                             colPackingList,
-                            "<tr>" & "<td style='padding:7px 6px; border-bottom:1px solid #edebe9; vertical-align:top;'><div style='font-size:10px; line-height:1.15; font-weight:700; color:#201f1e; word-break:break-word;'>" & Substitute(
+                            "<tr>" & "<td style='padding:3px 4px; border-bottom:1px solid #edebe9; vertical-align:middle;'><div style='font-size:9px; line-height:1.05; font-weight:700; color:#201f1e; word-break:break-word;'>" & Substitute(
                                 Substitute(
                                     Substitute(
                                         Coalesce(
@@ -212,7 +211,7 @@ Screens:
                                 ),
                                 ">",
                                 "&gt;"
-                            ) & "</div></td>" & "<td style='padding:5px 4px; border-bottom:1px solid #edebe9; text-align:center; vertical-align:top;'><img alt='QR code for tracking number " & Substitute(
+                            ) & "</div></td>" & "<td style='padding:2px; border-bottom:1px solid #edebe9; text-align:center; vertical-align:middle;'><img alt='QR code for tracking number " & Substitute(
                                 Substitute(
                                     Substitute(
                                         Coalesce(
@@ -227,12 +226,12 @@ Screens:
                                 ),
                                 ">",
                                 "&gt;"
-                            ) & "' src='https://api.qrserver.com/v1/create-qr-code/?size=72x72&data=" & EncodeUrl(
+                            ) & "' src='https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=" & EncodeUrl(
                                 "PKG|" & Coalesce(
                                     Title,
                                     ""
                                 )
-                            ) & "' style='width:40px; height:40px; display:block; margin:0 auto;' /></td>" & "<td style='padding:7px 6px; border-bottom:1px solid #edebe9; vertical-align:top; word-break:break-word;'><span style='display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; line-height:1.2; font-weight:700; background-color:" & If(
+                            ) & "' style='width:28px; height:28px; display:block; margin:0 auto;' /></td>" & "<td style='padding:3px 4px; border-bottom:1px solid #edebe9; vertical-align:middle; word-break:break-word;'><span style='display:inline-block; padding:1px 4px; border-radius:6px; font-size:9px; line-height:1.05; font-weight:700; background-color:" & If(
                                 field_2 = "Outbound",
                                 "#fde7e9; color:#a4262c",
                                 "#dff6dd; color:#107c10"
@@ -253,7 +252,7 @@ Screens:
                                 ),
                                 ">",
                                 "&gt;"
-                            ) & "</span><div style='margin-top:5px; font-size:12px; line-height:1.25; color:#605e5c;'>" & Substitute(
+                            ) & "</span><div style='margin-top:2px; font-size:9px; line-height:1.05; color:#605e5c;'>" & Substitute(
                                 Substitute(
                                     Substitute(
                                         Coalesce(
@@ -268,7 +267,7 @@ Screens:
                                 ),
                                 ">",
                                 "&gt;"
-                            ) & "</div></td>" & "<td style='padding:7px 6px; border-bottom:1px solid #edebe9; vertical-align:top;'><div style='font-size:13px; line-height:1.2; font-weight:600; color:#323130; word-break:break-word;'>" & Substitute(
+                            ) & "</div></td>" & "<td style='padding:3px 4px; border-bottom:1px solid #edebe9; vertical-align:middle;'><div style='font-size:9px; line-height:1.05; font-weight:600; color:#323130; word-break:break-word;'>" & Substitute(
                                 Substitute(
                                     Substitute(
                                         Coalesce(
@@ -283,7 +282,7 @@ Screens:
                                 ),
                                 ">",
                                 "&gt;"
-                            ) & "</div></td>" & "<td style='padding:7px 6px; border-bottom:1px solid #edebe9; vertical-align:top;'><div style='font-size:13px; line-height:1.2; font-weight:600; color:#201f1e; white-space:nowrap;'>" & Text(
+                            ) & "</div></td>" & "<td style='padding:3px 4px; border-bottom:1px solid #edebe9; vertical-align:middle;'><div style='font-size:9px; line-height:1.05; font-weight:600; color:#201f1e; white-space:nowrap;'>" & Text(
                                 If(
                                     field_2 = "Outbound" && Not(IsBlank(SignedOutDateTime)),
                                     SignedOutDateTime,
@@ -295,14 +294,14 @@ Screens:
                     ) & "</tbody>
                       </table>
                     </div>"
-                  LayoutMinHeight: =320
+                  LayoutMinHeight: =240
                   Width: =Parent.Width - Parent.PaddingLeft - Parent.PaddingRight
             - conPackingSignature:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   LayoutDirection: =LayoutDirection.Vertical
-                  LayoutMinHeight: =If(gblPackingListPrintMode, 180, 160)
+                  LayoutMinHeight: =If(gblPackingListPrintMode, 105, 140)
                   RadiusBottomLeft: =8
                   RadiusBottomRight: =8
                   RadiusTopLeft: =8
@@ -315,28 +314,28 @@ Screens:
                         DisabledBorderColor: =RGBA(200, 198, 196, 1)
                         FillPortions: =1
                         Font: =Font.'Segoe UI'
-                        Height: =If(gblPackingListPrintMode, 180, 160)
+                        Height: =If(gblPackingListPrintMode, 105, 140)
                         HtmlText: |
-                          ="<div style='border:1px solid #d2d0ce; border-radius:10px; background-color:#fcfcfd; padding:12px 16px; color:#201f1e; overflow:hidden;'>
-                            <div style='font-size:15px; line-height:1.1; font-weight:700; color:#201f1e;'>Acceptance Signature</div>
-                            <div style='margin-top:4px; font-size:13px; line-height:1.25; color:#605e5c;'>I accept responsibility for the packages listed above and confirm they were transferred to me in the condition shown.</div>
-                            <table style='width:100%; margin-top:12px; border-collapse:separate; border-spacing:12px 0; table-layout:fixed;'>
+                          ="<div style='border:1px solid #d2d0ce; border-radius:6px; background-color:#fcfcfd; padding:6px 10px; color:#201f1e; overflow:hidden;'>
+                            <div style='font-size:11px; line-height:1.05; font-weight:700; color:#201f1e;'>Acceptance Signature</div>
+                            <div style='margin-top:2px; font-size:9px; line-height:1.1; color:#605e5c;'>I accept responsibility for the packages listed above and confirm they were transferred to me in the condition shown.</div>
+                            <table style='width:100%; margin-top:5px; border-collapse:separate; border-spacing:8px 0; table-layout:fixed;'>
                               <tr>
                                 <td style='width:64%; vertical-align:bottom;'>
                                   <div style='font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#605e5c;'>Recipient signature</div>
-                                  <div style='margin-top:16px; border-bottom:2px solid #323130; height:2px;'></div>
+                                  <div style='margin-top:8px; border-bottom:1px solid #323130; height:1px;'></div>
                                 </td>
                                 <td style='width:36%; vertical-align:bottom;'>
                                   <div style='font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#605e5c;'>Date</div>
-                                  <div style='margin-top:16px; border-bottom:2px solid #323130; height:2px;'></div>
+                                  <div style='margin-top:8px; border-bottom:1px solid #323130; height:1px;'></div>
                                 </td>
                               </tr>
                             </table>
-                            <table style='width:100%; margin-top:10px; border-collapse:collapse;'>
+                            <table style='width:100%; margin-top:4px; border-collapse:collapse;'>
                               <tr>
                                 <td style='vertical-align:bottom;'>
                                   <div style='font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#605e5c;'>Printed name / duty phone</div>
-                                  <div style='margin-top:16px; border-bottom:2px solid #323130; height:2px;'></div>
+                                  <div style='margin-top:8px; border-bottom:1px solid #323130; height:1px;'></div>
                                 </td>
                               </tr>
                             </table>
