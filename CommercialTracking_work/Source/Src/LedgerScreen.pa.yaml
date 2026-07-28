@@ -1,11 +1,3 @@
-# ************************************************************************************************
-# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
-# Use the maker portal to create and edit your Power Apps.
-#
-# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
-#
-# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
-# ************************************************************************************************
 Screens:
   LedgerScreen:
     Properties:
@@ -63,8 +55,8 @@ Screens:
                   - txtSearchLedger_1:
                       Control: FluentV8/TextBox@1.7.2
                       Properties:
-                        LayoutMinHeight: =36
                         AccessibleLabel: ="Search the current scan session"
+                        LayoutMinHeight: =36
                         Placeholder: ="Search tracking, carrier, recipient, or label details"
                   - Gallery1_2:
                       Control: Gallery@2.15.0
@@ -83,6 +75,7 @@ Screens:
                         - HtmlText1_2:
                             Control: HtmlViewer@2.1.0
                             Properties:
+                              AutoHeight: =true
                               DisabledBorderColor: =RGBA(200, 198, 196, 1)
                               Font: =Font.'Segoe UI'
                               Height: =Parent.TemplateHeight
@@ -123,6 +116,7 @@ Screens:
                         - icnDeleteScan_2:
                             Control: Classic/Icon@2.5.0
                             Properties:
+                              AccessibleLabel: ="Void this scan"
                               Color: =RGBA(164, 38, 44, 1)
                               Height: =20
                               HoverColor: =RGBA(201, 36, 43, 1)
@@ -140,7 +134,6 @@ Screens:
                                         false
                                     )
                                 )
-                              AccessibleLabel: ="Void this scan"
                               TabIndex: =0
                               Tooltip: ="Void this scan and remove it from the local ledger"
                               Width: =20
@@ -181,7 +174,8 @@ Screens:
                       Properties:
                         AccessibleLabel: ="Designated package recipient"
                         LayoutMinHeight: =44
-                        OnChange: "=Set(gblRecipient, Trim(Self.Value)); If(!IsBlank(gblRecipient) && varScanDirection = \"Inbound\", UpdateContext({varTriggerFocus: true}))"
+                        OnChange: |-
+                          =Set(gblRecipient, Trim(Self.Value)); If(!IsBlank(gblRecipient) && varScanDirection = "Inbound", UpdateContext({varTriggerFocus: true}))
                         Placeholder: ="Designated recipient (required)"
                         Value: =gblRecipient
                   - txtBarcodeScanner_2:
@@ -191,125 +185,366 @@ Screens:
                         DisplayMode: =If(varScanDirection = "Inbound" && IsBlank(gblRecipient), DisplayMode.Disabled, DisplayMode.Edit)
                         LayoutMinHeight: =48
                         OnChange: |
-                          =// txtBarcodeScanner_2.OnChange
-                          // Preserves the original 2D parser. Inbound scans receive packages; outbound scans pick them up.
-                          UpdateContext({
-                              varRawScan: Trim(Substitute(Substitute(Self.Value, Char(13), ""), Char(10), "")),
-                              varScanHandled: false,
-                              varParsedTracking: Blank(),
-                              varDetectedCarrier: Blank(),
-                              varExtractedWeight: Blank(),
-                              varExtractedPkg: Blank(),
-                              varExtractedAddressee: Blank(),
-                              varExtractedAddressBlock: Blank(),
-                              varScanNotes: Blank()
-                          });
-
+                          =// 1. Capture scan immediately so the control can reset
+                          UpdateContext(
+                              {
+                                  varRawScan: Trim(
+                                      Substitute(
+                                          Substitute(
+                                              Self.Value,
+                                              Char(13),
+                                              ""
+                                          ),
+                                          Char(10),
+                                          ""
+                                      )
+                                  )
+                              }
+                          );
                           If(
                               !IsBlank(varRawScan),
-                              If(
-                                  StartsWith(varRawScan, "PKG|"),
-                                  UpdateContext({
-                                      varParsedTracking: Trim(Last(Split(varRawScan, "|")).Value),
-                                      varDetectedCarrier: Blank(),
-                                      varExtractedWeight: Blank(),
-                                      varExtractedPkg: Blank(),
-                                      varExtractedAddressee: Blank(),
-                                      varExtractedAddressBlock: Blank(),
-                                      varScanNotes: "Packing-list QR scanned"
-                                  }),
-                                  StartsWith(varRawScan, "[)>"),
-                                  UpdateContext({
-                                      varParsedTracking: Coalesce(
-                                          Match(varRawScan, "31Z(?<trk>\d{20,34})").trk,
-                                          Match(varRawScan, "\d{34}").FullMatch,
-                                          Match(varRawScan, "\d{22}").FullMatch,
-                                          Match(varRawScan, "1Z[A-Z0-9]{16}").FullMatch
+                              // 2. Parse the Scan locally (No DB hits yet)
+                              With(
+                                  {
+                                      // Extract core tracking number
+                                      _trk: If(
+                                          StartsWith(
+                                              varRawScan,
+                                              "PKG|"
+                                          ),
+                                          Last(
+                                              Split(
+                                                  varRawScan,
+                                                  "|"
+                                              )
+                                          ).Value,
+                                          StartsWith(
+                                              varRawScan,
+                                              "[)>"
+                                          ),
+                                          Coalesce(
+                                              Match(
+                                                  varRawScan,
+                                                  "31Z(?<trk>\d{20,34})"
+                                              ).trk,
+                                              Match(
+                                                  varRawScan,
+                                                  "\d{34}"
+                                              ).FullMatch,
+                                              Match(
+                                                  varRawScan,
+                                                  "\d{22}"
+                                              ).FullMatch,
+                                              Match(
+                                                  varRawScan,
+                                                  "1Z[A-Z0-9]{16}"
+                                              ).FullMatch
+                                          ),
+                                          varRawScan
                                       ),
-                                      varDetectedCarrier: If("FDEG" in varRawScan || "FDEN" in varRawScan || "FX" in varRawScan, "FedEx", "UPSN" in varRawScan, "UPS", "Other"),
-                                      varExtractedWeight: Match(varRawScan, "\d+(\.\d+)?(LB|KG)").FullMatch,
-                                      varExtractedPkg: Match(varRawScan, "\d+/\d+").FullMatch,
-                                      varExtractedAddressee: Trim(Coalesce(Match(varRawScan, "11Z(?<addr>[a-zA-Z\s\.\-]+)").addr, Match(varRawScan, "12Z(?<addr>[a-zA-Z\s\.\-]+)").addr)),
-                                      varExtractedAddressBlock: Trim(Match(varRawScan, "(?:LB|KG)[A-Z]?(?<block>[A-Za-z0-9\s\.,\-]+?)(?:\d{3,4}Z|11Z|12Z|13Z|31Z)").block),
-                                      varScanNotes: "2D carrier label scanned"
-                                  }),
-                                  UpdateContext({
-                                      varParsedTracking: varRawScan,
-                                      varDetectedCarrier: If(
-                                          StartsWith(Lower(varRawScan), "1z") && Len(varRawScan) = 18, "UPS",
-                                          IsMatch(varRawScan, "^\d{12}$|^\d{15}$|^\d{20}$|^\d{34}$"), "FedEx",
-                                          (StartsWith(varRawScan, "92") || StartsWith(varRawScan, "93") || StartsWith(varRawScan, "94")) && Len(varRawScan) >= 20, "USPS",
-                                          IsMatch(varRawScan, "^\d{10}$"), "DHL",
-                                          "Other"
+                                      // Extract 2D Label Metadata (Only runs if it's a 2D label)
+                                      _weight: If(
+                                          StartsWith(
+                                              varRawScan,
+                                              "[)>"
+                                          ),
+                                          Match(
+                                              varRawScan,
+                                              "\d+(\.\d+)?(LB|KG)"
+                                          ).FullMatch,
+                                          Blank()
                                       ),
-                                      varExtractedWeight: Blank(),
-                                      varExtractedPkg: Blank(),
-                                      varExtractedAddressee: Blank(),
-                                      varExtractedAddressBlock: Blank(),
-                                      varScanNotes: Blank()
-                                  })
-                              );
-
-                              If(
-                                  IsBlank(varParsedTracking),
-                                  Notify("No supported tracking number was found in the scan.", NotificationType.Error),
-
-                                  varScanDirection = "Outbound",
-                                  With(
-                                      {
-                                          pickupMatches: Filter(Tracking, Title = varParsedTracking && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")),
-                                          pickupRecord: First(SortByColumns(Filter(Tracking, Title = varParsedTracking && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")), "ID", SortOrder.Descending))
-                                      },
-                                      If(
-                                          CountRows(pickupMatches) > 1,
-                                          Notify("Multiple active records exist for this tracking number. Resolve the duplicate entries before pickup.", NotificationType.Error),
-                                          IsBlank(pickupRecord),
-                                          Notify("No package awaiting pickup was found for this tracking number.", NotificationType.Warning),
-                                          IfError(
-                                              Patch(Tracking, pickupRecord, {field_2: "Outbound", field_3: "Picked Up", SignedOutDateTime: Now()});
-                                              Collect(colRecentScans, {TrackingId: pickupRecord.ID, TrackingNumber: pickupRecord.Title, Recipient: pickupRecord.field_4, Carrier: pickupRecord.field_1, Timestamp: Now(), ScanNotes: "Picked up", Direction: "Outbound", DisplayWeight: Blank(), DisplayPkg: Blank(), DisplayAddressee: pickupRecord.field_4, DisplayAddressBlock: Blank()});
-                                              UpdateContext({varScanHandled: true});
-                                              Notify("Package picked up by " & pickupRecord.field_4 & ".", NotificationType.Success),
-                                              Notify("Pickup could not be saved: " & FirstError.Message, NotificationType.Error)
-                                          )
+                                      _pkg: If(
+                                          StartsWith(
+                                              varRawScan,
+                                              "[)>"
+                                          ),
+                                          Match(
+                                              varRawScan,
+                                              "\d+/\d+"
+                                          ).FullMatch,
+                                          Blank()
+                                      ),
+                                      _addressee: If(
+                                          StartsWith(
+                                              varRawScan,
+                                              "[)>"
+                                          ),
+                                          Trim(
+                                              Coalesce(
+                                                  Match(
+                                                      varRawScan,
+                                                      "11Z(?<addr>[a-zA-Z\s\.\-]+)"
+                                                  ).addr,
+                                                  Match(
+                                                      varRawScan,
+                                                      "12Z(?<addr>[a-zA-Z\s\.\-]+)"
+                                                  ).addr
+                                              )
+                                          ),
+                                          Blank()
+                                      ),
+                                      _addressBlock: If(
+                                          StartsWith(
+                                              varRawScan,
+                                              "[)>"
+                                          ),
+                                          Trim(
+                                              Match(
+                                                  varRawScan,
+                                                  "(?:LB|KG)[A-Z]?(?<block>[A-Za-z0-9\s\.,\-]+?)(?:\d{3,4}Z|11Z|12Z|13Z|31Z)"
+                                              ).block
+                                          ),
+                                          Blank()
                                       )
-                                  ),
-
-                                  IsBlank(gblRecipient),
-                                  Reset(txtBarcodeScanner_2);
-                                  SetFocus(txtRecipient);
-                                  Notify("Enter a designated recipient before scanning an inbound package.", NotificationType.Warning),
-
+                                  },
                                   With(
                                       {
-                                          activeMatches: Filter(Tracking, Title = varParsedTracking && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")),
-                                          activeRecord: First(SortByColumns(Filter(Tracking, Title = varParsedTracking && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")), "ID", SortOrder.Descending))
+                                          // Robust Carrier Detection
+                                          _carrier: If(
+                                              // 2D Indicators
+                                              "FDEG" in varRawScan || "FDEN" in varRawScan || "FX" in varRawScan,
+                                              "FedEx",
+                                              "UPSN" in varRawScan,
+                                              "UPS",
+                                              // 1D Fallbacks
+                                              IsMatch(
+                                                  _trk,
+                                                  "^1[Zz][a-zA-Z0-9]{16}$"
+                                              ),
+                                              "UPS",
+                                              StartsWith(
+                                                  Upper(_trk),
+                                                  "TBA"
+                                              ) || StartsWith(
+                                                  Upper(_trk),
+                                                  "TBC"
+                                              ) || StartsWith(
+                                                  Upper(_trk),
+                                                  "TBM"
+                                              ),
+                                              "Amazon",
+                                              IsMatch(
+                                                  _trk,
+                                                  "^[A-Za-z]{2}\d{9}US$"
+                                              ) || IsMatch(
+                                                  _trk,
+                                                  "^9[1-4]\d{18,22}$"
+                                              ) || IsMatch(
+                                                  _trk,
+                                                  "^82\d{8}$"
+                                              ),
+                                              "USPS",
+                                              IsMatch(
+                                                  _trk,
+                                                  "^\d{12}$"
+                                              ) || IsMatch(
+                                                  _trk,
+                                                  "^\d{15}$"
+                                              ) || IsMatch(
+                                                  _trk,
+                                                  "^\d{20}$"
+                                              ) || IsMatch(
+                                                  _trk,
+                                                  "^\d{34}$"
+                                              ),
+                                              "FedEx",
+                                              IsMatch(
+                                                  _trk,
+                                                  "^\d{10}$"
+                                              ),
+                                              "DHL",
+                                              "Other"
+                                          ),
+                                          _notes: If(
+                                              StartsWith(
+                                                  varRawScan,
+                                                  "PKG|"
+                                              ),
+                                              "Packing-list QR",
+                                              StartsWith(
+                                                  varRawScan,
+                                                  "[)>"
+                                              ),
+                                              "2D Label",
+                                              Blank()
+                                          )
                                       },
+                                      // 3. Database Execution
                                       If(
-                                          CountRows(activeMatches) > 1,
-                                          UpdateContext({varScanHandled: true});
-                                          Notify("This tracking number already has multiple active records. Resolve the duplicates before scanning it again.", NotificationType.Error),
-                                          !IsBlank(activeRecord),
-                                          UpdateContext({varScanHandled: true});
-                                          Notify("This package is already assigned to " & Coalesce(activeRecord.field_4, "a recipient") & ".", NotificationType.Warning),
-                                          IfError(
-                                              Set(varSavedTracking, Patch(Tracking, Defaults(Tracking), {Title: varParsedTracking, field_1: varDetectedCarrier, field_2: "Inbound", field_3: "Ready for Pickup", field_4: gblRecipient, field_6: Now(), field_7: varScanNotes}));
-                                              Collect(colRecentScans, {TrackingId: varSavedTracking.ID, TrackingNumber: varParsedTracking, Recipient: gblRecipient, Carrier: varDetectedCarrier, Timestamp: Now(), ScanNotes: varScanNotes, Direction: "Inbound", DisplayWeight: varExtractedWeight, DisplayPkg: varExtractedPkg, DisplayAddressee: varExtractedAddressee, DisplayAddressBlock: varExtractedAddressBlock});
-                                              UpdateContext({varScanHandled: true});
-                                              Notify("Package assigned to " & gblRecipient & ".", NotificationType.Success),
-                                              Notify("The package could not be saved: " & FirstError.Message, NotificationType.Error)
+                                          IsBlank(_trk),
+                                          Notify(
+                                              "No supported tracking number was found in the scan.",
+                                              NotificationType.Error
+                                          ),
+                                          // OUTBOUND LOGIC
+                                          varScanDirection = "Outbound",
+                                          With(
+                                              {
+                                                  // HITS DATABASE ONCE: Grabs up to 2 records to check for duplicates
+                                                  _activeMatches: FirstN(
+                                                      Sort(
+                                                          Filter(
+                                                              Tracking,
+                                                              Title = _trk && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")
+                                                          ),
+                                                          ID,
+                                                          SortOrder.Descending
+                                                      ),
+                                                      2
+                                                  )
+                                              },
+                                              If(
+                                                  CountRows(_activeMatches) > 1,
+                                                  Notify(
+                                                      "Multiple active records exist for this tracking number. Resolve the duplicate entries before pickup.",
+                                                      NotificationType.Error
+                                                  ),
+                                                  IsEmpty(_activeMatches),
+                                                  Notify(
+                                                      "No package awaiting pickup was found for this tracking number.",
+                                                      NotificationType.Warning
+                                                  ),
+                                                  // Process single match
+                                                  With(
+                                                      {_record: First(_activeMatches)},
+                                                      IfError(
+                                                          Patch(
+                                                              Tracking,
+                                                              _record,
+                                                              {
+                                                                  field_2: "Outbound",
+                                                                  field_3: "Picked Up",
+                                                                  SignedOutDateTime: Now(),
+                                                                  SignedOutBy: {
+                                                                      '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+                                                                      Claims: "i:0#.f|membership|" & Lower(User().Email),
+                                                                      Department: "",
+                                                                      DisplayName: User().FullName,
+                                                                      Email: User().Email,
+                                                                      JobTitle: "",
+                                                                      Picture: ""
+                                                                  }
+                                                              }
+                                                          );
+                                                          Collect(
+                                                              colRecentScans,
+                                                              {
+                                                                  TrackingId: _record.ID,
+                                                                  TrackingNumber: _record.Title,
+                                                                  Recipient: _record.field_4,
+                                                                  Carrier: _record.field_1,
+                                                                  Timestamp: Now(),
+                                                                  ScanNotes: "Picked up",
+                                                                  Direction: "Outbound",
+                                                                  DisplayWeight: Blank(),
+                                                                  DisplayPkg: Blank(),
+                                                                  DisplayAddressee: _record.field_4,
+                                                                  DisplayAddressBlock: Blank()
+                                                              }
+                                                          );
+                                                          Notify(
+                                                              "Package picked up by " & _record.field_4 & ".",
+                                                              NotificationType.Success
+                                                          ),
+                                                          Notify(
+                                                              "Pickup could not be saved: " & FirstError.Message,
+                                                              NotificationType.Error
+                                                          )
+                                                      )
+                                                  )
+                                              )
+                                          ),
+                                          // INBOUND LOGIC
+                                          IsBlank(gblRecipient),
+                                          SetFocus(txtRecipient);
+                                          Notify(
+                                              "Enter a designated recipient before scanning an inbound package.",
+                                              NotificationType.Warning
+                                          ),
+                                          With(
+                                              {
+                                                  // HITS DATABASE ONCE: Grabs up to 2 records
+                                                  _activeMatches: FirstN(
+                                                      Sort(
+                                                          Filter(
+                                                              Tracking,
+                                                              Title = _trk && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")
+                                                          ),
+                                                          ID,
+                                                          SortOrder.Descending
+                                                      ),
+                                                      2
+                                                  )
+                                              },
+                                              If(
+                                                  CountRows(_activeMatches) > 1,
+                                                  Notify(
+                                                      "This tracking number already has multiple active records. Resolve the duplicates before scanning it again.",
+                                                      NotificationType.Error
+                                                  ),
+                                                  !IsEmpty(_activeMatches),
+                                                  Notify(
+                                                      "This package is already assigned to " & Coalesce(
+                                                          First(_activeMatches).field_4,
+                                                          "a recipient"
+                                                      ) & ".",
+                                                      NotificationType.Warning
+                                                  ),
+                                                  // Process new inbound
+                                                  IfError(
+                                                      Set(
+                                                          varSavedTracking,
+                                                          Patch(
+                                                              Tracking,
+                                                              Defaults(Tracking),
+                                                              {
+                                                                  Title: _trk,
+                                                                  field_1: _carrier,
+                                                                  field_2: "Inbound",
+                                                                  field_3: "Ready for Pickup",
+                                                                  field_4: gblRecipient,
+                                                                  field_6: Now(),
+                                                                  field_7: _notes
+                                                              }
+                                                          )
+                                                      );
+                                                      Collect(
+                                                          colRecentScans,
+                                                          {
+                                                              TrackingId: varSavedTracking.ID,
+                                                              TrackingNumber: _trk,
+                                                              Recipient: gblRecipient,
+                                                              Carrier: _carrier,
+                                                              Timestamp: Now(),
+                                                              ScanNotes: _notes,
+                                                              Direction: "Inbound",
+                                                              DisplayWeight: _weight,
+                                                              DisplayPkg: _pkg,
+                                                              DisplayAddressee: _addressee,
+                                                              DisplayAddressBlock: _addressBlock
+                                                          }
+                                                      );
+                                                      Notify(
+                                                          "Package assigned to " & gblRecipient & ".",
+                                                          NotificationType.Success
+                                                      ),
+                                                      Notify(
+                                                          "The package could not be saved: " & FirstError.Message,
+                                                          NotificationType.Error
+                                                      )
+                                                  )
+                                              )
                                           )
                                       )
                                   )
-                              );
-
-                              If(
-                                  varScanHandled,
-                                  Reset(txtBarcodeScanner_2);
-                                  UpdateContext({varTriggerFocus: true})
                               )
-                          )
+                          );
+                          // 4. Clean up and refocus for the next scan immediately
+                          Reset(txtBarcodeScanner_2);
+                          UpdateContext({varTriggerFocus: true});
                         Placeholder: =If(IsBlank(gblRecipient), "Enter a recipient first", "Scan package or QR code")
+                        TriggerOutput: ='TextInputCanvas.TriggerOutput'.Keypress
                   - DirectionToggle_2:
                       Control: FluentV8/Toggle@1.6.7
                       Properties:

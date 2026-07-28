@@ -1,9 +1,13 @@
 Screens:
   PackingList:
     Properties:
-      Fill: =RGBA(243, 244, 246, 1)
+      Fill: =If(gblPackingListPrintMode, RGBA(255, 255, 255, 1), RGBA(243, 244, 246, 1))
+      Height: =1056
       OnVisible: |
-        =ClearCollect(
+        =Set(gblPackingListPrintMode, false);
+        Set(gblPackingListPrintPending, false);
+        Set(gblPackingListResetChrome, false);
+        ClearCollect(
             colPackingList,
             If(
                 IsBlank(gblRecipient),
@@ -23,95 +27,139 @@ Screens:
                 )
             )
         )
+      Width: =816
     Children:
-      - conPackingList:
+      - conPackingToolbar:
           Control: GroupContainer@1.5.0
           Variant: AutoLayout
           Properties:
-            Fill: =RGBA(255, 255, 255, 1)
-            Height: =Parent.Height
-            LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =If(PackingList.Printing, 8, 12)
-            PaddingBottom: =If(PackingList.Printing, 12, 24)
-            PaddingLeft: =If(PackingList.Printing, 12, 24)
-            PaddingRight: =If(PackingList.Printing, 12, 24)
-            PaddingTop: =If(PackingList.Printing, 12, 24)
-            RadiusBottomLeft: =8
-            RadiusBottomRight: =8
-            RadiusTopLeft: =8
-            RadiusTopRight: =8
-            Width: =If(PackingList.Printing, Min(Parent.Width, 760), Parent.Width)
+            Height: =48
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Horizontal
+            LayoutGap: =12
+            Visible: =Not(gblPackingListPrintMode)
+            Width: =Min(816, Parent.Width - 24)
+            X: =Max(12, (Parent.Width - Self.Width) / 2)
+            Y: =12
           Children:
             - btnBackToLedger:
                 Control: FluentV8/Button@1.5.13
                 Properties:
                   AccessibleLabel: ="Return to the package scanner"
-                  AlignInContainer: =AlignInContainer.Start
                   OnSelect: =Navigate(LedgerScreen, ScreenTransition.Fade)
                   Text: ="Back to Scanner"
-                  Visible: =Not(PackingList.Printing)
-                  X: =40
-                  Y: =40
+            - btnPrintPackingList:
+                Control: FluentV8/Button@1.5.13
+                Properties:
+                  AccessibleLabel: ="Print or save this customer packing list"
+                  DisplayMode: =If(IsEmpty(colPackingList), DisplayMode.Disabled, DisplayMode.Edit)
+                  OnSelect: =Set(gblPackingListPrintMode, true); Set(gblPackingListPrintPending, false); Set(gblPackingListPrintPending, true)
+                  Text: ="Print / Save PDF"
+            - btnRefreshPackingList:
+                Control: FluentV8/Button@1.5.13
+                Properties:
+                  AccessibleLabel: ="Refresh package data for this packing list"
+                  OnSelect: |
+                    =Refresh(Tracking);
+                    ClearCollect(
+                        colPackingList,
+                        If(
+                            IsBlank(gblRecipient),
+                            Filter(Tracking, false),
+                            Sort(
+                                Filter(
+                                    Tracking,
+                                    field_4 = gblRecipient &&
+                                    (
+                                        field_3 = "Ready for Pickup" ||
+                                        field_3 = "Arrived on Dock" ||
+                                        field_3 = "Picked Up"
+                                    )
+                                ),
+                                field_6,
+                                SortOrder.Descending
+                            )
+                        )
+                    )
+                  Text: ="Refresh"
+      - conPackingList:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =1056
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =If(gblPackingListPrintMode, 10, 8)
+            PaddingBottom: =12
+            PaddingLeft: =12
+            PaddingRight: =12
+            PaddingTop: =12
+            RadiusBottomLeft: =If(gblPackingListPrintMode, 0, 8)
+            RadiusBottomRight: =If(gblPackingListPrintMode, 0, 8)
+            RadiusTopLeft: =If(gblPackingListPrintMode, 0, 8)
+            RadiusTopRight: =If(gblPackingListPrintMode, 0, 8)
+            Width: '=816 '
+            X: =If(gblPackingListPrintMode, 0, Max(0, (Parent.Width - 816) / 2))
+            Y: =If(gblPackingListPrintMode, 0, conPackingToolbar.Y + conPackingToolbar.Height + 12)
+          Children:
             - Container2:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
-                  FillPortions: =0
-                  Height: =If(PackingList.Printing, 84, 100)
-                  LayoutAlignItems: =If(PackingList.Printing, LayoutAlignItems.Start, LayoutAlignItems.Center)
-                  LayoutDirection: =If(PackingList.Printing, LayoutDirection.Vertical, LayoutDirection.Horizontal)
-                  LayoutGap: =If(PackingList.Printing, 4, 8)
+                  Height: |+
+                    =100
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =6
                   LayoutMinHeight: =16
                   LayoutMinWidth: =16
                   LayoutWrap: =true
-                  PaddingBottom: =8
-                  PaddingLeft: =8
-                  PaddingRight: =8
-                  PaddingTop: =8
                 Children:
-                  - lblPackingTitle:
-                      Control: FluentV8/Label@1.8.6
+                  - htmlManifestHeader:
+                      Control: HtmlViewer@2.1.0
                       Properties:
                         AutoHeight: =true
-                        FontSize: =20
-                        FontWeight: =FontWeight.Semibold
-                        Text: ="Package Responsibility List"
-                        X: =40
-                        Y: =40
-                  - lblManifestRecipient:
-                      Control: FluentV8/Label@1.8.6
-                      Properties:
-                        AutoHeight: =true
-                        FontSize: =16
-                        FontWeight: =FontWeight.Semibold
-                        Text: |
-                          =If(
-                              IsBlank(gblRecipient),
-                              "No recipient selected",
-                              "Recipient: " & gblRecipient
-                          )
-                        X: =40
-                        Y: =40
-                  - lblManifestMeta:
-                      Control: FluentV8/Label@1.8.6
-                      Properties:
-                        AutoHeight: =true
-                        Text: ="Prepared " & Text(gblManifestPreparedAt, "mm/dd/yyyy hh:mm AM/PM") & " | " & CountRows(colPackingList) & " active package(s)"
-                        X: =40
-                        Y: =40
-                  - lblManifestHint_1:
-                      Control: FluentV8/Label@1.8.6
-                      Properties:
-                        AutoHeight: =true
-                        Color: =RGBA(96, 94, 92, 1)
-                        Text: ="Print-first view for inbound and outbound accountability. Use the signature section below when custody is transferred."
-                        Visible: =Not(PackingList.Printing)
-                        X: =40
-                        Y: =40
+                        DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        Height: =100
+                        HtmlText: |
+                          ="<div style='border:1px solid #d2d0ce; border-radius:10px; background:linear-gradient(135deg,#f8fbff 0%,#eef6ff 100%); padding:12px 5px; color:#201f1e; overflow:hidden;'>
+                            <div style='font-size:12px; line-height:1.1; font-weight:700; text-align:left;'>Package Responsibility List</div>
+                            <div style='margin-top:4px; font-size:12px; line-height:1.15; font-weight:600; color:#0f548c; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;'>" &
+                            If(
+                                IsBlank(gblRecipient),
+                                "No recipient selected",
+                                "Recipient: " & Substitute(Substitute(Substitute(gblRecipient, "&", "&amp;"), "<", "&lt;"), ">", "&gt;")
+                            ) &
+                            "</div>
+                            <table style='width:100%; margin-top:3px; border-collapse:separate; border-spacing:3px 0; table-layout:fixed;'>
+                              <tr>
+                                <td style='width:37%; vertical-align:top; background-color:#ffffff; border:1px solid #c7e0f4; border-radius:8px; padding:8px 10px;'>
+                                  <div style='font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#605e5c;'>Prepared</div>
+                                  <div style='font-size:12px; line-height:1.15; font-weight:700; color:#201f1e; margin-top:2px;'>" & Text(gblManifestPreparedAt, "mm/dd/yyyy hh:mm AM/PM") & "</div>
+                                </td>
+                                <td style='width:22%; vertical-align:top; background-color:#ffffff; border:1px solid #c7e0f4; border-radius:8px; padding:8px 10px; text-align:center;'>
+                                  <div style='font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#605e5c;'>Packages</div>
+                                  <div style='font-size:15px; line-height:1.05; font-weight:700; color:#0f548c; margin-top:2px;'>" & CountRows(colPackingList) & "</div>
+                                </td>
+                                <td style='width:41%; vertical-align:top; background-color:#ffffff; border:1px solid #c7e0f4; border-radius:8px; padding:8px 10px;'>
+                                  <div style='font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#605e5c;'>Use</div>
+                                  <div style='font-size:12px; line-height:1.15; font-weight:700; color:#201f1e; margin-top:2px;'>Inbound and outbound custody</div>
+                                </td>
+                              </tr>
+                            </table>" &
+                            If(
+                                gblPackingListPrintMode,
+                                "",
+                                "<div style='margin-top:8px; font-size:12px; line-height:1.2; color:#605e5c; text-align:left;'>Print-first view for fast accountability. Scan the QR code, review status, then capture the receiving signature below.</div>"
+                            ) &
+                            "</div>"
+                        Width: =Parent.Width - Parent.PaddingLeft - Parent.PaddingRight
                   - lblEmptyManifest:
                       Control: FluentV8/Label@1.8.6
                       Properties:
                         AutoHeight: =true
+                        FontSize: =16
                         Text: =If(IsBlank(gblRecipient), "Return to the scanner and choose a recipient.", "No active inbound or outbound packages were found for this recipient.")
                         Visible: =IsEmpty(colPackingList)
                         X: =40
@@ -120,122 +168,196 @@ Screens:
                 Control: HtmlViewer@2.1.0
                 Properties:
                   DisabledBorderColor: =RGBA(200, 198, 196, 1)
-                  FillPortions: =1
+                  FillPortions: =4
                   Font: =Font.'Segoe UI'
-                  Height: =Max(320, Parent.Height - 240)
-                  HtmlText: |
+                  Height: |
+                    =Max(
+                        240,
+                        conPackingList.Height -
+                        conPackingList.PaddingTop -
+                        conPackingList.PaddingBottom -
+                        Container2.Height -
+                        htmlPackingSignature.Height -
+                        If(lblEmptyManifest.Visible, lblEmptyManifest.Height + 30, 20)
+                    )
+                  HtmlText: |-
                     ="<div style='border:1px solid #d2d0ce; border-radius:8px; overflow:hidden; background-color:#ffffff;'>
                       <table style='width:100%; border-collapse:collapse; table-layout:fixed; font-family:Segoe UI, Arial, sans-serif; font-size:12px; color:#323130;'>
                         <thead>
                           <tr style='background-color:#f3f2f1;'>
-                            <th style='text-align:left; padding:8px 6px; width:24%; border-bottom:1px solid #d2d0ce;'>Tracking</th>
-                            <th style='text-align:left; padding:8px 6px; width:16%; border-bottom:1px solid #d2d0ce;'>QR</th>
-                            <th style='text-align:left; padding:8px 6px; width:18%; border-bottom:1px solid #d2d0ce;'>Custody</th>
-                            <th style='text-align:left; padding:8px 6px; width:18%; border-bottom:1px solid #d2d0ce;'>Carrier</th>
-                            <th style='text-align:left; padding:8px 6px; width:24%; border-bottom:1px solid #d2d0ce;'>Recorded</th>
+                            <th style='text-align:left; padding:7px 6px; width:30%; border-bottom:1px solid #d2d0ce; font-size:12px; text-transform:uppercase; letter-spacing:.04em;'>Tracking</th>
+                            <th style='text-align:center; padding:7px 6px; width:14%; border-bottom:1px solid #d2d0ce; font-size:12px; text-transform:uppercase; letter-spacing:.04em;'>QR</th>
+                            <th style='text-align:left; padding:7px 6px; width:22%; border-bottom:1px solid #d2d0ce; font-size:12px; text-transform:uppercase; letter-spacing:.04em;'>Custody</th>
+                            <th style='text-align:left; padding:7px 6px; width:16%; border-bottom:1px solid #d2d0ce; font-size:12px; text-transform:uppercase; letter-spacing:.04em;'>Carrier</th>
+                            <th style='text-align:left; padding:7px 6px; width:24%; border-bottom:1px solid #d2d0ce; font-size:12px; text-transform:uppercase; letter-spacing:.04em;'>Recorded</th>
                           </tr>
                         </thead>
-                        <tbody>" &
-                        If(
-                            IsEmpty(colPackingList),
-                            "<tr><td colspan='5' style='padding:12px 8px; color:#605e5c;'>No active packages are currently available for this recipient.</td></tr>",
-                            Concat(
-                                colPackingList,
-                                "<tr>" &
-                                "<td style='padding:8px 6px; border-bottom:1px solid #edebe9; font-weight:600; color:#201f1e; word-break:break-word;'>" & Substitute(Substitute(Substitute(Coalesce(Title, ""), "&", "&amp;"), "<", "&lt;"), ">", "&gt;") & "</td>" &
-                                "<td style='padding:6px 4px; border-bottom:1px solid #edebe9; text-align:center;'><img alt='QR code for tracking number " & Substitute(Substitute(Substitute(Coalesce(Title, ""), "&", "&amp;"), "<", "&lt;"), ">", "&gt;") & "' src='https://api.qrserver.com/v1/create-qr-code/?size=72x72&data=" & EncodeUrl("PKG|" & Coalesce(Title, "")) & "' style='width:48px; height:48px; display:block; margin:0 auto;' /></td>" &
-                                "<td style='padding:8px 6px; border-bottom:1px solid #edebe9; word-break:break-word;'>" & Substitute(Substitute(Substitute(Coalesce(field_2, "Unknown"), "&", "&amp;"), "<", "&lt;"), ">", "&gt;") & "<br/><span style='color:#605e5c; font-size:11px;'>" & Substitute(Substitute(Substitute(Coalesce(field_3, "Unknown"), "&", "&amp;"), "<", "&lt;"), ">", "&gt;") & "</span></td>" &
-                                "<td style='padding:8px 6px; border-bottom:1px solid #edebe9; word-break:break-word;'>" & Substitute(Substitute(Substitute(Coalesce(field_1, "Unknown"), "&", "&amp;"), "<", "&lt;"), ">", "&gt;") & "</td>" &
-                                "<td style='padding:8px 6px; border-bottom:1px solid #edebe9; white-space:nowrap;'>" & Text(If(field_2 = "Outbound" && Not(IsBlank(SignedOutDateTime)), SignedOutDateTime, field_6), "[$-en-US]mm/dd/yy hh:mm") & "</td>" &
-                                "</tr>"
-                            )
-                        ) &
-                        "</tbody>
+                        <tbody>" & If(
+                        IsEmpty(colPackingList),
+                        "<tr><td colspan='5' style='padding:12px 8px; color:#605e5c;'>No active packages are currently available for this recipient.</td></tr>",
+                        Concat(
+                            colPackingList,
+                            "<tr>" & "<td style='padding:7px 6px; border-bottom:1px solid #edebe9; vertical-align:top;'><div style='font-size:10px; line-height:1.15; font-weight:700; color:#201f1e; word-break:break-word;'>" & Substitute(
+                                Substitute(
+                                    Substitute(
+                                        Coalesce(
+                                            Title,
+                                            ""
+                                        ),
+                                        "&",
+                                        "&amp;"
+                                    ),
+                                    "<",
+                                    "&lt;"
+                                ),
+                                ">",
+                                "&gt;"
+                            ) & "</div></td>" & "<td style='padding:5px 4px; border-bottom:1px solid #edebe9; text-align:center; vertical-align:top;'><img alt='QR code for tracking number " & Substitute(
+                                Substitute(
+                                    Substitute(
+                                        Coalesce(
+                                            Title,
+                                            ""
+                                        ),
+                                        "&",
+                                        "&amp;"
+                                    ),
+                                    "<",
+                                    "&lt;"
+                                ),
+                                ">",
+                                "&gt;"
+                            ) & "' src='https://api.qrserver.com/v1/create-qr-code/?size=72x72&data=" & EncodeUrl(
+                                "PKG|" & Coalesce(
+                                    Title,
+                                    ""
+                                )
+                            ) & "' style='width:40px; height:40px; display:block; margin:0 auto;' /></td>" & "<td style='padding:7px 6px; border-bottom:1px solid #edebe9; vertical-align:top; word-break:break-word;'><span style='display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; line-height:1.2; font-weight:700; background-color:" & If(
+                                field_2 = "Outbound",
+                                "#fde7e9; color:#a4262c",
+                                "#dff6dd; color:#107c10"
+                            ) & ";'>" & Substitute(
+                                Substitute(
+                                    Substitute(
+                                        Upper(
+                                            Coalesce(
+                                                field_2,
+                                                "Unknown"
+                                            )
+                                        ),
+                                        "&",
+                                        "&amp;"
+                                    ),
+                                    "<",
+                                    "&lt;"
+                                ),
+                                ">",
+                                "&gt;"
+                            ) & "</span><div style='margin-top:5px; font-size:12px; line-height:1.25; color:#605e5c;'>" & Substitute(
+                                Substitute(
+                                    Substitute(
+                                        Coalesce(
+                                            field_3,
+                                            "Unknown"
+                                        ),
+                                        "&",
+                                        "&amp;"
+                                    ),
+                                    "<",
+                                    "&lt;"
+                                ),
+                                ">",
+                                "&gt;"
+                            ) & "</div></td>" & "<td style='padding:7px 6px; border-bottom:1px solid #edebe9; vertical-align:top;'><div style='font-size:13px; line-height:1.2; font-weight:600; color:#323130; word-break:break-word;'>" & Substitute(
+                                Substitute(
+                                    Substitute(
+                                        Coalesce(
+                                            field_1,
+                                            "Unknown"
+                                        ),
+                                        "&",
+                                        "&amp;"
+                                    ),
+                                    "<",
+                                    "&lt;"
+                                ),
+                                ">",
+                                "&gt;"
+                            ) & "</div></td>" & "<td style='padding:7px 6px; border-bottom:1px solid #edebe9; vertical-align:top;'><div style='font-size:13px; line-height:1.2; font-weight:600; color:#201f1e; white-space:nowrap;'>" & Text(
+                                If(
+                                    field_2 = "Outbound" && Not(IsBlank(SignedOutDateTime)),
+                                    SignedOutDateTime,
+                                    field_6
+                                ),
+                                "[$-en-US]mm/dd/yy hh:mm"
+                            ) & "</div></td>" & "</tr>"
+                        )
+                    ) & "</tbody>
                       </table>
                     </div>"
                   LayoutMinHeight: =320
-                  Width: =If(PackingList.Printing, Min(Parent.Width - 24, 736), Parent.Width - 48)
+                  Width: =Parent.Width - Parent.PaddingLeft - Parent.PaddingRight
             - conPackingSignature:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
-                  FillPortions: =0
                   LayoutDirection: =LayoutDirection.Vertical
-                  LayoutGap: =8
-                  LayoutMinHeight: =130
-                  PaddingBottom: =16
-                  PaddingLeft: =16
-                  PaddingRight: =16
-                  PaddingTop: =16
+                  LayoutMinHeight: =If(gblPackingListPrintMode, 180, 160)
                   RadiusBottomLeft: =8
                   RadiusBottomRight: =8
                   RadiusTopLeft: =8
                   RadiusTopRight: =8
                 Children:
-                  - lblSignatureTitle:
-                      Control: FluentV8/Label@1.8.6
-                      Properties:
-                        FontSize: =16
-                        FontWeight: =FontWeight.Semibold
-                        Text: ="Acceptance Signature"
-                  - lblSignatureStatement:
-                      Control: FluentV8/Label@1.8.6
+                  - htmlPackingSignature:
+                      Control: HtmlViewer@2.1.0
                       Properties:
                         AutoHeight: =true
-                        Text: ="I accept responsibility for the packages listed above and confirm they were transferred to me in the condition shown."
-                  - lblSignatureLine1:
-                      Control: FluentV8/Label@1.8.6
-                      Properties:
-                        FontSize: =14
-                        Text: |
-                          ="Recipient Signature: ________________________________    Date: ____________________"
-                  - lblSignatureLine2:
-                      Control: FluentV8/Label@1.8.6
-                      Properties:
-                        FontSize: =14
-                        Text: |
-                          ="Printed Name / Duty Phone: _________________________________________________"
-            - conPackingActions:
-                Control: GroupContainer@1.5.0
-                Variant: AutoLayout
+                        DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        Height: =If(gblPackingListPrintMode, 180, 160)
+                        HtmlText: |
+                          ="<div style='border:1px solid #d2d0ce; border-radius:10px; background-color:#fcfcfd; padding:12px 16px; color:#201f1e; overflow:hidden;'>
+                            <div style='font-size:15px; line-height:1.1; font-weight:700; color:#201f1e;'>Acceptance Signature</div>
+                            <div style='margin-top:4px; font-size:13px; line-height:1.25; color:#605e5c;'>I accept responsibility for the packages listed above and confirm they were transferred to me in the condition shown.</div>
+                            <table style='width:100%; margin-top:12px; border-collapse:separate; border-spacing:12px 0; table-layout:fixed;'>
+                              <tr>
+                                <td style='width:64%; vertical-align:bottom;'>
+                                  <div style='font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#605e5c;'>Recipient signature</div>
+                                  <div style='margin-top:16px; border-bottom:2px solid #323130; height:2px;'></div>
+                                </td>
+                                <td style='width:36%; vertical-align:bottom;'>
+                                  <div style='font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#605e5c;'>Date</div>
+                                  <div style='margin-top:16px; border-bottom:2px solid #323130; height:2px;'></div>
+                                </td>
+                              </tr>
+                            </table>
+                            <table style='width:100%; margin-top:10px; border-collapse:collapse;'>
+                              <tr>
+                                <td style='vertical-align:bottom;'>
+                                  <div style='font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#605e5c;'>Printed name / duty phone</div>
+                                  <div style='margin-top:16px; border-bottom:2px solid #323130; height:2px;'></div>
+                                </td>
+                              </tr>
+                            </table>
+                          </div>"
+                        Width: =Parent.Width - Parent.PaddingLeft - Parent.PaddingRight
+            - tmrPackingListPrint:
+                Control: Timer@2.1.0
                 Properties:
-                  FillPortions: =0
-                  LayoutDirection: =LayoutDirection.Horizontal
-                  LayoutGap: =12
-                  LayoutMinHeight: =44
-                  Visible: =Not(PackingList.Printing)
-                Children:
-                  - btnPrintPackingList:
-                      Control: FluentV8/Button@1.5.13
-                      Properties:
-                        AccessibleLabel: ="Print or save this customer packing list"
-                        DisplayMode: =If(IsEmpty(colPackingList), DisplayMode.Disabled, DisplayMode.Edit)
-                        OnSelect: =Print()
-                        Text: ="Print / Save PDF"
-                  - btnRefreshPackingList:
-                      Control: FluentV8/Button@1.5.13
-                      Properties:
-                        AccessibleLabel: ="Refresh package data for this packing list"
-                        OnSelect: |
-                          =Refresh(Tracking);
-                          ClearCollect(
-                              colPackingList,
-                              If(
-                                  IsBlank(gblRecipient),
-                                  Filter(Tracking, false),
-                                  Sort(
-                                      Filter(
-                                          Tracking,
-                                          field_4 = gblRecipient &&
-                                          (
-                                              field_3 = "Ready for Pickup" ||
-                                              field_3 = "Arrived on Dock" ||
-                                              field_3 = "Picked Up"
-                                          )
-                                      ),
-                                      field_6,
-                                      SortOrder.Descending
-                                  )
-                              )
-                          )
-                        Text: ="Refresh"
+                  Duration: =250
+                  OnTimerEnd: |
+                    =Set(gblPackingListPrintPending, false);
+                    Print();
+                    Set(gblPackingListResetChrome, true)
+                  Start: =gblPackingListPrintPending
+                  Visible: =false
+            - tmrPackingListResetChrome:
+                Control: Timer@2.1.0
+                Properties:
+                  Duration: =1500
+                  OnTimerEnd: |
+                    =Set(gblPackingListResetChrome, false);
+                    Set(gblPackingListPrintMode, false)
+                  Start: =gblPackingListResetChrome
+                  Visible: =false
