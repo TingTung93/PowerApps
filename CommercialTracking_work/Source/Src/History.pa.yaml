@@ -43,12 +43,12 @@ Screens:
                         AutoHeight: =true
                         FontSize: =20
                         FontWeight: =FontWeight.Semibold
-                        Text: ="Package History & Search"
+                        Text: =If(gblShowUnassigned, "Unassigned Package Reconciliation", "Package History & Search")
                   - btnBackToScanner:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Return to the package scanner"
-                        OnSelect: =Navigate(LedgerScreen, ScreenTransition.Fade)
+                        OnSelect: =Set(gblShowUnassigned, false); Navigate(LedgerScreen, ScreenTransition.Fade)
                         Text: ="Back to Scanner"
                   - btnRefreshHistory:
                       Control: FluentV8/Button@1.5.13
@@ -83,13 +83,13 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Clear the history search and show recent packages"
-                        OnSelect: =Set(gblHistorySearchQuery, ""); Reset(txtSearchDatabase)
+                        OnSelect: =Set(gblHistorySearchQuery, ""); Set(gblShowUnassigned, false); Reset(txtSearchDatabase)
                         Text: ="Clear"
                   - lblHistorySearchHint:
                       Control: FluentV8/Label@1.8.6
                       Properties:
                         AutoHeight: =true
-                        Text: =If(Len(Trim(Coalesce(gblHistorySearchQuery, ""))) >= 3, "Showing search results for \"" & gblHistorySearchQuery & "\".", "Showing the most recent 30 days until a 3+ character search is applied.")
+                        Text: =If(gblShowUnassigned, "Showing active inbound packages with no assigned recipient. Select Edit to reconcile a package.", If(Len(Trim(Coalesce(gblHistorySearchQuery, ""))) >= 3, "Showing search results for \"" & gblHistorySearchQuery & "\".", "Showing the most recent 30 days until a 3+ character search is applied."))
             - conHistoryEditor:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
@@ -385,6 +385,13 @@ Screens:
                         {query: Trim(Coalesce(gblHistorySearchQuery, ""))},
                         Sort(
                             If(
+                                gblShowUnassigned,
+                                Filter(
+                                    Tracking,
+                                    IsBlank(field_4) &&
+                                    field_2 = "Inbound" &&
+                                    (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")
+                                ),
                                 Len(query) >= 3,
                                 Filter(
                                     Tracking,

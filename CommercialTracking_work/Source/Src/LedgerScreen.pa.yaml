@@ -184,11 +184,11 @@ Screens:
                   - txtRecipient:
                       Control: TextInput@0.0.54
                       Properties:
-                        AccessibleLabel: ="Optional recipient used to create a packing list"
+                        AccessibleLabel: ="Recipient for an outbound custody manifest"
                         LayoutMinHeight: =44
                         OnChange: |-
                           =Set(gblRecipient, Trim(Self.Value)); If(!IsBlank(gblRecipient) && varScanDirection = "Inbound", UpdateContext({varTriggerFocus: true}))
-                        Placeholder: ="Packing-list recipient (optional)"
+                        Placeholder: ="Outbound manifest recipient (optional)"
                         Value: =gblRecipient
                   - txtBarcodeScanner_2:
                       Control: TextInput@0.0.54
@@ -218,6 +218,12 @@ Screens:
                               // 2. Parse the Scan locally (No DB hits yet)
                               With(
                                   {
+                                      // Compact local packing-list barcode reference
+                                      _recordId: If(
+                                          IsMatch(Upper(varRawScan), "^PKGID-\d+$"),
+                                          Value(Substitute(Upper(varRawScan), "PKGID-", "")),
+                                          Blank()
+                                      ),
                                       // Extract core tracking number
                                       _trk: If(
                                           StartsWith(
@@ -389,8 +395,10 @@ Screens:
                                               gblReceivingLocation,
                                               "Outbound pickup"
                                           ) & If(
+                                              !IsBlank(_recordId),
+                                              " | Local packing-list barcode",
                                               StartsWith(varRawScan, "PKG|"),
-                                              " | Packing-list QR",
+                                              " | Legacy packing-list QR",
                                               StartsWith(varRawScan, "[)>"),
                                               " | 2D label",
                                               ""
@@ -412,7 +420,11 @@ Screens:
                                                       Sort(
                                                           Filter(
                                                               Tracking,
-                                                              Title = _trk && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")
+                                                              (
+                                                                  (!IsBlank(_recordId) && ID = _recordId) ||
+                                                                  (IsBlank(_recordId) && Title = _trk)
+                                                              ) &&
+                                                              (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")
                                                           ),
                                                           ID,
                                                           SortOrder.Descending
@@ -500,7 +512,11 @@ Screens:
                                                       Sort(
                                                           Filter(
                                                               Tracking,
-                                                              Title = _trk && (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")
+                                                              (
+                                                                  (!IsBlank(_recordId) && ID = _recordId) ||
+                                                                  (IsBlank(_recordId) && Title = _trk)
+                                                              ) &&
+                                                              (field_3 = "Ready for Pickup" || field_3 = "Arrived on Dock")
                                                           ),
                                                           ID,
                                                           SortOrder.Descending
@@ -632,15 +648,28 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open package database history"
-                        OnSelect: =Navigate(History, ScreenTransition.Fade)
+                        OnSelect: =Set(gblShowUnassigned, false); Navigate(History, ScreenTransition.Fade)
                         Text: ="View Database History"
+                  - btnReconcileUnassigned:
+                      Control: FluentV8/Button@1.5.13
+                      Properties:
+                        AccessibleLabel: ="Open active packages that still need a recipient"
+                        OnSelect: =Set(gblShowUnassigned, true); Set(gblHistorySearchQuery, ""); Navigate(History, ScreenTransition.Fade)
+                        Text: ="Reconcile Unassigned Packages"
                   - btnCreatePackingList:
                       Control: FluentV8/Button@1.5.13
                       Properties:
-                        AccessibleLabel: ="Open the designated recipient's packing list"
-                        DisplayMode: =If(IsBlank(gblRecipient), DisplayMode.Disabled, DisplayMode.Edit)
-                        OnSelect: =If(IsBlank(gblRecipient), Notify("Enter a designated recipient before creating a packing list.", NotificationType.Warning), Set(gblManifestPreparedAt, Now()); Navigate(PackingList, ScreenTransition.Fade))
-                        Text: ="Create Packing List"
+                        AccessibleLabel: ="Open the inbound receiving manifest for this scan session"
+                        DisplayMode: =If(CountRows(Filter(colRecentScans, Direction = "Inbound" && !IsBlank(TrackingId))) = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                        OnSelect: =Set(gblManifestMode, "Inbound"); Set(gblManifestPreparedAt, Now()); Navigate(PackingList, ScreenTransition.Fade)
+                        Text: ="Print Inbound Manifest"
+                  - btnCreateRecipientManifest:
+                      Control: FluentV8/Button@1.5.13
+                      Properties:
+                        AccessibleLabel: ="Open a custody manifest for the selected recipient"
+                        DisplayMode: =If(IsBlank(Trim(Coalesce(gblRecipient, ""))), DisplayMode.Disabled, DisplayMode.Edit)
+                        OnSelect: =Set(gblManifestMode, "Recipient"); Set(gblManifestPreparedAt, Now()); Navigate(PackingList, ScreenTransition.Fade)
+                        Text: ="Print Recipient Custody List"
                   - btnClearScans_1:
                       Control: FluentV8/Button@1.5.13
                       Properties:

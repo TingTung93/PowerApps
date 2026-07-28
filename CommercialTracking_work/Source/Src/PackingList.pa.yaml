@@ -10,8 +10,7 @@ Screens:
         ClearCollect(
             colPackingList,
             If(
-                IsBlank(gblRecipient),
-                Filter(Tracking, false),
+                gblManifestMode = "Recipient",
                 Sort(
                     Filter(
                         Tracking,
@@ -24,6 +23,17 @@ Screens:
                     ),
                     field_6,
                     SortOrder.Descending
+                ),
+                Sort(
+                    Filter(
+                        Tracking,
+                        ID in Filter(
+                            colRecentScans,
+                            Direction = "Inbound" && !IsBlank(TrackingId)
+                        ).TrackingId
+                    ),
+                    field_6,
+                    SortOrder.Ascending
                 )
             )
         )
@@ -64,8 +74,7 @@ Screens:
                     ClearCollect(
                         colPackingList,
                         If(
-                            IsBlank(gblRecipient),
-                            Filter(Tracking, false),
+                            gblManifestMode = "Recipient",
                             Sort(
                                 Filter(
                                     Tracking,
@@ -78,6 +87,17 @@ Screens:
                                 ),
                                 field_6,
                                 SortOrder.Descending
+                            ),
+                            Sort(
+                                Filter(
+                                    Tracking,
+                                    ID in Filter(
+                                        colRecentScans,
+                                        Direction = "Inbound" && !IsBlank(TrackingId)
+                                    ).TrackingId
+                                ),
+                                field_6,
+                                SortOrder.Ascending
                             )
                         )
                     )
@@ -123,12 +143,14 @@ Screens:
                         Height: =If(gblPackingListPrintMode, 70, 92)
                         HtmlText: |
                           ="<div style='border:1px solid #d2d0ce; border-radius:6px; background:linear-gradient(135deg,#f8fbff 0%,#eef6ff 100%); padding:5px 5px; color:#201f1e; overflow:hidden;'>
-                            <div style='font-size:12px; line-height:1.1; font-weight:700; text-align:left;'>Package Responsibility List</div>
+                            <div style='font-size:12px; line-height:1.1; font-weight:700; text-align:left;'>" & If(gblManifestMode = "Recipient", "High-Value Recipient Custody Manifest", "Inbound Receiving Manifest") & "</div>
                             <div style='margin-top:4px; font-size:12px; line-height:1.15; font-weight:600; color:#0f548c; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;'>" &
                             If(
-                                IsBlank(gblRecipient),
-                                "No recipient selected",
-                                "Recipient: " & Substitute(Substitute(Substitute(gblRecipient, "&", "&amp;"), "<", "&lt;"), ">", "&gt;")
+                                gblManifestMode = "Recipient",
+                                "Recipient: " & Substitute(Substitute(Substitute(Coalesce(gblRecipient, "Not selected"), "&", "&amp;"), "<", "&lt;"), ">", "&gt;"),
+                                IsBlank(gblReceivingLocation),
+                                "Receiving location not selected",
+                                "Location: " & Substitute(Substitute(Substitute(gblReceivingLocation, "&", "&amp;"), "<", "&lt;"), ">", "&gt;")
                             ) &
                             "</div>
                             <table style='width:100%; margin-top:3px; border-collapse:separate; border-spacing:3px 0; table-layout:fixed;'>
@@ -143,14 +165,14 @@ Screens:
                                 </td>
                                 <td style='width:41%; vertical-align:top; background-color:#ffffff; border:1px solid #c7e0f4; border-radius:5px; padding:3px 6px;'>
                                   <div style='font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#605e5c;'>Use</div>
-                                  <div style='font-size:12px; line-height:1.15; font-weight:700; color:#201f1e; margin-top:2px;'>Inbound and outbound custody</div>
+                                  <div style='font-size:12px; line-height:1.15; font-weight:700; color:#201f1e; margin-top:2px;'>" & If(gblManifestMode = "Recipient", "Outbound custody transfer", "Inbound receiving record") & "</div>
                                 </td>
                               </tr>
                             </table>" &
                             If(
                                 gblPackingListPrintMode,
                                 "",
-                                "<div style='margin-top:8px; font-size:12px; line-height:1.2; color:#605e5c; text-align:left;'>Print-first view for fast accountability. Scan the QR code, review status, then capture the receiving signature below.</div>"
+                                "<div style='margin-top:8px; font-size:12px; line-height:1.2; color:#605e5c; text-align:left;'>Print-first view for fast accountability. Scan the local barcode, review status, then capture the receiving signature below.</div>"
                             ) &
                             "</div>"
                         Width: =Parent.Width - Parent.PaddingLeft - Parent.PaddingRight
@@ -159,7 +181,7 @@ Screens:
                       Properties:
                         AutoHeight: =true
                         FontSize: =16
-                        Text: =If(IsBlank(gblRecipient), "Return to the scanner and choose a recipient.", "No active inbound or outbound packages were found for this recipient.")
+                        Text: =If(gblManifestMode = "Recipient", "No active or picked-up packages were found for this recipient.", "No inbound packages are available in the current scan session.")
                         Visible: =IsEmpty(colPackingList)
                         X: =40
                         Y: =40
@@ -180,20 +202,74 @@ Screens:
                         If(lblEmptyManifest.Visible, lblEmptyManifest.Height + 30, 20)
                     )
                   HtmlText: |-
-                    ="<div style='border:1px solid #d2d0ce; border-radius:8px; overflow:hidden; background-color:#ffffff;'>
+                    =If(
+                      CountRows(colPackingList) > 20,
+                      With(
+                        {
+                          _itemCount: CountRows(colPackingList),
+                          _rowsPerColumn: RoundUp(CountRows(colPackingList) / 4, 0)
+                        },
+                        "<div style='border:1px solid #d2d0ce; background:#fff; overflow:hidden; font-family:Segoe UI,Arial,sans-serif; color:#201f1e;'>
+                          <div style='padding:2px 4px; border-bottom:1px solid #d2d0ce; background:#f3f2f1; font-size:7px; font-weight:700; text-transform:uppercase;'>High-density manifest index &mdash; " & Text(_itemCount) & " items</div>
+                          <table style='width:100%; border-collapse:collapse; table-layout:fixed;'>" &
+                          Concat(
+                            Sequence(_rowsPerColumn) As manifestRow,
+                            "<tr>" &
+                            Concat(
+                              Sequence(4) As manifestColumn,
+                              With(
+                                {
+                                  _itemIndex: manifestRow.Value + ((manifestColumn.Value - 1) * _rowsPerColumn)
+                                },
+                                If(
+                                  _itemIndex <= _itemCount,
+                                  With(
+                                    {
+                                      _manifestItem: Last(FirstN(colPackingList, _itemIndex))
+                                    },
+                                    "<td style='width:25%; height:25px; padding:1px 3px; border-right:1px solid #edebe9; border-bottom:1px solid #edebe9; vertical-align:middle; overflow:hidden;'>
+                                      <div style='font-size:6px; line-height:1; color:#605e5c; white-space:nowrap;'>#" & Text(_itemIndex, "000") & " &nbsp;" &
+                                        Substitute(Substitute(Substitute(Coalesce(_manifestItem.field_1, "Unknown"), "&", "&amp;"), "<", "&lt;"), ">", "&gt;") & " &nbsp;&bull;&nbsp; " &
+                                        Substitute(Substitute(Substitute(Coalesce(_manifestItem.field_3, "Unknown"), "&", "&amp;"), "<", "&lt;"), ">", "&gt;") &
+                                      "</div>
+                                      <div style='margin-top:1px; font-size:7px; line-height:1; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;'>" &
+                                        Substitute(Substitute(Substitute(Coalesce(_manifestItem.Title, ""), "&", "&amp;"), "<", "&lt;"), ">", "&gt;") &
+                                      "</div>
+                                      <div style='margin-top:1px; font-size:5.5px; line-height:1; color:#605e5c; white-space:nowrap;'>" &
+                                        Text(
+                                          If(
+                                            _manifestItem.field_2 = "Outbound" && Not(IsBlank(_manifestItem.SignedOutDateTime)),
+                                            _manifestItem.SignedOutDateTime,
+                                            _manifestItem.field_6
+                                          ),
+                                          "[$-en-US]mm/dd/yy hh:mm"
+                                        ) &
+                                      "</div>
+                                    </td>"
+                                  ),
+                                  "<td style='width:25%; height:25px; border-right:1px solid #edebe9; border-bottom:1px solid #edebe9;'></td>"
+                                )
+                              )
+                            ) &
+                            "</tr>"
+                          ) &
+                          "</table>
+                        </div>"
+                      ),
+                      "<div style='border:1px solid #d2d0ce; border-radius:8px; overflow:hidden; background-color:#ffffff;'>
                       <table style='width:100%; border-collapse:collapse; table-layout:fixed; font-family:Segoe UI, Arial, sans-serif; font-size:12px; color:#323130;'>
                         <thead>
                           <tr style='background-color:#f3f2f1;'>
                             <th style='text-align:left; padding:3px 4px; width:31%; border-bottom:1px solid #d2d0ce; font-size:9px; text-transform:uppercase; letter-spacing:.03em;'>Tracking</th>
-                            <th style='text-align:center; padding:3px 2px; width:10%; border-bottom:1px solid #d2d0ce; font-size:9px; text-transform:uppercase;'>QR</th>
-                            <th style='text-align:left; padding:3px 4px; width:23%; border-bottom:1px solid #d2d0ce; font-size:9px; text-transform:uppercase; letter-spacing:.03em;'>Custody</th>
-                            <th style='text-align:left; padding:3px 4px; width:14%; border-bottom:1px solid #d2d0ce; font-size:9px; text-transform:uppercase; letter-spacing:.03em;'>Carrier</th>
-                            <th style='text-align:left; padding:3px 4px; width:22%; border-bottom:1px solid #d2d0ce; font-size:9px; text-transform:uppercase; letter-spacing:.03em;'>Recorded</th>
+                            <th style='text-align:center; padding:3px 2px; width:18%; border-bottom:1px solid #d2d0ce; font-size:9px; text-transform:uppercase;'>Barcode</th>
+                            <th style='text-align:left; padding:3px 4px; width:19%; border-bottom:1px solid #d2d0ce; font-size:9px; text-transform:uppercase; letter-spacing:.03em;'>Custody</th>
+                            <th style='text-align:left; padding:3px 4px; width:12%; border-bottom:1px solid #d2d0ce; font-size:9px; text-transform:uppercase; letter-spacing:.03em;'>Carrier</th>
+                            <th style='text-align:left; padding:3px 4px; width:20%; border-bottom:1px solid #d2d0ce; font-size:9px; text-transform:uppercase; letter-spacing:.03em;'>Recorded</th>
                           </tr>
                         </thead>
                         <tbody>" & If(
                         IsEmpty(colPackingList),
-                        "<tr><td colspan='5' style='padding:12px 8px; color:#605e5c;'>No active packages are currently available for this recipient.</td></tr>",
+                        "<tr><td colspan='5' style='padding:12px 8px; color:#605e5c;'>" & If(gblManifestMode = "Recipient", "No packages were found for this recipient.", "No inbound packages are available in the current scan session.") & "</td></tr>",
                         Concat(
                             colPackingList,
                             "<tr>" & "<td style='padding:3px 4px; border-bottom:1px solid #edebe9; vertical-align:middle;'><div style='font-size:9px; line-height:1.05; font-weight:700; color:#201f1e; word-break:break-word;'>" & Substitute(
@@ -211,27 +287,52 @@ Screens:
                                 ),
                                 ">",
                                 "&gt;"
-                            ) & "</div></td>" & "<td style='padding:2px; border-bottom:1px solid #edebe9; text-align:center; vertical-align:middle;'><img alt='QR code for tracking number " & Substitute(
-                                Substitute(
-                                    Substitute(
-                                        Coalesce(
-                                            Title,
-                                            ""
-                                        ),
-                                        "&",
-                                        "&amp;"
-                                    ),
-                                    "<",
-                                    "&lt;"
-                                ),
-                                ">",
-                                "&gt;"
-                            ) & "' src='https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=" & EncodeUrl(
-                                "PKG|" & Coalesce(
-                                    Title,
-                                    ""
-                                )
-                            ) & "' style='width:28px; height:28px; display:block; margin:0 auto;' /></td>" & "<td style='padding:3px 4px; border-bottom:1px solid #edebe9; vertical-align:middle; word-break:break-word;'><span style='display:inline-block; padding:1px 4px; border-radius:6px; font-size:9px; line-height:1.05; font-weight:700; background-color:" & If(
+                            ) & "</div></td>" & "<td style='padding:2px; border-bottom:1px solid #edebe9; text-align:center; vertical-align:middle;'>" &
+                            With(
+                                {
+                                    _barcodeText: "*PKGID-" & Text(ID) & "*",
+                                    _barcodeAlphabet: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*",
+                                    _barcodePatterns: Table(
+                                        {Value:"101001101101"},{Value:"110100101011"},{Value:"101100101011"},{Value:"110110010101"},{Value:"101001101011"},
+                                        {Value:"110100110101"},{Value:"101100110101"},{Value:"101001011011"},{Value:"110100101101"},{Value:"101100101101"},
+                                        {Value:"110101001011"},{Value:"101101001011"},{Value:"110110100101"},{Value:"101011001011"},{Value:"110101100101"},
+                                        {Value:"101101100101"},{Value:"101010011011"},{Value:"110101001101"},{Value:"101101001101"},{Value:"101011001101"},
+                                        {Value:"110101010011"},{Value:"101101010011"},{Value:"110110101001"},{Value:"101011010011"},{Value:"110101101001"},
+                                        {Value:"101101101001"},{Value:"101010110011"},{Value:"110101011001"},{Value:"101101011001"},{Value:"101011011001"},
+                                        {Value:"110010101011"},{Value:"100110101011"},{Value:"110011010101"},{Value:"100101101011"},{Value:"110010110101"},
+                                        {Value:"100110110101"},{Value:"100101011011"},{Value:"110010101101"},{Value:"100110101101"},{Value:"100100100101"},
+                                        {Value:"100100101001"},{Value:"100101001001"},{Value:"101001001001"},{Value:"100101101101"}
+                                    )
+                                },
+                                "<svg role='img' aria-label='Code 39 package reference barcode for record " & Text(ID) &
+                                "' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 " & Text(Len(_barcodeText) * 12) & " 30' preserveAspectRatio='none' style='display:block; width:100%; height:28px; background:#fff; shape-rendering:crispEdges;'>" &
+                                Concat(
+                                    Sequence(Len(_barcodeText)) As barcodeCharacter,
+                                    With(
+                                        {
+                                            _pattern: Last(
+                                                FirstN(
+                                                    _barcodePatterns,
+                                                    Find(
+                                                        Mid(_barcodeText, barcodeCharacter.Value, 1),
+                                                        _barcodeAlphabet
+                                                    )
+                                                )
+                                            ).Value
+                                        },
+                                        Concat(
+                                            Sequence(12) As barcodeModule,
+                                            If(
+                                                Mid(_pattern, barcodeModule.Value, 1) = "1",
+                                                "<rect x='" & Text((barcodeCharacter.Value - 1) * 12 + barcodeModule.Value - 1) & "' y='0' width='1' height='30' fill='#000' />",
+                                                ""
+                                            )
+                                        )
+                                    )
+                                ) &
+                                "</svg>"
+                            ) &
+                            "</td><td style='padding:3px 4px; border-bottom:1px solid #edebe9; vertical-align:middle; word-break:break-word;'><span style='display:inline-block; padding:1px 4px; border-radius:6px; font-size:9px; line-height:1.05; font-weight:700; background-color:" & If(
                                 field_2 = "Outbound",
                                 "#fde7e9; color:#a4262c",
                                 "#dff6dd; color:#107c10"
@@ -294,6 +395,7 @@ Screens:
                     ) & "</tbody>
                       </table>
                     </div>"
+                    )
                   LayoutMinHeight: =240
                   Width: =Parent.Width - Parent.PaddingLeft - Parent.PaddingRight
             - conPackingSignature:
@@ -317,12 +419,12 @@ Screens:
                         Height: =If(gblPackingListPrintMode, 105, 140)
                         HtmlText: |
                           ="<div style='border:1px solid #d2d0ce; border-radius:6px; background-color:#fcfcfd; padding:6px 10px; color:#201f1e; overflow:hidden;'>
-                            <div style='font-size:11px; line-height:1.05; font-weight:700; color:#201f1e;'>Acceptance Signature</div>
-                            <div style='margin-top:2px; font-size:9px; line-height:1.1; color:#605e5c;'>I accept responsibility for the packages listed above and confirm they were transferred to me in the condition shown.</div>
+                            <div style='font-size:11px; line-height:1.05; font-weight:700; color:#201f1e;'>" & If(gblManifestMode = "Recipient", "Custody Acceptance", "Receiving Record") & "</div>
+                            <div style='margin-top:2px; font-size:9px; line-height:1.1; color:#605e5c;'>" & If(gblManifestMode = "Recipient", "I accept responsibility for the high-value items listed above and confirm custody was transferred to me.", "I confirm the packages listed above were received at the stated location and recorded in the tracking ledger.") & "</div>
                             <table style='width:100%; margin-top:5px; border-collapse:separate; border-spacing:8px 0; table-layout:fixed;'>
                               <tr>
                                 <td style='width:64%; vertical-align:bottom;'>
-                                  <div style='font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#605e5c;'>Recipient signature</div>
+                                  <div style='font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#605e5c;'>" & If(gblManifestMode = "Recipient", "Recipient signature", "Receiving personnel signature") & "</div>
                                   <div style='margin-top:8px; border-bottom:1px solid #323130; height:1px;'></div>
                                 </td>
                                 <td style='width:36%; vertical-align:bottom;'>
