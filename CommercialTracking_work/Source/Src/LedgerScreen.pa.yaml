@@ -147,12 +147,12 @@ Screens:
                   FillPortions: =2
                   LayoutAlignItems: =LayoutAlignItems.Stretch
                   LayoutDirection: =LayoutDirection.Vertical
-                  LayoutGap: =16
+                  LayoutGap: =8
                   LayoutMinWidth: =340
-                  PaddingBottom: =16
-                  PaddingLeft: =16
-                  PaddingRight: =16
-                  PaddingTop: =16
+                  PaddingBottom: =10
+                  PaddingLeft: =10
+                  PaddingRight: =10
+                  PaddingTop: =10
                   RadiusBottomLeft: =8
                   RadiusBottomRight: =8
                   RadiusTopLeft: =8
@@ -648,18 +648,21 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open package database history"
+                        LayoutMinHeight: =32
                         OnSelect: =Set(gblShowUnassigned, false); Navigate(History, ScreenTransition.Fade)
                         Text: ="View Database History"
                   - btnReconcileUnassigned:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open active packages that still need a recipient"
+                        LayoutMinHeight: =32
                         OnSelect: =Set(gblShowUnassigned, true); Set(gblHistorySearchQuery, ""); Navigate(History, ScreenTransition.Fade)
                         Text: ="Reconcile Unassigned Packages"
                   - btnCreatePackingList:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open the inbound receiving manifest for this scan session"
+                        LayoutMinHeight: =32
                         DisplayMode: =If(CountRows(Filter(colRecentScans, Direction = "Inbound" && !IsBlank(TrackingId))) = 0, DisplayMode.Disabled, DisplayMode.Edit)
                         OnSelect: =Set(gblManifestMode, "Inbound"); Set(gblManifestPreparedAt, Now()); Navigate(PackingList, ScreenTransition.Fade)
                         Text: ="Print Inbound Manifest"
@@ -667,6 +670,7 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open a custody manifest for the selected recipient"
+                        LayoutMinHeight: =32
                         DisplayMode: =If(IsBlank(Trim(Coalesce(gblRecipient, ""))), DisplayMode.Disabled, DisplayMode.Edit)
                         OnSelect: =Set(gblManifestMode, "Recipient"); Set(gblManifestPreparedAt, Now()); Navigate(PackingList, ScreenTransition.Fade)
                         Text: ="Print Recipient Custody List"
@@ -674,6 +678,7 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Clear recent scans from this local session"
+                        LayoutMinHeight: =32
                         OnSelect: =Clear(colRecentScans)
                         Text: ="Clear Local Ledger"
                   - tmrFocusScanner_1:
