@@ -2,23 +2,21 @@ let
     // Required parameters:
     // SiteUrl: SharePoint site URL, not the list URL.
     // TrackingListName: normally "Tracking".
-    // ReportUtcOffsetHours: MTF local offset from UTC, for example -7 or -8.
+    // ReportUtcOffsetHours: MTF local offset from UTC, for example -8 for PST.
+
     Source = SharePoint.Tables(
         SiteUrl,
         [
-            ApiVersion = 15,
             Implementation = "2.0",
             ViewMode = "All"
         ]
     ),
-
     MatchingLists = Table.SelectRows(
         Source,
         each
             Record.FieldOrDefault(_, "Title", null) = TrackingListName
             or Record.FieldOrDefault(_, "Name", null) = TrackingListName
     ),
-
     RawItems =
         if Table.RowCount(MatchingLists) = 1 then
             MatchingLists{0}[Items]
@@ -26,19 +24,20 @@ let
             error "The SharePoint list '" & TrackingListName & "' was not found at " & SiteUrl
         else
             error "More than one SharePoint list matched '" & TrackingListName & "'. Use the list GUID in the query.",
-
+            
+    // UPDATED: Using the exact column headers you provided
     SelectedColumns = Table.SelectColumns(
         RawItems,
         {
             "ID",
-            "Title",
-            "field_1",
-            "field_2",
-            "field_3",
-            "field_4",
-            "field_5",
-            "field_6",
-            "field_7",
+            "Tracking Number",
+            "Carrier",
+            "Direction",
+            "Status",
+            "Recipient",
+            "Sender",
+            "LoggedDateTime",
+            "Notes",
             "SignedOutDateTime",
             "SignedOutBy",
             "Location",
@@ -48,28 +47,21 @@ let
             "ReceivedBy",
             "Created",
             "Modified",
-            "Author",
-            "Editor"
+            "Created By",
+            "Modified By"
         },
         MissingField.UseNull
     ),
-
+    
+    // UPDATED: Only renaming the date columns to match the local time script below
     RenamedColumns = Table.RenameColumns(
         SelectedColumns,
         {
-            {"Title", "Tracking Number"},
-            {"field_1", "Carrier"},
-            {"field_2", "Direction"},
-            {"field_3", "Status"},
-            {"field_4", "Recipient"},
-            {"field_5", "Sender"},
-            {"field_6", "Logged At"},
-            {"field_7", "Notes"},
+            {"LoggedDateTime", "Logged At"},
             {"SignedOutDateTime", "Signed Out At"}
         },
         MissingField.Ignore
     ),
-
     PersonDisplayName = (person as any) as nullable text =>
         if person = null then
             null
@@ -91,44 +83,20 @@ let
             )
         else
             try Text.From(person) otherwise null,
-
-    AddReceivedBy = Table.AddColumn(
-        RenamedColumns,
-        "Received By Name",
-        each PersonDisplayName([ReceivedBy]),
-        type text
-    ),
-    AddSignedOutBy = Table.AddColumn(
-        AddReceivedBy,
-        "Signed Out By Name",
-        each PersonDisplayName([SignedOutBy]),
-        type text
-    ),
-    AddManifestPrintedBy = Table.AddColumn(
-        AddSignedOutBy,
-        "Manifest Printed By Name",
-        each PersonDisplayName([ManifestPrintedBy]),
-        type text
-    ),
-    AddCreatedBy = Table.AddColumn(
-        AddManifestPrintedBy,
-        "Created By Name",
-        each PersonDisplayName([Author]),
-        type text
-    ),
-    AddModifiedBy = Table.AddColumn(
-        AddCreatedBy,
-        "Modified By Name",
-        each PersonDisplayName([Editor]),
-        type text
-    ),
-
+            
+    AddReceivedBy = Table.AddColumn(RenamedColumns, "Received By Name", each PersonDisplayName([ReceivedBy]), type text),
+    AddSignedOutBy = Table.AddColumn(AddReceivedBy, "Signed Out By Name", each PersonDisplayName([SignedOutBy]), type text),
+    AddManifestPrintedBy = Table.AddColumn(AddSignedOutBy, "Manifest Printed By Name", each PersonDisplayName([ManifestPrintedBy]), type text),
+    
+    // UPDATED: Now referencing "Created By" and "Modified By" instead of Author/Editor
+    AddCreatedBy = Table.AddColumn(AddManifestPrintedBy, "Created By Name", each PersonDisplayName([#"Created By"]), type text),
+    AddModifiedBy = Table.AddColumn(AddCreatedBy, "Modified By Name", each PersonDisplayName([#"Modified By"]), type text),
+    
     RemovePersonRecords = Table.RemoveColumns(
         AddModifiedBy,
-        {"ReceivedBy", "SignedOutBy", "ManifestPrintedBy", "Author", "Editor"},
+        {"ReceivedBy", "SignedOutBy", "ManifestPrintedBy", "Created By", "Modified By"},
         MissingField.Ignore
     ),
-
     TypedTimestamps = Table.TransformColumnTypes(
         RemovePersonRecords,
         {
@@ -140,7 +108,6 @@ let
             {"Modified", type datetime}
         }
     ),
-
     ToLocal = (value as nullable datetime) as nullable datetime =>
         if value = null then
             null
@@ -151,13 +118,13 @@ let
                     ReportUtcOffsetHours
                 )
             ),
-
     AddLoggedLocal = Table.AddColumn(TypedTimestamps, "Logged At Local", each ToLocal([Logged At]), type datetime),
     AddReceivedLocal = Table.AddColumn(AddLoggedLocal, "Received At Local", each ToLocal([ReceivedAt]), type datetime),
     AddSignedOutLocal = Table.AddColumn(AddReceivedLocal, "Signed Out At Local", each ToLocal([Signed Out At]), type datetime),
     AddCreatedLocal = Table.AddColumn(AddSignedOutLocal, "Created Local", each ToLocal([Created]), type datetime),
     AddModifiedLocal = Table.AddColumn(AddCreatedLocal, "Modified Local", each ToLocal([Modified]), type datetime),
-
+    
+    // UPDATED: Formatting text values using the correct column names
     CleanText = Table.TransformColumns(
         AddModifiedLocal,
         {
@@ -173,14 +140,12 @@ let
         null,
         MissingField.Ignore
     ),
-
     AddPackageReference = Table.AddColumn(
         CleanText,
         "Package Reference",
         each "PKGID-" & Text.From([ID], "en-US"),
         type text
     ),
-
     FinalColumns = Table.ReorderColumns(
         AddPackageReference,
         {
