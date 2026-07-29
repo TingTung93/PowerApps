@@ -40,7 +40,6 @@ Screens:
                 Control: FluentV8/Button@1.5.13
                 Properties:
                   AccessibleLabel: ="Save all package fields"
-                  BasePaletteColor: =gblColorSuccess
                   DisplayMode: =If(Form1.Valid, DisplayMode.Edit, DisplayMode.Disabled)
                   OnSelect: =SubmitForm(Form1)
                   Text: ="Save"
@@ -48,7 +47,6 @@ Screens:
                 Control: FluentV8/Button@1.5.13
                 Properties:
                   AccessibleLabel: ="Cancel package editing and return to History"
-                  BasePaletteColor: =gblColorNeutral
                   OnSelect: =ResetForm(Form1); Navigate(History, ScreenTransition.Fade)
                   Text: ="Cancel"
       - Form1:

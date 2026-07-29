@@ -47,14 +47,11 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Close help and return to the previous screen"
-                        BasePaletteColor: =gblColorNeutral
                         OnSelect: =Back(ScreenTransition.Fade)
                         Text: ="Back"
             - htmlSemanticColorLegend:
                 Control: HtmlViewer@2.1.0
                 Properties:
-                  AccessibleLabel: |
-                    ="Color key: blue is a primary action, green completes work, amber needs attention, red is destructive or an error, and gray is navigation or a secondary action."
                   DisabledBorderColor: =RGBA(200, 198, 196, 1)
                   FillPortions: =0
                   Font: =Font.'Segoe UI'
