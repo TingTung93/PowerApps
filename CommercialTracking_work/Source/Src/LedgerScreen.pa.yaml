@@ -125,11 +125,13 @@ Screens:
                       Properties:
                         AccessibleLabel: ="Recent package scans in this session"
                         BorderColor: =RGBA(243, 242, 241, 1)
-                        FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                        DelayItemLoading: =true
+                        FocusedBorderColor: =gblColorPrimary
                         FocusedBorderThickness: =2
                         Items: |
                           =Sort(Filter(colRecentScans, txtSearchLedger_1.Value in TrackingNumber || txtSearchLedger_1.Value in ScanNotes || txtSearchLedger_1.Value in Carrier || txtSearchLedger_1.Value in Location || txtSearchLedger_1.Value in DisplayAddressee || txtSearchLedger_1.Value in DisplayAddressBlock), Timestamp, SortOrder.Descending)
                         LayoutMinHeight: =200
+                        LoadingSpinner: =LoadingSpinner.Data
                         TabIndex: =0
                         TemplateSize: =190
                       Children:
@@ -288,17 +290,17 @@ Screens:
                   - txtRecipient:
                       Control: TextInput@0.0.54
                       Properties:
-                        AccessibleLabel: ="Recipient for an outbound custody manifest"
+                        AccessibleLabel: ="Recipient name used for outbound release and recipient custody manifests"
                         DisplayMode: =If(varScanInProgress, DisplayMode.Disabled, DisplayMode.Edit)
                         LayoutMinHeight: =44
                         OnChange: |-
                           =Set(gblRecipient, Trim(Self.Value)); If(!IsBlank(gblRecipient) && varScanDirection = "Inbound", UpdateContext({varTriggerFocus: true}))
-                        Placeholder: ="Outbound manifest recipient (optional)"
+                        Placeholder: =If(varScanDirection = "Outbound", "Recipient expected for outbound release", "Recipient custody manifest (optional)")
                         Value: =gblRecipient
                   - txtBarcodeScanner_2:
                       Control: TextInput@0.0.54
                       Properties:
-                        AccessibleLabel: ="Package barcode or packing-list QR scanner"
+                        AccessibleLabel: =If(varScanInProgress, "Package scan is saving. Wait for the result.", If(varScanDirection = "Inbound" && IsBlank(gblReceivingLocation), "Package scanner disabled. Select a receiving location first.", "Ready to scan a package barcode or local package-reference barcode."))
                         DisplayMode: =If(varScanInProgress || (varScanDirection = "Inbound" && IsBlank(gblReceivingLocation)), DisplayMode.Disabled, DisplayMode.Edit)
                         LayoutMinHeight: =48
                         OnChange: |
@@ -802,6 +804,8 @@ Screens:
                       Control: FluentV8/Label@1.8.6
                       Properties:
                         AutoHeight: =true
+                        Color: =If(varScanInProgress, gblColorPrimary, If(varScanDirection = "Inbound" && IsBlank(gblReceivingLocation), gblColorWarning, gblColorNeutral))
+                        FontWeight: =If(varScanInProgress || (varScanDirection = "Inbound" && IsBlank(gblReceivingLocation)), FontWeight.Semibold, FontWeight.Normal)
                         Text: =If(varScanDirection = "Outbound", "Pickup mode | " & CountRows(colRecentScans) & " session scan(s)", If(IsBlank(gblReceivingLocation), "Receiving location required before scanning", "Blind receiving at " & gblReceivingLocation & " | " & CountRows(colRecentScans) & " session scan(s) | " & CountRows(Filter(colRecentScans, Direction = "Inbound" && !IsBlank(TrackingId) && (IsBlank(gblLastInboundManifestPrintedAt) || Timestamp > gblLastInboundManifestPrintedAt))) & " unprinted"))
                   - btnViewHistory:
                       Control: FluentV8/Button@1.5.13
@@ -827,7 +831,7 @@ Screens:
                         LayoutMinHeight: =32
                         DisplayMode: =If(CountRows(Filter(colRecentScans, Direction = "Inbound" && !IsBlank(TrackingId))) = 0, DisplayMode.Disabled, DisplayMode.Edit)
                         OnSelect: =Set(gblManifestMode, "Inbound"); Set(gblManifestId, "MNF-" & Text(Now(), "[$-en-US]yyyymmdd-hhnnss") & "-" & Upper(Left(Substitute(Text(GUID()), "-", ""), 6))); Set(gblManifestPreparedAt, Now()); Navigate(PackingList, ScreenTransition.Fade)
-                        Text: ="Print Inbound Manifest"
+                        Text: ="Print Inbound Manifest (" & CountRows(Filter(colRecentScans, Direction = "Inbound" && !IsBlank(TrackingId))) & ")"
                   - btnCreateRecipientManifest:
                       Control: FluentV8/Button@1.5.13
                       Properties:
@@ -859,7 +863,7 @@ Screens:
                               UpdateContext({varConfirmClearScans: false});
                               Notify("The local scan ledger was cleared.", NotificationType.Success)
                           )
-                        Text: =If(varConfirmClearScans, "Confirm Clear Unprinted Ledger", "Clear Local Ledger")
+                        Text: =If(varConfirmClearScans, "Confirm Clear Unprinted Ledger", "Clear Local Ledger (" & CountRows(colRecentScans) & ")")
                   - tmrClearScansConfirmation:
                       Control: Timer@2.1.0
                       Properties:

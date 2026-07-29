@@ -247,7 +247,7 @@ Screens:
                             Control: TextInput@0.0.54
                             Properties:
                               AccessibleLabel: ="Recipient for the selected history record"
-                              BasePaletteColor: =RGBA(5, 102, 178, 1)
+                              BasePaletteColor: =gblColorPrimary
                               BorderColor: =RGBA(0, 0, 0, 1)
                               BorderStyle: =BorderStyle.Solid
                               BorderThickness: =1
@@ -403,15 +403,28 @@ Screens:
                                     )
                                 )
                               Text: ="Save Changes"
+            - lblNoHistoryResults:
+                Control: FluentV8/Label@1.8.6
+                Properties:
+                  AccessibleLabel: =Self.Text
+                  AutoHeight: =true
+                  Color: =gblColorWarning
+                  FillPortions: =0
+                  FontWeight: =FontWeight.Semibold
+                  Height: =If(Self.Visible, 40, 0)
+                  Text: =If(gblShowUnassigned, "No active unassigned inbound packages were found.", If(Len(Trim(Coalesce(gblHistorySearchQuery, ""))) >= 3, "No packages matched this search. Verify the tracking number or try a shorter prefix.", "No package activity was found in the last 30 days."))
+                  Visible: =IsEmpty(Gallery_History.AllItems)
             - Gallery_History:
                 Control: Gallery@2.15.0
                 Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_pcfCore
                 Properties:
                   AccessibleLabel: ="Package history search results"
                   BorderColor: =RGBA(0, 0, 0, 0)
+                  DelayItemLoading: =true
                   FillPortions: =5
-                  FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                  FocusedBorderColor: =gblColorPrimary
                   FocusedBorderThickness: =2
+                  LoadingSpinner: =LoadingSpinner.Data
                   Items: |
                     =With(
                         {query: Trim(Coalesce(gblHistorySearchQuery, ""))},
@@ -523,9 +536,9 @@ Screens:
                       Control: Classic/Icon@2.5.0
                       Properties:
                         AccessibleLabel: ="Load this package into the history editor"
-                        Color: =If(gblHistoryRecordId = ThisItem.ID, RGBA(98, 100, 167, 1), RGBA(96, 94, 92, 1))
+                        Color: =If(gblHistoryRecordId = ThisItem.ID, gblColorPrimary, gblColorNeutral)
                         Height: =20
-                        HoverColor: =RGBA(98, 100, 167, 1)
+                        HoverColor: =gblColorPrimary
                         Icon: =Icon.Edit
                         OnSelect: =Set(gblHistoryRecordId, ThisItem.ID); Reset(txtHistoryRecipient); Reset(txtHistoryCarrier); Reset(txtHistoryNotes)
                         TabIndex: =0

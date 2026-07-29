@@ -74,12 +74,13 @@ Screens:
             - btnPrintPackingList:
                 Control: FluentV8/Button@1.5.13
                 Properties:
-                  AccessibleLabel: ="Print or save this customer packing list"
+                  AccessibleLabel: =If(CountRows(colPackingList) > 100, "Printing disabled. This manifest contains more than 100 packages.", If(IsEmpty(colPackingList), "Printing disabled. This manifest is empty.", "Print or save this manifest"))
                   BasePaletteColor: =gblColorSuccess
-                  DisplayMode: =If(IsEmpty(colPackingList), DisplayMode.Disabled, DisplayMode.Edit)
+                  DisplayMode: =If(IsEmpty(colPackingList) || CountRows(colPackingList) > 100, DisplayMode.Disabled, DisplayMode.Edit)
                   LayoutMinHeight: =36
                   OnSelect: =Set(gblPackingListPrintMode, true); Set(gblPackingListPrintPending, false); Set(gblPackingListPrintPending, true)
                   Text: ="Print / Save PDF"
+                  Tooltip: =If(CountRows(colPackingList) > 100, "Split this manifest into batches of 100 or fewer.", If(IsEmpty(colPackingList), "No packages are available to print.", "Print or save this manifest."))
             - btnRefreshPackingList:
                 Control: FluentV8/Button@1.5.13
                 Properties:
@@ -119,6 +120,15 @@ Screens:
                         )
                     )
                   Text: ="Refresh"
+            - lblManifestReadiness:
+                Control: FluentV8/Label@1.8.6
+                Properties:
+                  AccessibleLabel: =Self.Text
+                  Color: =If(IsEmpty(colPackingList) || CountRows(colPackingList) > 100, gblColorDanger, If(CountRows(colPackingList) > 20, gblColorWarning, gblColorSuccess))
+                  FillPortions: =1
+                  FontSize: =11
+                  FontWeight: =FontWeight.Semibold
+                  Text: =If(IsEmpty(colPackingList), "NOT READY | No packages", CountRows(colPackingList) > 100, "STOP | " & CountRows(colPackingList) & " items; split into batches of 100", CountRows(colPackingList) > 20, "READY | " & CountRows(colPackingList) & " items; compact layout", "READY | " & CountRows(colPackingList) & " items; detailed layout")
             - icnPackingListHelp:
                 Control: Classic/Icon@2.5.0
                 Properties:
@@ -146,7 +156,7 @@ Screens:
             RadiusBottomRight: =If(gblPackingListPrintMode, 0, 8)
             RadiusTopLeft: =If(gblPackingListPrintMode, 0, 8)
             RadiusTopRight: =If(gblPackingListPrintMode, 0, 8)
-            Width: '=816 '
+            Width: =816
             X: =If(gblPackingListPrintMode, 0, Max(0, (Parent.Width - 816) / 2))
             Y: =If(gblPackingListPrintMode, 0, conPackingToolbar.Y + conPackingToolbar.Height + 12)
           Children:
@@ -201,7 +211,11 @@ Screens:
                             If(
                                 gblPackingListPrintMode,
                                 "",
-                                "<div style='margin-top:8px; font-size:12px; line-height:1.2; color:#605e5c; text-align:left;'>Print-first view for fast accountability. Scan the local barcode, review status, then capture the receiving signature below.</div>"
+                                If(
+                                    CountRows(colPackingList) > 100,
+                                    "<div style='margin-top:8px; padding:7px; font-size:12px; font-weight:700; line-height:1.2; color:#a4262c; background:#fde7e9; border-left:4px solid #a4262c; text-align:left;'>STOP: This manifest has more than 100 packages. Return to the scanner and split the records into batches of 100 or fewer before printing.</div>",
+                                    "<div style='margin-top:8px; font-size:12px; line-height:1.2; color:#605e5c; text-align:left;'>Review the package count and manifest details, then print or save the accountability record.</div>"
+                                )
                             ) &
                             "</div>"
                         Width: =Parent.Width - Parent.PaddingLeft - Parent.PaddingRight
