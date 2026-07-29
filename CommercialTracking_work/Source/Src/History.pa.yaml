@@ -9,15 +9,15 @@
 Screens:
   History:
     Properties:
-      Fill: =gblColorCanvas
-      LoadingSpinnerColor: =gblColorPrimary
+      Fill: =RGBA(243, 244, 246, 1)
+      LoadingSpinnerColor: =RGBA(5, 102, 178, 1)
       OnVisible: =Refresh(Tracking); Set(gblHistoryRecordId, Blank())
     Children:
       - MainContainer_History:
           Control: GroupContainer@1.5.0
           Variant: AutoLayout
           Properties:
-            Fill: =gblColorCanvas
+            Fill: =RGBA(243, 244, 246, 1)
             Height: =Parent.Height
             LayoutAlignItems: =LayoutAlignItems.Stretch
             LayoutDirection: =LayoutDirection.Vertical
@@ -60,7 +60,7 @@ Screens:
                       Control: Classic/Icon@2.5.0
                       Properties:
                         AccessibleLabel: ="Open help for package history and reconciliation"
-                        Color: =gblColorPrimary
+                        Color: =RGBA(5, 102, 178, 1)
                         Height: =28
                         Icon: =Icon.Help
                         OnSelect: =Set(gblHelpTopic, "History"); Navigate(Help, ScreenTransition.Fade)
@@ -397,7 +397,7 @@ Screens:
                 Control: FluentV8/Label@1.8.6
                 Properties:
                   AutoHeight: =true
-                  Color: =gblColorWarning
+                  Color: =RGBA(184, 105, 0, 1)
                   FillPortions: =0
                   FontWeight: =FontWeight.Semibold
                   Height: =If(Self.Visible, 40, 0)
@@ -411,7 +411,7 @@ Screens:
                   BorderColor: =RGBA(0, 0, 0, 0)
                   DelayItemLoading: =true
                   FillPortions: =5
-                  FocusedBorderColor: =gblColorPrimary
+                  FocusedBorderColor: =RGBA(5, 102, 178, 1)
                   FocusedBorderThickness: =2
                   LoadingSpinner: =LoadingSpinner.Data
                   Items: |
@@ -525,9 +525,9 @@ Screens:
                       Control: Classic/Icon@2.5.0
                       Properties:
                         AccessibleLabel: ="Load this package into the history editor"
-                        Color: =If(gblHistoryRecordId = ThisItem.ID, gblColorPrimary, gblColorNeutral)
+                        Color: =If(gblHistoryRecordId = ThisItem.ID, RGBA(5, 102, 178, 1), RGBA(96, 94, 92, 1))
                         Height: =20
-                        HoverColor: =gblColorPrimary
+                        HoverColor: =RGBA(5, 102, 178, 1)
                         Icon: =Icon.Edit
                         OnSelect: =Set(gblHistoryRecordId, ThisItem.ID); Reset(txtHistoryRecipient); Reset(txtHistoryCarrier); Reset(txtHistoryNotes)
                         TabIndex: =0

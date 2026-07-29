@@ -1,7 +1,7 @@
 Screens:
   PackingList:
     Properties:
-      Fill: =If(gblPackingListPrintMode, RGBA(255, 255, 255, 1), gblColorCanvas)
+      Fill: =If(gblPackingListPrintMode, RGBA(255, 255, 255, 1), RGBA(243, 244, 246, 1))
       Height: =1056
       OnVisible: |
         =Set(gblPackingListPrintMode, false);
@@ -67,7 +67,6 @@ Screens:
                 Control: FluentV8/Button@1.5.13
                 Properties:
                   AccessibleLabel: ="Return to the package scanner"
-                  BasePaletteColor: =gblColorNeutral
                   LayoutMinHeight: =36
                   OnSelect: =Navigate(LedgerScreen, ScreenTransition.Fade)
                   Text: ="Back to Scanner"
@@ -75,7 +74,6 @@ Screens:
                 Control: FluentV8/Button@1.5.13
                 Properties:
                   AccessibleLabel: =If(CountRows(colPackingList) > 100, "Printing disabled. This manifest contains more than 100 packages.", If(IsEmpty(colPackingList), "Printing disabled. This manifest is empty.", "Print or save this manifest"))
-                  BasePaletteColor: =gblColorSuccess
                   DisplayMode: =If(IsEmpty(colPackingList) || CountRows(colPackingList) > 100, DisplayMode.Disabled, DisplayMode.Edit)
                   LayoutMinHeight: =36
                   OnSelect: =Set(gblPackingListPrintMode, true); Set(gblPackingListPrintPending, false); Set(gblPackingListPrintPending, true)
@@ -85,7 +83,6 @@ Screens:
                 Control: FluentV8/Button@1.5.13
                 Properties:
                   AccessibleLabel: ="Refresh package data for this packing list"
-                  BasePaletteColor: =gblColorPrimary
                   LayoutMinHeight: =36
                   OnSelect: |
                     =Refresh(Tracking);
@@ -123,8 +120,7 @@ Screens:
             - lblManifestReadiness:
                 Control: FluentV8/Label@1.8.6
                 Properties:
-                  AccessibleLabel: =Self.Text
-                  Color: =If(IsEmpty(colPackingList) || CountRows(colPackingList) > 100, gblColorDanger, If(CountRows(colPackingList) > 20, gblColorWarning, gblColorSuccess))
+                  Color: =If(IsEmpty(colPackingList) || CountRows(colPackingList) > 100, RGBA(164, 38, 44, 1), If(CountRows(colPackingList) > 20, RGBA(184, 105, 0, 1), RGBA(16, 124, 16, 1)))
                   FillPortions: =1
                   FontSize: =11
                   FontWeight: =FontWeight.Semibold
@@ -133,7 +129,7 @@ Screens:
                 Control: Classic/Icon@2.5.0
                 Properties:
                   AccessibleLabel: ="Open help for manifests and printing"
-                  Color: =gblColorPrimary
+                  Color: =RGBA(5, 102, 178, 1)
                   Height: =28
                   Icon: =Icon.Help
                   OnSelect: =Set(gblHelpTopic, "PackingList"); Navigate(Help, ScreenTransition.Fade)

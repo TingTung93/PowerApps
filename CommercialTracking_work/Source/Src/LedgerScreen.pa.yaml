@@ -2,7 +2,7 @@ Screens:
   LedgerScreen:
     Properties:
       Fill: =RGBA(255, 255, 255, 1)
-      LoadingSpinnerColor: =gblColorPrimary
+      LoadingSpinnerColor: =RGBA(5, 102, 178, 1)
       OnVisible: |
         =If(IsBlank(varScanDirection), UpdateContext({varScanDirection: "Inbound"}));
         UpdateContext({varScanInProgress: false});
@@ -55,7 +55,7 @@ Screens:
           Control: GroupContainer@1.5.0
           Variant: AutoLayout
           Properties:
-            Fill: =gblColorCanvas
+            Fill: =RGBA(243, 244, 246, 1)
             Height: =Parent.Height
             LayoutAlignItems: =LayoutAlignItems.Stretch
             LayoutDirection: =LayoutDirection.Horizontal
@@ -126,7 +126,7 @@ Screens:
                         AccessibleLabel: ="Recent package scans in this session"
                         BorderColor: =RGBA(243, 242, 241, 1)
                         DelayItemLoading: =true
-                        FocusedBorderColor: =gblColorPrimary
+                        FocusedBorderColor: =RGBA(5, 102, 178, 1)
                         FocusedBorderThickness: =2
                         Items: |
                           =Sort(Filter(colRecentScans, txtSearchLedger_1.Value in TrackingNumber || txtSearchLedger_1.Value in ScanNotes || txtSearchLedger_1.Value in Carrier || txtSearchLedger_1.Value in Location || txtSearchLedger_1.Value in DisplayAddressee || txtSearchLedger_1.Value in DisplayAddressBlock), Timestamp, SortOrder.Descending)
@@ -181,7 +181,7 @@ Screens:
                             Control: Classic/Icon@2.5.0
                             Properties:
                               AccessibleLabel: ="Void this scan"
-                              Color: =gblColorDanger
+                              Color: =RGBA(164, 38, 44, 1)
                               Height: =20
                               HoverColor: =RGBA(201, 36, 43, 1)
                               Icon: =If(varPendingVoidTrackingId = ThisItem.TrackingId, Icon.Warning, Icon.Trash)
@@ -258,7 +258,7 @@ Screens:
                             Control: Classic/Icon@2.5.0
                             Properties:
                               AccessibleLabel: ="Open help for receiving and outbound scanning"
-                              Color: =gblColorPrimary
+                              Color: =RGBA(5, 102, 178, 1)
                               Height: =28
                               Icon: =Icon.Help
                               OnSelect: =Set(gblHelpTopic, "Ledger"); Navigate(Help, ScreenTransition.Fade)
@@ -269,7 +269,7 @@ Screens:
                       Control: FluentV8/Label@1.8.6
                       Properties:
                         Color: =RGBA(255, 255, 255, 1)
-                        Fill: =If(varScanDirection = "Inbound", gblColorSuccess, gblColorDanger)
+                        Fill: =If(varScanDirection = "Inbound", RGBA(16, 124, 16, 1), RGBA(164, 38, 44, 1))
                         FontWeight: =FontWeight.Semibold
                         Height: =38
                         PaddingLeft: =10
@@ -804,14 +804,13 @@ Screens:
                       Control: FluentV8/Label@1.8.6
                       Properties:
                         AutoHeight: =true
-                        Color: =If(varScanInProgress, gblColorPrimary, If(varScanDirection = "Inbound" && IsBlank(gblReceivingLocation), gblColorWarning, gblColorNeutral))
+                        Color: =If(varScanInProgress, RGBA(5, 102, 178, 1), If(varScanDirection = "Inbound" && IsBlank(gblReceivingLocation), RGBA(184, 105, 0, 1), RGBA(96, 94, 92, 1)))
                         FontWeight: =If(varScanInProgress || (varScanDirection = "Inbound" && IsBlank(gblReceivingLocation)), FontWeight.Semibold, FontWeight.Normal)
                         Text: =If(varScanDirection = "Outbound", "Pickup mode | " & CountRows(colRecentScans) & " session scan(s)", If(IsBlank(gblReceivingLocation), "Receiving location required before scanning", "Blind receiving at " & gblReceivingLocation & " | " & CountRows(colRecentScans) & " session scan(s) | " & CountRows(Filter(colRecentScans, Direction = "Inbound" && !IsBlank(TrackingId) && (IsBlank(gblLastInboundManifestPrintedAt) || Timestamp > gblLastInboundManifestPrintedAt))) & " unprinted"))
                   - btnViewHistory:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open package database history"
-                        BasePaletteColor: =gblColorNeutral
                         LayoutMinHeight: =32
                         OnSelect: =Set(gblShowUnassigned, false); Navigate(History, ScreenTransition.Fade)
                         Text: ="View Database History"
@@ -819,7 +818,6 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open active packages that still need a recipient"
-                        BasePaletteColor: =gblColorWarning
                         LayoutMinHeight: =32
                         OnSelect: =Set(gblShowUnassigned, true); Set(gblHistorySearchQuery, ""); Navigate(History, ScreenTransition.Fade)
                         Text: ="Reconcile Unassigned Packages"
@@ -827,7 +825,6 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open the inbound receiving manifest for this scan session"
-                        BasePaletteColor: =gblColorSuccess
                         LayoutMinHeight: =32
                         DisplayMode: =If(CountRows(Filter(colRecentScans, Direction = "Inbound" && !IsBlank(TrackingId))) = 0, DisplayMode.Disabled, DisplayMode.Edit)
                         OnSelect: =Set(gblManifestMode, "Inbound"); Set(gblManifestId, "MNF-" & Text(Now(), "[$-en-US]yyyymmdd-hhnnss") & "-" & Upper(Left(Substitute(Text(GUID()), "-", ""), 6))); Set(gblManifestPreparedAt, Now()); Navigate(PackingList, ScreenTransition.Fade)
@@ -836,7 +833,6 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open a custody manifest for the selected recipient"
-                        BasePaletteColor: =gblColorPrimary
                         LayoutMinHeight: =32
                         DisplayMode: =If(IsBlank(Trim(Coalesce(gblRecipient, ""))), DisplayMode.Disabled, DisplayMode.Edit)
                         OnSelect: =Set(gblManifestMode, "Recipient"); Set(gblManifestId, "MNF-" & Text(Now(), "[$-en-US]yyyymmdd-hhnnss") & "-" & Upper(Left(Substitute(Text(GUID()), "-", ""), 6))); Set(gblManifestPreparedAt, Now()); Navigate(PackingList, ScreenTransition.Fade)
@@ -845,7 +841,6 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Clear recent scans from this local session"
-                        BasePaletteColor: =If(varConfirmClearScans, gblColorDanger, gblColorNeutral)
                         LayoutMinHeight: =32
                         OnSelect: |
                           =If(

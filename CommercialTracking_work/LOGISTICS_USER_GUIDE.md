@@ -55,15 +55,9 @@ The scanner also uses short offline sound cues:
 
 Always verify the written result and tracking number. Sound is supplemental and may be muted by workstation or browser settings.
 
-### Control Colors
+### Status Feedback
 
-- Blue identifies the primary action or information.
-- Green completes or confirms work.
-- Amber requires attention or review.
-- Red identifies an error, stop condition, or destructive action.
-- Gray identifies navigation or a secondary action.
-
-Buttons retain text labels, so color is never the only instruction.
+The scanner result panel uses green for success, amber for a warning, and red for an error. Always read the written status and tracking number; color and sound are supplemental.
 
 ### Repeat Scan
 

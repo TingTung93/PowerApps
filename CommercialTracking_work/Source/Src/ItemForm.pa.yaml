@@ -2,14 +2,14 @@ Screens:
   ItemForm:
     Properties:
       Fill: =RGBA(255, 255, 255, 1)
-      LoadingSpinnerColor: =gblColorPrimary
+      LoadingSpinnerColor: =RGBA(5, 102, 178, 1)
       OnVisible: =If(IsBlank(gblHistoryRecordId), Notify("Select a package from History before opening the full editor.", NotificationType.Warning); Navigate(History, ScreenTransition.None))
     Children:
       - conItemFormToolbar:
           Control: GroupContainer@1.5.0
           Variant: AutoLayout
           Properties:
-            Fill: =gblColorCanvas
+            Fill: =RGBA(243, 244, 246, 1)
             Height: =56
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutDirection: =LayoutDirection.Horizontal
@@ -29,7 +29,7 @@ Screens:
                 Control: Classic/Icon@2.5.0
                 Properties:
                   AccessibleLabel: ="Open help for editing package records"
-                  Color: =gblColorPrimary
+                  Color: =RGBA(5, 102, 178, 1)
                   Height: =28
                   Icon: =Icon.Help
                   OnSelect: =Set(gblHelpTopic, "ItemForm"); Navigate(Help, ScreenTransition.Fade)

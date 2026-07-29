@@ -15,12 +15,5 @@ App:
       Set(gblManifestId, "");
       Set(gblManifestPreparedAt, Now());
       Set(gblLastInboundManifestPrintedAt, Blank());
-      Set(gblHelpTopic, "");
-      // Semantic palette: blue=primary/info, green=complete, amber=attention, red=destructive/error.
-      Set(gblColorPrimary, RGBA(5, 102, 178, 1));
-      Set(gblColorSuccess, RGBA(16, 124, 16, 1));
-      Set(gblColorWarning, RGBA(184, 105, 0, 1));
-      Set(gblColorDanger, RGBA(164, 38, 44, 1));
-      Set(gblColorNeutral, RGBA(96, 94, 92, 1));
-      Set(gblColorCanvas, RGBA(243, 244, 246, 1))
+      Set(gblHelpTopic, "")
     Theme: =PowerAppsTheme
