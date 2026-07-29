@@ -2,7 +2,7 @@ Screens:
   LedgerScreen:
     Properties:
       Fill: =RGBA(255, 255, 255, 1)
-      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      LoadingSpinnerColor: =gblColorPrimary
       OnVisible: |
         =If(IsBlank(varScanDirection), UpdateContext({varScanDirection: "Inbound"}));
         UpdateContext({varScanInProgress: false});
@@ -12,11 +12,50 @@ Screens:
             UpdateContext({varTriggerFocus: true})
         );
     Children:
+      - audScanSuccess:
+          Control: Audio@2.3.0
+          Properties:
+            AccessibleLabel: ="Successful scan tone"
+            AutoPause: =true
+            AutoStart: =false
+            Height: =1
+            Loop: =false
+            Media: ="data:audio/wav;base64,UklGRtgAAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YbQAAACAs5NVXZ6tdE56r5hbW5etelF0qpthWZGsgFRwpZ5nWYuqhVhsoKBsWoWoilxpmqByW4CljmFnlaB3XXyhkWZmkKB8X3idk2pmi56AYnWZlG9mh5yDZnOVlHNng5mGanKRlHdpgJaIbXGNk3trfZOKcXGJkn5ufJCKdHKGkIBxeo2KeHODjoJ0eoqJenWBi4N3eoeIfXeAiIN5e4SGfnp/hYN8fIKEf3x/g4J+foGCgH+AgIA="
+            ShowControls: =false
+            Start: =varLastScanStatus = "SUCCESS"
+            Visible: =false
+            Width: =1
+      - audScanWarning:
+          Control: Audio@2.3.0
+          Properties:
+            AccessibleLabel: ="Scan warning tone"
+            AutoPause: =true
+            AutoStart: =false
+            Height: =1
+            Loop: =false
+            Media: ="data:audio/wav;base64,UklGRigBAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YQQBAACAprOheldOZY2ssJVuUlNxmK+piWRRW32gr6B9XFJliaeslnJXV3CTqqaLaVZde5uqn4BiVmaFoaiWdl1ab4+lo4xtW2B5lqadgmdbZ4KcpJV5Yl5vi5+gjXFgYniSoZuEa2BpgJeglHxnYnCImp2NdWVmd46cmIVwZGt+k5uSfmxmcYWWmYx4aml3ipeVhnNpbX2OlpCAcGpyg5GUi3tubXiHkpGGd25wfYuSjoF0b3SBjZCJfXNxeYWNjoV6c3R9h42Lgnh0d4CJjId/d3V6g4mKhHx3eH2EiIeCe3h6gIWHhYB7enyBhYWDfnx8foKEg4F+fX6AgoKCgH9+f4CBgYCAgA=="
+            ShowControls: =false
+            Start: =varLastScanStatus = "WARNING"
+            Visible: =false
+            Width: =1
+      - audScanError:
+          Control: Audio@2.3.0
+          Properties:
+            AccessibleLabel: ="Scan error tone"
+            AutoPause: =true
+            AutoStart: =false
+            Height: =1
+            Loop: =false
+            Media: ="data:audio/wav;base64,UklGRngBAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YVQBAACAkqGssrOtopOCcGFWT09UXmx9jp2or7CsopSFdGVaU1FVXmt6ipmkrK6qopaHeGleVlRWXmp4h5WgqKupopeJe21hWlZYX2l2hJGdpainoZeLfnBlXVlaX2l0gY6ZoaWloJiMgHRpYV1dYWhzf4uVnaKin5eOgndsZGBfYmlyfYiSmp+gnZeOhHlvaGNiZGlye4aPl5udm5aPhXxya2ZkZmpxeoOMk5iamZWPhn51bmlnaGxyeYKKkJWXl5SOh394cWxqam1yeYCHjZKUlJKNh4F6dG9tbW9zeX+Fi4+RkpCMh4J8dnJwcHF0eX6DiIyPj46Lh4J9eXVzcnN2eX6ChoqMjIyKhoN/e3h2dXZ3en2BhIeJiomIhYN/f3p5eHh5e36Ag4WGh4eGhIKAfnx7e3t7fX6AgYOEhISDg4GAf35+fX1+fn+AgIGBgYGBgYCAgICA"
+            ShowControls: =false
+            Start: =varLastScanStatus = "ERROR"
+            Visible: =false
+            Width: =1
       - ScreenContainer1_2:
           Control: GroupContainer@1.5.0
           Variant: AutoLayout
           Properties:
-            Fill: =RGBA(243, 244, 246, 1)
+            Fill: =gblColorCanvas
             Height: =Parent.Height
             LayoutAlignItems: =LayoutAlignItems.Stretch
             LayoutDirection: =LayoutDirection.Horizontal
@@ -140,7 +179,7 @@ Screens:
                             Control: Classic/Icon@2.5.0
                             Properties:
                               AccessibleLabel: ="Void this scan"
-                              Color: =RGBA(164, 38, 44, 1)
+                              Color: =gblColorDanger
                               Height: =20
                               HoverColor: =RGBA(201, 36, 43, 1)
                               Icon: =If(varPendingVoidTrackingId = ThisItem.TrackingId, Icon.Warning, Icon.Trash)
@@ -217,7 +256,7 @@ Screens:
                             Control: Classic/Icon@2.5.0
                             Properties:
                               AccessibleLabel: ="Open help for receiving and outbound scanning"
-                              Color: =RGBA(5, 102, 178, 1)
+                              Color: =gblColorPrimary
                               Height: =28
                               Icon: =Icon.Help
                               OnSelect: =Set(gblHelpTopic, "Ledger"); Navigate(Help, ScreenTransition.Fade)
@@ -228,7 +267,7 @@ Screens:
                       Control: FluentV8/Label@1.8.6
                       Properties:
                         Color: =RGBA(255, 255, 255, 1)
-                        Fill: =If(varScanDirection = "Inbound", RGBA(16, 124, 16, 1), RGBA(164, 38, 44, 1))
+                        Fill: =If(varScanDirection = "Inbound", gblColorSuccess, gblColorDanger)
                         FontWeight: =FontWeight.Semibold
                         Height: =38
                         PaddingLeft: =10
@@ -768,6 +807,7 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open package database history"
+                        BasePaletteColor: =gblColorNeutral
                         LayoutMinHeight: =32
                         OnSelect: =Set(gblShowUnassigned, false); Navigate(History, ScreenTransition.Fade)
                         Text: ="View Database History"
@@ -775,6 +815,7 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open active packages that still need a recipient"
+                        BasePaletteColor: =gblColorWarning
                         LayoutMinHeight: =32
                         OnSelect: =Set(gblShowUnassigned, true); Set(gblHistorySearchQuery, ""); Navigate(History, ScreenTransition.Fade)
                         Text: ="Reconcile Unassigned Packages"
@@ -782,6 +823,7 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open the inbound receiving manifest for this scan session"
+                        BasePaletteColor: =gblColorSuccess
                         LayoutMinHeight: =32
                         DisplayMode: =If(CountRows(Filter(colRecentScans, Direction = "Inbound" && !IsBlank(TrackingId))) = 0, DisplayMode.Disabled, DisplayMode.Edit)
                         OnSelect: =Set(gblManifestMode, "Inbound"); Set(gblManifestId, "MNF-" & Text(Now(), "[$-en-US]yyyymmdd-hhnnss") & "-" & Upper(Left(Substitute(Text(GUID()), "-", ""), 6))); Set(gblManifestPreparedAt, Now()); Navigate(PackingList, ScreenTransition.Fade)
@@ -790,6 +832,7 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Open a custody manifest for the selected recipient"
+                        BasePaletteColor: =gblColorPrimary
                         LayoutMinHeight: =32
                         DisplayMode: =If(IsBlank(Trim(Coalesce(gblRecipient, ""))), DisplayMode.Disabled, DisplayMode.Edit)
                         OnSelect: =Set(gblManifestMode, "Recipient"); Set(gblManifestId, "MNF-" & Text(Now(), "[$-en-US]yyyymmdd-hhnnss") & "-" & Upper(Left(Substitute(Text(GUID()), "-", ""), 6))); Set(gblManifestPreparedAt, Now()); Navigate(PackingList, ScreenTransition.Fade)
@@ -798,6 +841,7 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Clear recent scans from this local session"
+                        BasePaletteColor: =If(varConfirmClearScans, gblColorDanger, gblColorNeutral)
                         LayoutMinHeight: =32
                         OnSelect: |
                           =If(

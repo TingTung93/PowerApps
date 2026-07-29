@@ -1,8 +1,8 @@
 Screens:
   Help:
     Properties:
-      Fill: =RGBA(243, 244, 246, 1)
-      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      Fill: =gblColorCanvas
+      LoadingSpinnerColor: =gblColorPrimary
     Children:
       - conHelpPage:
           Control: GroupContainer@1.5.0
@@ -47,8 +47,19 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Close help and return to the previous screen"
+                        BasePaletteColor: =gblColorNeutral
                         OnSelect: =Back(ScreenTransition.Fade)
                         Text: ="Back"
+            - htmlSemanticColorLegend:
+                Control: HtmlViewer@2.1.0
+                Properties:
+                  AccessibleLabel: |
+                    ="Color key: blue is a primary action, green completes work, amber needs attention, red is destructive or an error, and gray is navigation or a secondary action."
+                  DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                  FillPortions: =0
+                  Font: =Font.'Segoe UI'
+                  Height: =42
+                  HtmlText: ="<div style='font-family:Segoe UI,Arial,sans-serif; font-size:12px; display:flex; gap:14px; align-items:center; padding:7px 10px; background:#f8f8f8; border:1px solid #edebe9; border-radius:6px;'><b>Control key</b><span style='color:#0566b2;'>● Primary</span><span style='color:#107c10;'>● Complete</span><span style='color:#b86900;'>● Attention</span><span style='color:#a4262c;'>● Stop / destructive</span><span style='color:#605e5c;'>● Navigation</span></div>"
             - htmlContextHelp:
                 Control: HtmlViewer@2.1.0
                 Properties:

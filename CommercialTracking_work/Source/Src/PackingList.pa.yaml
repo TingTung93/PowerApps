@@ -1,7 +1,7 @@
 Screens:
   PackingList:
     Properties:
-      Fill: =If(gblPackingListPrintMode, RGBA(255, 255, 255, 1), RGBA(243, 244, 246, 1))
+      Fill: =If(gblPackingListPrintMode, RGBA(255, 255, 255, 1), gblColorCanvas)
       Height: =1056
       OnVisible: |
         =Set(gblPackingListPrintMode, false);
@@ -67,6 +67,7 @@ Screens:
                 Control: FluentV8/Button@1.5.13
                 Properties:
                   AccessibleLabel: ="Return to the package scanner"
+                  BasePaletteColor: =gblColorNeutral
                   LayoutMinHeight: =36
                   OnSelect: =Navigate(LedgerScreen, ScreenTransition.Fade)
                   Text: ="Back to Scanner"
@@ -74,6 +75,7 @@ Screens:
                 Control: FluentV8/Button@1.5.13
                 Properties:
                   AccessibleLabel: ="Print or save this customer packing list"
+                  BasePaletteColor: =gblColorSuccess
                   DisplayMode: =If(IsEmpty(colPackingList), DisplayMode.Disabled, DisplayMode.Edit)
                   LayoutMinHeight: =36
                   OnSelect: =Set(gblPackingListPrintMode, true); Set(gblPackingListPrintPending, false); Set(gblPackingListPrintPending, true)
@@ -82,6 +84,7 @@ Screens:
                 Control: FluentV8/Button@1.5.13
                 Properties:
                   AccessibleLabel: ="Refresh package data for this packing list"
+                  BasePaletteColor: =gblColorPrimary
                   LayoutMinHeight: =36
                   OnSelect: |
                     =Refresh(Tracking);
@@ -120,7 +123,7 @@ Screens:
                 Control: Classic/Icon@2.5.0
                 Properties:
                   AccessibleLabel: ="Open help for manifests and printing"
-                  Color: =RGBA(5, 102, 178, 1)
+                  Color: =gblColorPrimary
                   Height: =28
                   Icon: =Icon.Help
                   OnSelect: =Set(gblHelpTopic, "PackingList"); Navigate(Help, ScreenTransition.Fade)

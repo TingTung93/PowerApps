@@ -2,14 +2,14 @@ Screens:
   ItemForm:
     Properties:
       Fill: =RGBA(255, 255, 255, 1)
-      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      LoadingSpinnerColor: =gblColorPrimary
       OnVisible: =If(IsBlank(gblHistoryRecordId), Notify("Select a package from History before opening the full editor.", NotificationType.Warning); Navigate(History, ScreenTransition.None))
     Children:
       - conItemFormToolbar:
           Control: GroupContainer@1.5.0
           Variant: AutoLayout
           Properties:
-            Fill: =RGBA(243, 244, 246, 1)
+            Fill: =gblColorCanvas
             Height: =56
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutDirection: =LayoutDirection.Horizontal
@@ -29,7 +29,7 @@ Screens:
                 Control: Classic/Icon@2.5.0
                 Properties:
                   AccessibleLabel: ="Open help for editing package records"
-                  Color: =RGBA(5, 102, 178, 1)
+                  Color: =gblColorPrimary
                   Height: =28
                   Icon: =Icon.Help
                   OnSelect: =Set(gblHelpTopic, "ItemForm"); Navigate(Help, ScreenTransition.Fade)
@@ -40,6 +40,7 @@ Screens:
                 Control: FluentV8/Button@1.5.13
                 Properties:
                   AccessibleLabel: ="Save all package fields"
+                  BasePaletteColor: =gblColorSuccess
                   DisplayMode: =If(Form1.Valid, DisplayMode.Edit, DisplayMode.Disabled)
                   OnSelect: =SubmitForm(Form1)
                   Text: ="Save"
@@ -47,6 +48,7 @@ Screens:
                 Control: FluentV8/Button@1.5.13
                 Properties:
                   AccessibleLabel: ="Cancel package editing and return to History"
+                  BasePaletteColor: =gblColorNeutral
                   OnSelect: =ResetForm(Form1); Navigate(History, ScreenTransition.Fade)
                   Text: ="Cancel"
       - Form1:

@@ -9,15 +9,15 @@
 Screens:
   History:
     Properties:
-      Fill: =RGBA(245, 245, 245, 1)
-      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      Fill: =gblColorCanvas
+      LoadingSpinnerColor: =gblColorPrimary
       OnVisible: =Refresh(Tracking); Set(gblHistoryRecordId, Blank())
     Children:
       - MainContainer_History:
           Control: GroupContainer@1.5.0
           Variant: AutoLayout
           Properties:
-            Fill: =RGBA(245, 245, 245, 1)
+            Fill: =gblColorCanvas
             Height: =Parent.Height
             LayoutAlignItems: =LayoutAlignItems.Stretch
             LayoutDirection: =LayoutDirection.Vertical
@@ -48,19 +48,21 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Return to the package scanner"
+                        BasePaletteColor: =gblColorNeutral
                         OnSelect: =Set(gblShowUnassigned, false); Navigate(LedgerScreen, ScreenTransition.Fade)
                         Text: ="Back to Scanner"
                   - btnRefreshHistory:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Refresh package history results"
+                        BasePaletteColor: =gblColorPrimary
                         OnSelect: =Refresh(Tracking)
                         Text: ="Refresh"
                   - icnHistoryHelp:
                       Control: Classic/Icon@2.5.0
                       Properties:
                         AccessibleLabel: ="Open help for package history and reconciliation"
-                        Color: =RGBA(5, 102, 178, 1)
+                        Color: =gblColorPrimary
                         Height: =28
                         Icon: =Icon.Help
                         OnSelect: =Set(gblHelpTopic, "History"); Navigate(Help, ScreenTransition.Fade)
@@ -88,12 +90,14 @@ Screens:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Apply the history search"
+                        BasePaletteColor: =gblColorPrimary
                         OnSelect: =Set(gblHistorySearchQuery, Trim(txtSearchDatabase.Value))
                         Text: ="Search"
                   - btnClearHistorySearch:
                       Control: FluentV8/Button@1.5.13
                       Properties:
                         AccessibleLabel: ="Clear the history search and show recent packages"
+                        BasePaletteColor: =gblColorNeutral
                         OnSelect: =Set(gblHistorySearchQuery, ""); Set(gblShowUnassigned, false); Reset(txtSearchDatabase)
                         Text: ="Clear"
                   - lblHistorySearchHint:
@@ -158,6 +162,7 @@ Screens:
                             Control: FluentV8/Button@1.5.13
                             Properties:
                               AccessibleLabel: ="Load the selected package recipient into the scanner"
+                              BasePaletteColor: =gblColorPrimary
                               DisplayMode: =If(IsBlank(gblHistoryRecordId) || IsBlank(Trim(Coalesce(LookUp(Tracking, ID = gblHistoryRecordId).field_4, ""))), DisplayMode.Disabled, DisplayMode.Edit)
                               LayoutGridColumnEnd: =7
                               LayoutGridColumnStart: =5
@@ -198,6 +203,7 @@ Screens:
                             Control: FluentV8/Button@1.5.13
                             Properties:
                               AccessibleLabel: ="Re-assign the selected package to the current scanner recipient"
+                              BasePaletteColor: =gblColorWarning
                               DisplayMode: =If(IsBlank(gblHistoryRecordId) || IsBlank(Trim(Coalesce(gblRecipient, ""))), DisplayMode.Disabled, DisplayMode.Edit)
                               LayoutGridColumnEnd: =7
                               LayoutGridColumnStart: =5
@@ -336,6 +342,7 @@ Screens:
                             Control: FluentV8/Button@1.5.13
                             Properties:
                               AccessibleLabel: ="Clear the selected history package from the editor"
+                              BasePaletteColor: =gblColorNeutral
                               DisplayMode: =If(IsBlank(gblHistoryRecordId), DisplayMode.Disabled, DisplayMode.Edit)
                               LayoutGridColumnEnd: =5
                               LayoutGridColumnStart: =3
@@ -347,6 +354,7 @@ Screens:
                             Control: FluentV8/Button@1.5.13
                             Properties:
                               AccessibleLabel: ="Open all SharePoint package fields in the full editor"
+                              BasePaletteColor: =gblColorPrimary
                               DisplayMode: =If(IsBlank(gblHistoryRecordId), DisplayMode.Disabled, DisplayMode.Edit)
                               LayoutGridColumnEnd: =3
                               LayoutGridColumnStart: =1
@@ -358,6 +366,7 @@ Screens:
                             Control: FluentV8/Button@1.5.13
                             Properties:
                               AccessibleLabel: ="Save edits to the selected history record"
+                              BasePaletteColor: =gblColorSuccess
                               DisplayMode: =If(IsBlank(gblHistoryRecordId), DisplayMode.Disabled, DisplayMode.Edit)
                               LayoutGridColumnEnd: =7
                               LayoutGridColumnStart: =5

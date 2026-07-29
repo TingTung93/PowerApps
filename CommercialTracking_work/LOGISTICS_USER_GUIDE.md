@@ -47,6 +47,24 @@ A successful scan displays a message such as:
 
 The package will appear in the Recent Scans ledger.
 
+The scanner also uses short offline sound cues:
+
+- A high tone accompanies **SUCCESS**.
+- A middle tone accompanies **WARNING**.
+- A low tone accompanies **ERROR**.
+
+Always verify the written result and tracking number. Sound is supplemental and may be muted by workstation or browser settings.
+
+### Control Colors
+
+- Blue identifies the primary action or information.
+- Green completes or confirms work.
+- Amber requires attention or review.
+- Red identifies an error, stop condition, or destructive action.
+- Gray identifies navigation or a secondary action.
+
+Buttons retain text labels, so color is never the only instruction.
+
 ### Repeat Scan
 
 If the package is already active, the application will not create a second active record. It will append the repeat scan to Notes and update the location to the currently selected receiving location.
