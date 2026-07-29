@@ -380,7 +380,7 @@ Screens:
                                                 {
                                                     field_1: If(IsBlank(updatedCarrier), Blank(), updatedCarrier),
                                                     field_4: If(IsBlank(updatedRecipient), Blank(), updatedRecipient),
-                                                    field_7: If(IsBlank(updatedNotes), Blank(), updatedNotes)
+                                                    field_7: If(IsBlank(updatedNotes), Blank(), Left(updatedNotes, 255))
                                                 }
                                             );
                                             Refresh(Tracking);

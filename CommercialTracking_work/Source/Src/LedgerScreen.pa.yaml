@@ -197,11 +197,7 @@ Screens:
                                                 Tracking,
                                                 _voidRecord,
                                                 {
-                                                    field_3: "Voided",
-                                                    field_7: Coalesce(_voidRecord.field_7 & Char(10), "") &
-                                                        Text(Now(), "[$-en-US]mm/dd/yyyy hh:mm:ss AM/PM") &
-                                                        " | " & User().FullName & " (" & User().Email & ")" &
-                                                        " | Voided from session ledger"
+                                                    field_3: "Voided"
                                                 }
                                             );
                                             Remove(colRecentScans, ThisItem);
@@ -576,12 +572,7 @@ Screens:
                                                                       Email: User().Email,
                                                                       JobTitle: "",
                                                                        Picture: ""
-                                                                   },
-                                                                   field_7: If(
-                                                                       IsBlank(_record.field_7),
-                                                                       _auditEntry,
-                                                                       _record.field_7 & Char(10) & _auditEntry
-                                                                   )
+                                                                   }
                                                               }
                                                           );
                                                           Collect(
@@ -671,11 +662,6 @@ Screens:
                                                                           Picture: ""
                                                                       },
                                                                       _record.ReceivedBy
-                                                                  ),
-                                                                  field_7: If(
-                                                                      IsBlank(_record.field_7),
-                                                                      _auditEntry,
-                                                                      _record.field_7 & Char(10) & _auditEntry
                                                                   )
                                                               }
                                                           );
@@ -703,7 +689,7 @@ Screens:
                                                           ),
                                                           UpdateContext({varLastScanStatus: "ERROR", varLastScanMessage: "The repeat scan was not saved: " & FirstError.Message, varLastScanTracking: _record.Title});
                                                           Notify(
-                                                              "The repeat scan could not be added to notes: " & FirstError.Message,
+                                                              "The repeat scan could not update the package: " & FirstError.Message,
                                                               NotificationType.Error
                                                           )
                                                       )
@@ -722,7 +708,6 @@ Screens:
                                                                   field_3: "Ready for Pickup",
                                                                   field_4: Blank(),
                                                                   field_6: Now(),
-                                                                  field_7: _auditEntry,
                                                                   Location: gblReceivingLocation,
                                                                   ReceivedAt: Now(),
                                                                   ReceivedBy: {

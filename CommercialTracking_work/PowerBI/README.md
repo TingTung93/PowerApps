@@ -68,7 +68,7 @@ Text labels remain present; color is never the only indicator.
 - Do not use **Publish to web**.
 - Apply the MTF-approved sensitivity label before distribution or export.
 - Confirm exported files are stored only in approved locations.
-- Keep Notes off the printable detail page because it can contain operational audit text and makes the output difficult to scan.
+- Keep Notes off the printable detail page because it contains optional human-entered operational context and makes the output difficult to scan.
 
 ## Refresh
 
@@ -88,7 +88,7 @@ The standard Power BI table remains a preview and search surface. A scrollbar is
 
 ## Audit Boundary
 
-Power BI is read-only and cannot update `ManifestPrintedBy` or append a print event to Notes. For an exact audited manifest:
+Power BI is read-only and cannot update `ManifestPrintedBy` or SharePoint modification metadata. For an exact audited manifest:
 
 1. Generate the manifest in the Power App first so the included records receive a `ManifestID`.
 2. Use Manifest Finder to select that `ManifestID`.

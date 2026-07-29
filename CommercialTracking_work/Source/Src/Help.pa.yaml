@@ -67,10 +67,10 @@ Screens:
                             <li>Scan each carrier tracking barcode.</li>
                             <li>Wait for the success message before scanning the next package.</li>
                           </ol>
-                          <p>No recipient is required for inbound receiving. The app records the receiving time, signed-in user, location, and an audit entry.</p>
+                          <p>No recipient is required for inbound receiving. The app records the receiving time, signed-in user, location, status, and SharePoint modification metadata.</p>
                           <p>The scanner locks while SharePoint is saving. Wait for the persistent result panel to show <b>SUCCESS</b>, <b>WARNING</b>, or <b>ERROR</b> before continuing.</p>
                           <h3>Repeat scans</h3>
-                          <p>A repeat scan does not create another active record. It adds an audit entry and updates the package to the selected location.</p>
+                          <p>A repeat scan does not create another active record. It updates the selected location while preserving the original receiving identity and time.</p>
                           <h3>Outbound pickup</h3>
                           <ol>
                             <li>Verify the recipient assignment.</li>
@@ -81,7 +81,7 @@ Screens:
                           <h3>Before clearing the ledger</h3>
                           <p>Print the inbound manifest first. If unprinted inbound records exist, clearing requires a second confirmation within eight seconds.</p>
                           <h3>Voiding a scan</h3>
-                          <p>Select the trash icon once to prepare the void, then select the warning icon again within eight seconds to confirm. The record remains in database history with a user and timestamp audit entry.</p>
+                          <p>Select the trash icon once to prepare the void, then select the warning icon again within eight seconds to confirm. The record remains in database history as Voided; SharePoint retains its Modified and Modified By metadata.</p>
                           <p style='padding:10px; background:#fff4ce; border-left:4px solid #ffaa44;'><b>Stop and notify a supervisor</b> when multiple active records exist or a package cannot be saved.</p>
                         </div>",
                         "History",
@@ -110,7 +110,7 @@ Screens:
                           <h3>Manifest layouts</h3>
                           <p>Manifests with 1–20 items use the detailed layout. Manifests with 21–100 items use the four-column high-density layout. Printing is disabled above 100 items; return to the scanner and split the records into smaller batches.</p>
                           <h3>Audit behavior</h3>
-                          <p>Before the browser print dialog opens, the app saves the Manifest ID, printing user, and a print-time entry in Notes for every included package.</p>
+                          <p>Before the browser print dialog opens, the app saves the Manifest ID and printing user for every included package. SharePoint records the corresponding Modified time and Modified By user.</p>
                           <p>If the print dialog is canceled, print again from this screen or notify a supervisor because the audit fields may already show the manifest as printed.</p>
                           <p style='padding:10px; background:#fde7e9; border-left:4px solid #a4262c;'><b>Do not leave this screen</b> if the app reports that manifest audit fields could not be saved.</p>
                         </div>",

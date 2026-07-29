@@ -516,11 +516,7 @@ Screens:
                                         Email: User().Email,
                                         JobTitle: "",
                                         Picture: ""
-                                    },
-                                    field_7: Coalesce(manifestRecord.field_7 & Char(10), "") &
-                                        Text(varManifestPrintedAt, "[$-en-US]mm/dd/yyyy hh:mm:ss AM/PM") &
-                                        " | " & User().FullName & " (" & User().Email & ")" &
-                                        " | Manifest printed: " & gblManifestId
+                                    }
                                 }
                             )
                         );

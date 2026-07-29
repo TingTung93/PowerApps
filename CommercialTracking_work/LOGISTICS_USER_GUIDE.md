@@ -37,7 +37,7 @@ For each successful inbound scan, the application records:
 - Date and time received
 - Receiving user
 - Status
-- An audit entry in Notes
+- SharePoint Modified and Modified By metadata
 
 ### Successful Scan
 
@@ -61,7 +61,7 @@ The scanner result panel uses green for success, amber for a warning, and red fo
 
 ### Repeat Scan
 
-If the package is already active, the application will not create a second active record. It will append the repeat scan to Notes and update the location to the currently selected receiving location.
+If the package is already active, the application will not create a second active record. It updates the location to the currently selected receiving location while preserving the original Received At and Received By values.
 
 Confirm that the selected location is correct before intentionally rescanning a package.
 
@@ -179,7 +179,7 @@ A successful outbound scan:
 - Changes Status to **Picked Up**
 - Records the pickup date and time
 - Records the signed-in user
-- Appends the scan to Notes
+- Updates SharePoint Modified and Modified By metadata
 
 Never release a package when the displayed recipient or record does not match the person accepting custody.
 
@@ -211,7 +211,7 @@ Inbound scanning is disabled until a location is selected.
 
 ### Package was already active
 
-The application retained the existing record and added the repeat scan to Notes. Verify the package and location.
+The application retained the existing record and updated its location. Verify the package and location.
 
 ### Multiple active records exist
 

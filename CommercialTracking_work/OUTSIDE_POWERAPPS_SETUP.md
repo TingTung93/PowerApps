@@ -15,7 +15,7 @@ The app expects the existing SharePoint list named `Tracking` and these columns:
 | Recipient | `field_4` | Single line of text |
 | Sender | `field_5` | Single line of text |
 | Logged Date/Time | `field_6` | Date and time |
-| Notes | `field_7` | Single line of text |
+| Notes | `field_7` | Single line of text; reserved for intentional human-entered information |
 | Signed Out Date/Time | `SignedOutDateTime` | Date and time |
 | Signed Out By | `SignedOutBy` | Person or group |
 | Location | `Location` | Single line of text |
@@ -25,6 +25,8 @@ The app expects the existing SharePoint list named `Tracking` and these columns:
 | Received By | `ReceivedBy` | Person or group |
 
 Do not rename or recreate an existing SharePoint column to change its internal name. If a required column is missing, create it and then update the corresponding Power Fx field reference to the internal name SharePoint assigns.
+
+Automated receiving, outbound pickup, voiding, and manifest printing do not write to Notes. Those workflows use structured columns and SharePoint's Modified and Modified By metadata. Notes is reserved for intentional corrections or operational context entered through History or the full item editor.
 
 Recommended SharePoint configuration:
 
@@ -75,11 +77,11 @@ Create the archive library with versioning, retention, and least-privilege permi
 ## 6. Production acceptance checks
 
 - Select each allowed receiving location and confirm inbound scanning works without entering a recipient.
-- Confirm every inbound and outbound scan appends a Notes line containing the timestamp, signed-in user, and location.
+- Confirm automated inbound and outbound scans do not overwrite manually entered Notes.
 - Confirm new and repeat inbound scans write the selected value to the structured `Location` column and that Ledger, History, and printed manifests display it.
 - Confirm first-time inbound scans populate `ReceivedAt` and `ReceivedBy`; repeat scans must preserve an existing receiving identity and timestamp.
-- Confirm printing patches every included record with the same `ManifestID` and the signed-in `ManifestPrintedBy` user. Because there is no `ManifestPrintedAt` column, verify the print timestamp is appended to Notes.
-- Scan an already-active inbound package and confirm no duplicate record is created and the repeat scan is appended to Notes.
+- Confirm printing patches every included record with the same `ManifestID` and the signed-in `ManifestPrintedBy` user. SharePoint Modified and Modified By provide the update metadata.
+- Scan an already-active inbound package and confirm no duplicate record is created, the selected Location is updated, and the original Received At and Received By values are preserved.
 - Print the current session's inbound receiving manifest and confirm it contains only successfully created inbound records from that local scan session.
 - Assign high-value test packages to a recipient, create the recipient custody manifest, and confirm another recipient's packages are excluded.
 - Print a manifest containing at least 16 items on one page and scan several of the compact inline Code 39 package-reference barcodes.

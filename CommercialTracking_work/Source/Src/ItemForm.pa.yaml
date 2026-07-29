@@ -3,7 +3,7 @@ Screens:
     Properties:
       Fill: =RGBA(255, 255, 255, 1)
       LoadingSpinnerColor: =RGBA(5, 102, 178, 1)
-      OnVisible: =If(IsBlank(gblHistoryRecordId), Notify("Select a package from History before opening the full editor.", NotificationType.Warning); Navigate(History, ScreenTransition.None))
+      OnVisible: =If(IsBlank(gblHistoryRecordId), Notify("No package is selected. Use Cancel to return to History and choose a package.", NotificationType.Warning))
     Children:
       - conItemFormToolbar:
           Control: GroupContainer@1.5.0
@@ -24,7 +24,7 @@ Screens:
                   FillPortions: =1
                   FontSize: =18
                   FontWeight: =FontWeight.Semibold
-                  Text: =If(IsBlank(gblHistoryRecordId), "Package Editor", "Package Editor | " & Coalesce(LookUp(Tracking, ID = gblHistoryRecordId).Title, "Selected package"))
+                  Text: =If(IsBlank(gblHistoryRecordId), "Package Editor | No package selected", "Package Editor | " & Coalesce(LookUp(Tracking, ID = gblHistoryRecordId).Title, "Selected package"))
             - icnItemFormHelp:
                 Control: Classic/Icon@2.5.0
                 Properties:
@@ -40,7 +40,7 @@ Screens:
                 Control: FluentV8/Button@1.5.13
                 Properties:
                   AccessibleLabel: ="Save all package fields"
-                  DisplayMode: =If(Form1.Valid, DisplayMode.Edit, DisplayMode.Disabled)
+                  DisplayMode: =If(IsBlank(gblHistoryRecordId) || !Form1.Valid, DisplayMode.Disabled, DisplayMode.Edit)
                   OnSelect: =SubmitForm(Form1)
                   Text: ="Save"
             - btnCancelItemForm:
