@@ -13,10 +13,9 @@ Screens:
         );
     Children:
       - audScanSuccess:
-          Control: Audio@2.3.0
+          Control: Audio@2.3.1
           Properties:
             AccessibleLabel: ="Successful scan tone"
-            AutoPause: =true
             AutoStart: =false
             Height: =1
             Loop: =false
@@ -26,10 +25,9 @@ Screens:
             Visible: =false
             Width: =1
       - audScanWarning:
-          Control: Audio@2.3.0
+          Control: Audio@2.3.1
           Properties:
             AccessibleLabel: ="Scan warning tone"
-            AutoPause: =true
             AutoStart: =false
             Height: =1
             Loop: =false
@@ -39,10 +37,9 @@ Screens:
             Visible: =false
             Width: =1
       - audScanError:
-          Control: Audio@2.3.0
+          Control: Audio@2.3.1
           Properties:
             AccessibleLabel: ="Scan error tone"
-            AutoPause: =true
             AutoStart: =false
             Height: =1
             Loop: =false
@@ -272,7 +269,6 @@ Screens:
                         Fill: =If(varScanDirection = "Inbound", RGBA(16, 124, 16, 1), RGBA(164, 38, 44, 1))
                         FontWeight: =FontWeight.Semibold
                         Height: =38
-                        PaddingLeft: =10
                         Text: =If(varScanDirection = "Inbound", "INBOUND RECEIVING | Select location and blind scan", "OUTBOUND RELEASE | Verify recipient before custody transfer")
                   - cmbReceivingLocation:
                       Control: ComboBox@0.0.51
