@@ -1,0 +1,138 @@
+Screens:
+  Help:
+    Properties:
+      Fill: =RGBA(243, 244, 246, 1)
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+    Children:
+      - conHelpPage:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =Parent.Height
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =12
+            PaddingBottom: =24
+            PaddingLeft: =24
+            PaddingRight: =24
+            PaddingTop: =24
+            Width: =Parent.Width
+          Children:
+            - conHelpHeader:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  FillPortions: =0
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =16
+                  LayoutMinHeight: =52
+                Children:
+                  - lblHelpTitle:
+                      Control: FluentV8/Label@1.8.6
+                      Properties:
+                        FillPortions: =1
+                        FontSize: =22
+                        FontWeight: =FontWeight.Semibold
+                        Text: |
+                          =Switch(
+                              gblHelpTopic,
+                              "Ledger", "Receiving and Scanner Help",
+                              "History", "History and Reconciliation Help",
+                              "PackingList", "Manifest and Printing Help",
+                              "ItemForm", "Package Editor Help",
+                              "Commercial Package Tracking Help"
+                          )
+                  - btnCloseHelp:
+                      Control: FluentV8/Button@1.5.13
+                      Properties:
+                        AccessibleLabel: ="Close help and return to the previous screen"
+                        OnSelect: =Back(ScreenTransition.Fade)
+                        Text: ="Back"
+            - htmlContextHelp:
+                Control: HtmlViewer@2.1.0
+                Properties:
+                  DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                  FillPortions: =1
+                  Font: =Font.'Segoe UI'
+                  HtmlText: |
+                    =Switch(
+                        gblHelpTopic,
+                        "Ledger",
+                        "<div style='font-family:Segoe UI,Arial,sans-serif; color:#201f1e; line-height:1.4;'>
+                          <h2 style='color:#0f548c;'>Inbound receiving</h2>
+                          <ol>
+                            <li>Set the mode to <b>Inbound</b>.</li>
+                            <li>Select the correct receiving location.</li>
+                            <li>Scan each carrier tracking barcode.</li>
+                            <li>Wait for the success message before scanning the next package.</li>
+                          </ol>
+                          <p>No recipient is required for inbound receiving. The app records the receiving time, signed-in user, location, and an audit entry.</p>
+                          <p>The scanner locks while SharePoint is saving. Wait for the persistent result panel to show <b>SUCCESS</b>, <b>WARNING</b>, or <b>ERROR</b> before continuing.</p>
+                          <h3>Repeat scans</h3>
+                          <p>A repeat scan does not create another active record. It adds an audit entry and updates the package to the selected location.</p>
+                          <h3>Outbound pickup</h3>
+                          <ol>
+                            <li>Verify the recipient assignment.</li>
+                            <li>Set the mode to <b>Outbound</b>.</li>
+                            <li>Scan the carrier barcode or package-reference barcode.</li>
+                            <li>Confirm the recipient and success message before releasing custody.</li>
+                          </ol>
+                          <h3>Before clearing the ledger</h3>
+                          <p>Print the inbound manifest first. If unprinted inbound records exist, clearing requires a second confirmation within eight seconds.</p>
+                          <h3>Voiding a scan</h3>
+                          <p>Select the trash icon once to prepare the void, then select the warning icon again within eight seconds to confirm. The record remains in database history with a user and timestamp audit entry.</p>
+                          <p style='padding:10px; background:#fff4ce; border-left:4px solid #ffaa44;'><b>Stop and notify a supervisor</b> when multiple active records exist or a package cannot be saved.</p>
+                        </div>",
+                        "History",
+                        "<div style='font-family:Segoe UI,Arial,sans-serif; color:#201f1e; line-height:1.4;'>
+                          <h2 style='color:#0f548c;'>Search package history</h2>
+                          <p>Enter at least three characters to search tracking number, Manifest ID, carrier, recipient, location, status, or Notes.</p>
+                          <h3>Reconcile an unassigned package</h3>
+                          <ol>
+                            <li>Open <b>Reconcile Unassigned Packages</b> from the scanner.</li>
+                            <li>Select the edit icon for the correct package.</li>
+                            <li>Enter or assign the verified recipient.</li>
+                            <li>Save the change.</li>
+                          </ol>
+                          <h3>Editing</h3>
+                          <p>Use the inline editor for recipient, carrier, and Notes. Use <b>Edit All Fields</b> for a verified supervisor correction.</p>
+                          <p>Do not change receiving, signed-out, or manifest audit fields unless correcting a confirmed error.</p>
+                        </div>",
+                        "PackingList",
+                        "<div style='font-family:Segoe UI,Arial,sans-serif; color:#201f1e; line-height:1.4;'>
+                          <h2 style='color:#0f548c;'>Review before printing</h2>
+                          <ul>
+                            <li>Verify the manifest type, location or recipient, package count, and Manifest ID.</li>
+                            <li>Select <b>Refresh</b> if package data changed after opening the screen.</li>
+                            <li>Print at 100% scale when possible.</li>
+                          </ul>
+                          <h3>Manifest layouts</h3>
+                          <p>Manifests with 1–20 items use the detailed layout. Manifests with 21–100 items use the four-column high-density layout.</p>
+                          <h3>Audit behavior</h3>
+                          <p>Before the browser print dialog opens, the app saves the Manifest ID, printing user, and a print-time entry in Notes for every included package.</p>
+                          <p>If the print dialog is canceled, print again from this screen or notify a supervisor because the audit fields may already show the manifest as printed.</p>
+                          <p style='padding:10px; background:#fde7e9; border-left:4px solid #a4262c;'><b>Do not leave this screen</b> if the app reports that manifest audit fields could not be saved.</p>
+                        </div>",
+                        "ItemForm",
+                        "<div style='font-family:Segoe UI,Arial,sans-serif; color:#201f1e; line-height:1.4;'>
+                          <h2 style='color:#0f548c;'>Full package editor</h2>
+                          <p>This screen is intended for supervisor corrections to an existing selected package.</p>
+                          <ul>
+                            <li>Verify the tracking number before editing.</li>
+                            <li>Change only fields supported by source documentation or a confirmed correction.</li>
+                            <li>Select <b>Save</b> to submit all changed fields.</li>
+                            <li>Select <b>Cancel</b> to discard changes and return to History.</li>
+                          </ul>
+                          <h3>Protected audit information</h3>
+                          <p>Use extra care with Received At, Received By, Location, Manifest ID, Manifest Printed By, Signed Out Date/Time, and Signed Out By.</p>
+                          <p>Record the reason for a material audit correction in Notes according to local procedure.</p>
+                        </div>",
+                        "<div style='font-family:Segoe UI,Arial,sans-serif; color:#201f1e; line-height:1.4;'>
+                          <h2>Commercial Package Tracking</h2>
+                          <p>Use the question-mark icon on a workflow screen to open contextual instructions.</p>
+                          <p>For unresolved errors, duplicate records, custody discrepancies, or high-value package concerns, stop and contact a supervisor.</p>
+                        </div>"
+                    )
+                  LayoutMinHeight: =400
+                  Width: =Parent.Width - Parent.PaddingLeft - Parent.PaddingRight

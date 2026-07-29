@@ -56,6 +56,17 @@ Screens:
                         AccessibleLabel: ="Refresh package history results"
                         OnSelect: =Refresh(Tracking)
                         Text: ="Refresh"
+                  - icnHistoryHelp:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        AccessibleLabel: ="Open help for package history and reconciliation"
+                        Color: =RGBA(5, 102, 178, 1)
+                        Height: =28
+                        Icon: =Icon.Help
+                        OnSelect: =Set(gblHelpTopic, "History"); Navigate(Help, ScreenTransition.Fade)
+                        TabIndex: =0
+                        Tooltip: ="History and reconciliation help"
+                        Width: =28
             - txtSearchDatabase:
                 Control: FluentV8/TextBox@1.7.2
                 Properties:
@@ -107,6 +118,7 @@ Screens:
                   RadiusBottomRight: =8
                   RadiusTopLeft: =8
                   RadiusTopRight: =8
+                  Visible: =!IsBlank(gblHistoryRecordId)
                 Children:
                   - Container1:
                       Control: GroupContainer@1.5.0
@@ -425,7 +437,7 @@ Screens:
                     )
                   LayoutMinHeight: =400
                   TabIndex: =0
-                  TemplateSize: =170
+                  TemplateSize: =190
                 Children:
                   - HtmlText_HistoryCard:
                       Control: HtmlViewer@2.1.0

@@ -8,5 +8,5 @@
 # ************************************************************************************************
 App:
   Properties:
-    OnStart: =Set(gblRecipient, ""); Set(gblReceivingLocation, ""); Set(gblManifestMode, "Inbound"); Set(gblManifestId, ""); Set(gblManifestPreparedAt, Now()); Set(gblLastInboundManifestPrintedAt, Blank())
+    OnStart: =Set(gblRecipient, ""); Set(gblReceivingLocation, ""); Set(gblManifestMode, "Inbound"); Set(gblManifestId, ""); Set(gblManifestPreparedAt, Now()); Set(gblLastInboundManifestPrintedAt, Blank()); Set(gblHelpTopic, "")
     Theme: =PowerAppsTheme

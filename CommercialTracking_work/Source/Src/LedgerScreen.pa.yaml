@@ -5,6 +5,7 @@ Screens:
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
       OnVisible: |
         =If(IsBlank(varScanDirection), UpdateContext({varScanDirection: "Inbound"}));
+        UpdateContext({varScanInProgress: false});
         If(
             varScanDirection = "Inbound" && IsBlank(gblReceivingLocation),
             SetFocus(cmbReceivingLocation),
@@ -52,6 +53,27 @@ Screens:
                         FontSize: =14
                         FontWeight: =FontWeight.Semibold
                         Text: ="Recent Scans (Ledger)"
+                  - htmlLastScanResult:
+                      Control: HtmlViewer@2.1.0
+                      Properties:
+                        DisabledBorderColor: =RGBA(200, 198, 196, 1)
+                        FillPortions: =0
+                        Font: =Font.'Segoe UI'
+                        Height: =If(IsBlank(varLastScanStatus), 42, 64)
+                        HtmlText: |
+                          =If(
+                              IsBlank(varLastScanStatus),
+                              "<div style='padding:8px 10px; border:1px solid #d2d0ce; border-radius:6px; background:#ffffff; color:#605e5c; font-size:12px;'>Ready for the next scan.</div>",
+                              "<div style='padding:8px 10px; border:2px solid " &
+                              Switch(varLastScanStatus, "SUCCESS", "#107c10", "WARNING", "#ffaa44", "ERROR", "#a4262c", "#0f6cbd") &
+                              "; border-radius:6px; background:" &
+                              Switch(varLastScanStatus, "SUCCESS", "#dff6dd", "WARNING", "#fff4ce", "ERROR", "#fde7e9", "#deecf9") &
+                              "; color:#201f1e;'>
+                                <div style='font-size:13px; font-weight:700;'>" & varLastScanStatus & If(!IsBlank(varLastScanTracking), " | " & varLastScanTracking, "") & "</div>
+                                <div style='margin-top:3px; font-size:12px;'>" & Coalesce(varLastScanMessage, "") & "</div>
+                              </div>"
+                          )
+                        Width: =Parent.Width - Parent.PaddingLeft - Parent.PaddingRight
                   - txtSearchLedger_1:
                       Control: FluentV8/TextBox@1.7.2
                       Properties:
@@ -121,22 +143,38 @@ Screens:
                               Color: =RGBA(164, 38, 44, 1)
                               Height: =20
                               HoverColor: =RGBA(201, 36, 43, 1)
-                              Icon: =Icon.Trash
+                              Icon: =If(varPendingVoidTrackingId = ThisItem.TrackingId, Icon.Warning, Icon.Trash)
                               OnSelect: |
                                 =If(
                                     IsBlank(ThisItem.TrackingId),
                                     Remove(colRecentScans, ThisItem);
                                     Notify("This older local entry had no database ID and was removed only from this session.", NotificationType.Warning),
-                                    IfError(
-                                        Patch(Tracking, LookUp(Tracking, ID = ThisItem.TrackingId), {field_3: "Voided"});
-                                        Remove(colRecentScans, ThisItem);
-                                        true,
-                                        Notify("The database record could not be voided: " & FirstError.Message, NotificationType.Error);
-                                        false
+                                    varPendingVoidTrackingId <> ThisItem.TrackingId,
+                                    UpdateContext({varPendingVoidTrackingId: ThisItem.TrackingId});
+                                    Notify("Select the warning icon again within 8 seconds to void this record.", NotificationType.Warning),
+                                    With(
+                                        {_voidRecord: LookUp(Tracking, ID = ThisItem.TrackingId)},
+                                        IfError(
+                                            Patch(
+                                                Tracking,
+                                                _voidRecord,
+                                                {
+                                                    field_3: "Voided",
+                                                    field_7: Coalesce(_voidRecord.field_7 & Char(10), "") &
+                                                        Text(Now(), "[$-en-US]mm/dd/yyyy hh:mm:ss AM/PM") &
+                                                        " | " & User().FullName & " (" & User().Email & ")" &
+                                                        " | Voided from session ledger"
+                                                }
+                                            );
+                                            Remove(colRecentScans, ThisItem);
+                                            UpdateContext({varPendingVoidTrackingId: Blank()});
+                                            Notify("The scan was voided and retained in database history.", NotificationType.Success),
+                                            Notify("The database record could not be voided: " & FirstError.Message, NotificationType.Error)
+                                        )
                                     )
                                 )
                               TabIndex: =0
-                              Tooltip: ="Void this scan and remove it from the local ledger"
+                              Tooltip: =If(varPendingVoidTrackingId = ThisItem.TrackingId, "Select again to confirm void", "Prepare to void this scan")
                               Width: =20
                               X: =Parent.TemplateWidth - 48
                               Y: =16
@@ -159,22 +197,48 @@ Screens:
                   RadiusTopLeft: =8
                   RadiusTopRight: =8
                 Children:
-                  - lblControlHeader_1:
-                      Control: FluentV8/Label@1.8.6
+                  - conControlHeader:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
                       Properties:
-                        FontSize: =18
-                        FontWeight: =FontWeight.Semibold
-                        Text: ="Receive Packages"
+                        FillPortions: =0
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMinHeight: =32
+                      Children:
+                        - lblControlHeader_1:
+                            Control: FluentV8/Label@1.8.6
+                            Properties:
+                              FillPortions: =1
+                              FontSize: =18
+                              FontWeight: =FontWeight.Semibold
+                              Text: ="Receive Packages"
+                        - icnLedgerHelp:
+                            Control: Classic/Icon@2.5.0
+                            Properties:
+                              AccessibleLabel: ="Open help for receiving and outbound scanning"
+                              Color: =RGBA(5, 102, 178, 1)
+                              Height: =28
+                              Icon: =Icon.Help
+                              OnSelect: =Set(gblHelpTopic, "Ledger"); Navigate(Help, ScreenTransition.Fade)
+                              TabIndex: =0
+                              Tooltip: ="Scanner workflow help"
+                              Width: =28
                   - lblControlInstructions:
                       Control: FluentV8/Label@1.8.6
                       Properties:
-                        AutoHeight: =true
-                        Text: =If(varScanDirection = "Inbound", "Choose a receiving location, then blind scan each arriving package. No recipient is required.", "Scan a package or packing-list QR to mark it picked up.")
+                        Color: =RGBA(255, 255, 255, 1)
+                        Fill: =If(varScanDirection = "Inbound", RGBA(16, 124, 16, 1), RGBA(164, 38, 44, 1))
+                        FontWeight: =FontWeight.Semibold
+                        Height: =38
+                        PaddingLeft: =10
+                        Text: =If(varScanDirection = "Inbound", "INBOUND RECEIVING | Select location and blind scan", "OUTBOUND RELEASE | Verify recipient before custody transfer")
                   - cmbReceivingLocation:
                       Control: ComboBox@0.0.51
                       Properties:
                         AccessibleLabel: ="Receiving location"
                         DefaultSelectedItems: =If(IsBlank(gblReceivingLocation), Table(), [gblReceivingLocation])
+                        DisplayMode: =If(varScanInProgress, DisplayMode.Disabled, DisplayMode.Edit)
                         InputTextPlaceholder: ="Select receiving location"
                         Items: =["Main Receiving", "Loading Dock", "Mailroom", "Warehouse"]
                         LayoutMinHeight: =44
@@ -186,6 +250,7 @@ Screens:
                       Control: TextInput@0.0.54
                       Properties:
                         AccessibleLabel: ="Recipient for an outbound custody manifest"
+                        DisplayMode: =If(varScanInProgress, DisplayMode.Disabled, DisplayMode.Edit)
                         LayoutMinHeight: =44
                         OnChange: |-
                           =Set(gblRecipient, Trim(Self.Value)); If(!IsBlank(gblRecipient) && varScanDirection = "Inbound", UpdateContext({varTriggerFocus: true}))
@@ -195,10 +260,18 @@ Screens:
                       Control: TextInput@0.0.54
                       Properties:
                         AccessibleLabel: ="Package barcode or packing-list QR scanner"
-                        DisplayMode: =If(varScanDirection = "Inbound" && IsBlank(gblReceivingLocation), DisplayMode.Disabled, DisplayMode.Edit)
+                        DisplayMode: =If(varScanInProgress || (varScanDirection = "Inbound" && IsBlank(gblReceivingLocation)), DisplayMode.Disabled, DisplayMode.Edit)
                         LayoutMinHeight: =48
                         OnChange: |
                           =// 1. Capture scan immediately so the control can reset
+                          UpdateContext(
+                              {
+                                  varScanInProgress: true,
+                                  varLastScanStatus: "SAVING",
+                                  varLastScanMessage: "Saving to the package ledger. Do not scan another package.",
+                                  varLastScanTracking: Trim(Self.Value)
+                              }
+                          );
                           UpdateContext(
                               {
                                   varRawScan: Trim(
@@ -408,6 +481,7 @@ Screens:
                                       // 3. Database Execution
                                       If(
                                           IsBlank(_trk),
+                                          UpdateContext({varLastScanStatus: "ERROR", varLastScanMessage: "No supported tracking number was found in the scan.", varLastScanTracking: varRawScan});
                                           Notify(
                                               "No supported tracking number was found in the scan.",
                                               NotificationType.Error
@@ -435,11 +509,13 @@ Screens:
                                               },
                                               If(
                                                   CountRows(_activeMatches) > 1,
+                                                  UpdateContext({varLastScanStatus: "ERROR", varLastScanMessage: "Multiple active records exist. Resolve the duplicates before pickup.", varLastScanTracking: _trk});
                                                   Notify(
                                                       "Multiple active records exist for this tracking number. Resolve the duplicate entries before pickup.",
                                                       NotificationType.Error
                                                   ),
                                                   IsEmpty(_activeMatches),
+                                                  UpdateContext({varLastScanStatus: "WARNING", varLastScanMessage: "No package awaiting pickup was found.", varLastScanTracking: _trk});
                                                   Notify(
                                                       "No package awaiting pickup was found for this tracking number.",
                                                       NotificationType.Warning
@@ -488,10 +564,12 @@ Screens:
                                                                   DisplayAddressBlock: Blank()
                                                               }
                                                           );
+                                                          UpdateContext({varLastScanStatus: "SUCCESS", varLastScanMessage: "Package released to " & Coalesce(_record.field_4, "the recorded recipient") & ".", varLastScanTracking: _record.Title});
                                                           Notify(
                                                               "Package picked up by " & _record.field_4 & ".",
                                                               NotificationType.Success
                                                           ),
+                                                          UpdateContext({varLastScanStatus: "ERROR", varLastScanMessage: "Pickup was not saved: " & FirstError.Message, varLastScanTracking: _record.Title});
                                                           Notify(
                                                               "Pickup could not be saved: " & FirstError.Message,
                                                               NotificationType.Error
@@ -503,6 +581,7 @@ Screens:
                                           // INBOUND LOGIC
                                           IsBlank(gblReceivingLocation),
                                           SetFocus(cmbReceivingLocation);
+                                          UpdateContext({varLastScanStatus: "WARNING", varLastScanMessage: "Select a receiving location before scanning.", varLastScanTracking: _trk});
                                           Notify(
                                               "Select a receiving location before scanning an inbound package.",
                                               NotificationType.Warning
@@ -528,6 +607,7 @@ Screens:
                                               },
                                               If(
                                                   CountRows(_activeMatches) > 1,
+                                                  UpdateContext({varLastScanStatus: "ERROR", varLastScanMessage: "Multiple active records exist. Resolve the duplicates before scanning again.", varLastScanTracking: _trk});
                                                   Notify(
                                                       "This tracking number already has multiple active records. Resolve the duplicates before scanning it again.",
                                                       NotificationType.Error
@@ -579,10 +659,12 @@ Screens:
                                                                   DisplayAddressBlock: _addressBlock
                                                               }
                                                           );
+                                                          UpdateContext({varLastScanStatus: "WARNING", varLastScanMessage: "Already active. The repeat scan was recorded at " & gblReceivingLocation & ".", varLastScanTracking: _record.Title});
                                                           Notify(
                                                               "Package was already active; this scan was added to its notes.",
                                                               NotificationType.Warning
                                                           ),
+                                                          UpdateContext({varLastScanStatus: "ERROR", varLastScanMessage: "The repeat scan was not saved: " & FirstError.Message, varLastScanTracking: _record.Title});
                                                           Notify(
                                                               "The repeat scan could not be added to notes: " & FirstError.Message,
                                                               NotificationType.Error
@@ -635,10 +717,12 @@ Screens:
                                                               DisplayAddressBlock: _addressBlock
                                                           }
                                                       );
+                                                      UpdateContext({varLastScanStatus: "SUCCESS", varLastScanMessage: "Package received at " & gblReceivingLocation & ".", varLastScanTracking: _trk});
                                                       Notify(
                                                           "Package received at " & gblReceivingLocation & ".",
                                                           NotificationType.Success
                                                       ),
+                                                      UpdateContext({varLastScanStatus: "ERROR", varLastScanMessage: "The package was not saved: " & FirstError.Message, varLastScanTracking: _trk});
                                                       Notify(
                                                           "The package could not be saved: " & FirstError.Message,
                                                           NotificationType.Error
@@ -650,16 +734,22 @@ Screens:
                                   )
                               )
                           );
+                          If(
+                              IsBlank(varRawScan),
+                              UpdateContext({varLastScanStatus: "WARNING", varLastScanMessage: "No barcode data was received.", varLastScanTracking: Blank()})
+                          );
                           // 4. Clean up and refocus for the next scan immediately
                           Reset(txtBarcodeScanner_2);
                           UpdateContext({varTriggerFocus: true});
-                        Placeholder: =If(varScanDirection = "Inbound" && IsBlank(gblReceivingLocation), "Select a receiving location first", "Scan package or QR code")
+                          UpdateContext({varScanInProgress: false});
+                        Placeholder: =If(varScanInProgress, "Saving—wait for a result", If(varScanDirection = "Inbound" && IsBlank(gblReceivingLocation), "Select a receiving location first", "Scan package or QR code"))
                         TriggerOutput: ='TextInputCanvas.TriggerOutput'.Keypress
                   - DirectionToggle_2:
                       Control: FluentV8/Toggle@1.6.7
                       Properties:
                         AccessibleLabel: ="Switch between inbound receiving and outbound pickup"
                         Checked: =varScanDirection = "Inbound"
+                        DisplayMode: =If(varScanInProgress, DisplayMode.Disabled, DisplayMode.Edit)
                         LayoutMinHeight: =40
                         OffText: ="Outbound"
                         OnCheck: |
@@ -733,6 +823,14 @@ Screens:
                         OnTimerEnd: |-
                           =UpdateContext({varConfirmClearScans: false})
                         Start: =varConfirmClearScans
+                        Visible: =false
+                  - tmrVoidConfirmation:
+                      Control: Timer@2.1.0
+                      Properties:
+                        Duration: =8000
+                        OnTimerEnd: |-
+                          =UpdateContext({varPendingVoidTrackingId: Blank()})
+                        Start: =!IsBlank(varPendingVoidTrackingId)
                         Visible: =false
                   - tmrFocusScanner_1:
                       Control: Timer@2.1.0

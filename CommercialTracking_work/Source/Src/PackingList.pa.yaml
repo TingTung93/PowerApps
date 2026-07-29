@@ -116,6 +116,17 @@ Screens:
                         )
                     )
                   Text: ="Refresh"
+            - icnPackingListHelp:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  AccessibleLabel: ="Open help for manifests and printing"
+                  Color: =RGBA(5, 102, 178, 1)
+                  Height: =28
+                  Icon: =Icon.Help
+                  OnSelect: =Set(gblHelpTopic, "PackingList"); Navigate(Help, ScreenTransition.Fade)
+                  TabIndex: =0
+                  Tooltip: ="Manifest and printing help"
+                  Width: =28
       - conPackingList:
           Control: GroupContainer@1.5.0
           Variant: AutoLayout
