@@ -1,0 +1,22 @@
+{
+  "name": "Commercial Tracking Logistics",
+  "dataColors": [
+    "#0566B2",
+    "#107C10",
+    "#B86900",
+    "#A4262C",
+    "#605E5C",
+    "#0F6CBD",
+    "#498205",
+    "#CA5010"
+  ],
+  "background": "#FFFFFF",
+  "foreground": "#201F1E",
+  "tableAccent": "#0566B2",
+  "good": "#107C10",
+  "neutral": "#B86900",
+  "bad": "#A4262C",
+  "maximum": "#0566B2",
+  "center": "#B86900",
+  "minimum": "#A4262C"
+}

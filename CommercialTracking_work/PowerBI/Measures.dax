@@ -1,0 +1,129 @@
+-- Create these as calculated columns on the Tracking table.
+
+Received Date =
+VAR ReceivedValue = Tracking[Received At Local]
+RETURN
+    IF(
+        ISBLANK(ReceivedValue),
+        BLANK(),
+        DATE(YEAR(ReceivedValue), MONTH(ReceivedValue), DAY(ReceivedValue))
+    )
+
+Signed Out Date =
+VAR SignedOutValue = Tracking[Signed Out At Local]
+RETURN
+    IF(
+        ISBLANK(SignedOutValue),
+        BLANK(),
+        DATE(YEAR(SignedOutValue), MONTH(SignedOutValue), DAY(SignedOutValue))
+    )
+
+Location Sort =
+SWITCH(
+    Tracking[Location],
+    "Main Receiving", 1,
+    "Loading Dock", 2,
+    "Mailroom", 3,
+    "Warehouse", 4,
+    99
+)
+
+Assignment State =
+IF(
+    Tracking[Direction] = "Inbound"
+        && Tracking[Status] IN {"Ready for Pickup", "Arrived on Dock"}
+        && (ISBLANK(Tracking[Recipient]) || LEN(TRIM(Tracking[Recipient])) = 0),
+    "Needs Recipient",
+    "Assigned / Closed"
+)
+
+-- Create the remaining expressions as measures.
+
+Package Count =
+COUNTROWS(Tracking)
+
+Inbound Packages =
+CALCULATE(
+    [Package Count],
+    Tracking[Direction] = "Inbound"
+)
+
+Outbound Packages =
+CALCULATE(
+    [Package Count],
+    Tracking[Direction] = "Outbound"
+)
+
+Active Packages =
+CALCULATE(
+    [Package Count],
+    Tracking[Status] IN {"Ready for Pickup", "Arrived on Dock"}
+)
+
+Unassigned Packages =
+CALCULATE(
+    [Package Count],
+    Tracking[Assignment State] = "Needs Recipient"
+)
+
+Picked Up Packages =
+CALCULATE(
+    [Package Count],
+    Tracking[Status] = "Picked Up"
+)
+
+Voided Packages =
+CALCULATE(
+    [Package Count],
+    Tracking[Status] = "Voided"
+)
+
+Manifest Count =
+CALCULATE(
+    DISTINCTCOUNT(Tracking[ManifestID]),
+    NOT ISBLANK(Tracking[ManifestID])
+)
+
+Locations Used =
+CALCULATE(
+    DISTINCTCOUNT(Tracking[Location]),
+    NOT ISBLANK(Tracking[Location])
+)
+
+First Receipt Time =
+MIN(Tracking[Received At Local])
+
+Last Receipt Time =
+MAX(Tracking[Received At Local])
+
+Selected Report Date =
+COALESCE(
+    SELECTEDVALUE(Tracking[Received Date]),
+    MAX(Tracking[Received Date])
+)
+
+Daily Manifest Title =
+"DAILY RECEIVING MANIFEST | "
+    & FORMAT([Selected Report Date], "mmm d, yyyy")
+
+Daily Manifest Subtitle =
+VAR SelectedLocation = SELECTEDVALUE(Tracking[Location], "All Locations")
+VAR SelectedManifest = SELECTEDVALUE(Tracking[ManifestID], "All Manifests")
+RETURN
+    SelectedLocation & " | " & SelectedManifest
+
+Print Row Warning =
+VAR RowsVisible = [Package Count]
+RETURN
+    IF(
+        RowsVisible > 40,
+        "EXPORT WARNING: " & FORMAT(RowsVisible, "#,0")
+            & " rows may not fit in the standard PDF table. Export to Excel or use the paginated report.",
+        "READY TO EXPORT | " & FORMAT(RowsVisible, "#,0") & " rows"
+    )
+
+Print Row Warning Color =
+IF([Package Count] > 40, "#A4262C", "#107C10")
+
+Last Refresh Label =
+"Data refreshed: " & FORMAT(NOW(), "mmm d, yyyy h:mm AM/PM")

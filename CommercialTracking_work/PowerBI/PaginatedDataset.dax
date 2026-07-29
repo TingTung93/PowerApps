@@ -1,0 +1,67 @@
+-- Power BI Report Builder dataset query.
+-- Bind @ManifestID, @ReportDate, @Location, @Recipient, and @ReportMode
+-- to report parameters. Blank text parameters mean "all".
+--
+-- ReportMode values:
+-- Exact Manifest
+-- Daily Receiving
+-- Recipient Custody
+
+DEFINE
+    VAR __ManifestID = TRIM(@ManifestID)
+    VAR __Location = TRIM(@Location)
+    VAR __Recipient = TRIM(@Recipient)
+    VAR __ReportDate = DATE(YEAR(@ReportDate), MONTH(@ReportDate), DAY(@ReportDate))
+    VAR __ReportMode = @ReportMode
+
+    VAR __FilteredRows =
+        FILTER(
+            SELECTCOLUMNS(
+                Tracking,
+                "ID", Tracking[ID],
+                "PackageReference", Tracking[Package Reference],
+                "TrackingNumber", Tracking[Tracking Number],
+                "Carrier", Tracking[Carrier],
+                "Direction", Tracking[Direction],
+                "Status", Tracking[Status],
+                "Recipient", Tracking[Recipient],
+                "Location", Tracking[Location],
+                "ReceivedAtLocal", Tracking[Received At Local],
+                "ReceivedDate", Tracking[Received Date],
+                "ReceivedByName", Tracking[Received By Name],
+                "SignedOutAtLocal", Tracking[Signed Out At Local],
+                "SignedOutByName", Tracking[Signed Out By Name],
+                "ManifestID", Tracking[ManifestID],
+                "ManifestPrintedByName", Tracking[Manifest Printed By Name]
+            ),
+            SWITCH(
+                __ReportMode,
+                "Exact Manifest",
+                    [ManifestID] = __ManifestID
+                        && __ManifestID <> "",
+                "Recipient Custody",
+                    [Recipient] = __Recipient
+                        && __Recipient <> ""
+                        && (
+                            ISBLANK(__Location)
+                            || __Location = ""
+                            || [Location] = __Location
+                        ),
+                "Daily Receiving",
+                    [ReceivedDate] = __ReportDate
+                        && [Direction] = "Inbound"
+                        && (
+                            ISBLANK(__Location)
+                            || __Location = ""
+                            || [Location] = __Location
+                        ),
+                FALSE()
+            )
+        )
+
+EVALUATE
+    __FilteredRows
+
+ORDER BY
+    [ReceivedAtLocal] ASC,
+    [ID] ASC
