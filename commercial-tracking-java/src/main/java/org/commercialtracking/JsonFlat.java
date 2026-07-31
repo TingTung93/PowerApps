@@ -57,7 +57,7 @@ public final class JsonFlat {
             while (true) {
                 String key = string();
                 space(); expect(':'); space();
-                String value = string();
+                String value = value();
                 values.put(key, value);
                 space();
                 if (peek('}')) { p++; break; }
@@ -66,6 +66,17 @@ public final class JsonFlat {
             space();
             if (p != text.length()) throw new IllegalArgumentException("Trailing JSON content");
             return values;
+        }
+
+        private String value() {
+            if (peek('"')) return string();
+            int start = p;
+            while (p < text.length() && ",}".indexOf(text.charAt(p)) < 0) p++;
+            String token = text.substring(start, p).trim();
+            if ("true".equals(token) || "false".equals(token) || "null".equals(token)
+                    || token.matches("-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?"))
+                return "null".equals(token) ? "" : token;
+            throw new IllegalArgumentException("Invalid JSON value at " + start);
         }
 
         private String string() {

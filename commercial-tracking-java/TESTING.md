@@ -11,8 +11,8 @@ Use an empty, non-production Teams/SharePoint synchronized folder. This release 
 1. Synchronize the same pilot folder on both test workstations.
 2. Copy the complete `dist` folder to each workstation.
 3. Run `run-commercial-tracking.cmd`.
-4. Confirm the default browser opens the Commercial Tracking dashboard.
-5. Select **Change folder** and enter the full synchronized pilot path if it is not already configured.
+4. Confirm the default browser opens the Commercial Tracking application.
+5. Complete first-run setup and select the synchronized pilot root.
 6. Verify that the dashboard loads without any internet connection.
 7. Keep the Java launcher running while the browser interface is in use.
 8. Confirm each workstation displays a different device ID in the application header and generated events.
@@ -35,9 +35,9 @@ run-commercial-tracking.cmd --classic-ui
 
 ### Inbound
 
-1. Select `Inbound` and `Main Receiving`.
+1. Open **Receive Packages** and select `Main Receiving`.
 2. Scan a known UPS `1Z` barcode.
-3. Confirm `SUCCESS` appears and the event is in Current Session.
+3. Confirm `Package received` appears and the package is in Current Session.
 4. Confirm the other workstation observes the package in Package History.
 5. Repeat the scan at `Loading Dock`.
 6. Confirm a warning indicates that the active package was retained and its location changed.
@@ -45,16 +45,16 @@ run-commercial-tracking.cmd --classic-ui
 ### Outbound
 
 1. Wait until the receiving event is visible on the second workstation.
-2. Select `Outbound`.
-3. Scan the same package.
-4. Confirm the package becomes `PICKED_UP`.
+2. Open **Release Packages**.
+3. Scan the same package and verify the package card.
+4. Activate **Confirm release** and confirm the package becomes `PICKED_UP`.
 5. Scan it again and confirm the client refuses a normal second release.
 
 ### Offline
 
 1. Pause OneDrive or disconnect the test workstation.
 2. Receive a unique package.
-3. Confirm the event appears in the local synchronized folder.
+3. Confirm the application says whether the event is safely retained locally.
 4. Resume OneDrive.
 5. Confirm the other workstation eventually observes the event.
 
@@ -82,10 +82,18 @@ Record the raw scanner output only if information-protection policy permits it. 
 ### Manifest
 
 1. Receive several synthetic packages in one session.
-2. Select `Print inbound session manifest`.
-3. Confirm a browser opens the generated HTML.
-4. Verify location, package count, tracking values, timestamps, and device IDs.
-5. Print or save to PDF using the browser.
+2. Open **Manifests**, review the selected inbound membership, and finalize.
+3. Verify the generated PDF and accessible HTML fallback.
+4. Verify location, package count, tracking values, timestamps, device IDs, and checksum.
+5. Reprint from the manifest register and confirm the manifest ID is unchanged.
+
+## Full qualification
+
+Run every worksheet in `qualification/` before production approval. Those
+worksheets cover physical scanners, two synchronized workstations, offline and
+conflicting operation, 100,000-event performance, display scaling, keyboard,
+and assistive-technology validation. Automated build tests complement but do
+not replace those environment-dependent checks.
 
 ## Failure reporting
 

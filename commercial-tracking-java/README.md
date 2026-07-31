@@ -1,4 +1,4 @@
-# Commercial Tracking RC
+# Commercial Tracking
 
 Portable Java 8-compatible release candidate for package receiving and release using a OneDrive-synchronized Teams/SharePoint folder as an immutable event store.
 
@@ -15,6 +15,9 @@ Requirements:
 
 ```powershell
 .\build.ps1
+
+# Build beside a running/locked release
+.\build.ps1 -OutputDirectory dist-review
 ```
 
 Output:
@@ -36,7 +39,7 @@ Copy the complete `dist` folder to a workstation and launch:
 run-commercial-tracking.cmd
 ```
 
-On first run, select a locally synchronized empty pilot folder. Do not point the release candidate at production package records.
+On first run, select the synchronized `CommercialTracking` root. The application validates and probes the folder before saving it.
 
 The default launcher opens the modern MUI interface in the system browser. The local service binds only to `127.0.0.1` with an ephemeral port and random session token.
 
@@ -46,13 +49,16 @@ Classic Swing fallback:
 run-commercial-tracking.cmd --classic-ui
 ```
 
-## RC scope
+## Implemented scope
 
 Included:
 
-- Offline bundled Material UI dashboard.
-- Inbound and outbound scanner modes.
-- Four receiving locations.
+- Offline bundled Material UI workspaces for receiving, release, current session,
+  history, recipient reconciliation, manifests, reports, attention/recovery,
+  settings, and diagnostics.
+- Automatic, terminator, paste, and manual scanner completion with guided
+  calibration and workstation-specific timing.
+- Configurable shared receiving locations.
 - UPS, USPS, FedEx, DHL, Amazon, ANSI MH10 `31Z`, GS1, generic, and application-reference parsing.
 - Field confidence and confirmation for ambiguous values.
 - Immutable JSON event writing.
@@ -61,18 +67,22 @@ Included:
 - Current-session ledger.
 - Derived package history.
 - Recipient assignment and audited package voiding from history.
-- Printable inbound session manifest.
+- Audited inbound and custody manifests with immutable membership, checksums,
+  PDF/HTML output, register, and reprint.
+- Event-derived day/week/month/custom receiving and custody reports with
+  PDF/HTML/CSV output.
 - Offline/local pending protection during event commit.
-- Malformed-event diagnostics.
+- Local rebuildable event index, background folder monitoring, malformed-event
+  diagnostics, conflict resolution, and shared-settings rollback.
 
-Not included:
+Architecture boundaries:
 
 - Direct SharePoint or carrier API calls.
 - Verified Microsoft identity.
 - Strong cross-device locking.
-- Automated recipient reconciliation editor.
-- PDF generation independent of the system browser.
-- Automated event retention or archival.
+- Authoritative proof of OneDrive upload completion.
+- Automated event retention or archival (events are immutable).
+- Carrier enrichment unless an approved provider is configured later.
 
 ## Data locations
 
@@ -81,7 +91,7 @@ Shared events and manifests are written below the operator-selected synchronized
 Per-user settings and temporary pending files are stored under:
 
 ```text
-%LOCALAPPDATA%\CommercialTrackingRC
+%LOCALAPPDATA%\CommercialTracking
 ```
 
 The shared store contains no API credentials.

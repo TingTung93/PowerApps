@@ -9,6 +9,8 @@ public final class PackageState {
     public String lastEventUtc = "";
     public String lastDevice = "";
     public int revision;
+    public String lastEventId = "";
+    public String manifestId = "";
 
     public PackageState copy() {
         PackageState p = new PackageState();
@@ -20,6 +22,8 @@ public final class PackageState {
         p.lastEventUtc = lastEventUtc;
         p.lastDevice = lastDevice;
         p.revision = revision;
+        p.lastEventId = lastEventId;
+        p.manifestId = manifestId;
         return p;
     }
 }

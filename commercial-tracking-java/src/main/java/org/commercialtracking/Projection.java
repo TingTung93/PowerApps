@@ -17,12 +17,33 @@ public final class Projection {
     }
 
     private void apply(TrackingEvent event) {
+        if (event.trackingNumber.length() == 0) return;
         String key = event.trackingNumber.toUpperCase();
         PackageState state = packages.get(key);
         if (state == null) {
             state = new PackageState();
             state.trackingNumber = event.trackingNumber;
             packages.put(key, state);
+        }
+        if ("CONFLICT".equals(state.status) && !"CONFLICT_RESOLVED".equals(event.eventType)) {
+            state.lastEventUtc = event.occurredUtc;
+            state.lastDevice = event.deviceId;
+            state.lastEventId = event.eventId;
+            state.revision++;
+            return;
+        }
+        boolean staleTransition = event.observedRevision > 0 && event.observedRevision < state.revision
+                && ("PACKAGE_RELEASED".equals(event.eventType) || "PACKAGE_VOIDED".equals(event.eventType)
+                || "PACKAGE_CORRECTED".equals(event.eventType) || "PACKAGE_LOCATION_CHANGED".equals(event.eventType));
+        if (staleTransition) {
+            conflicts.add("Stale " + event.eventType.toLowerCase().replace('_', ' ') + ": "
+                    + event.trackingNumber + " (" + event.deviceId + ")");
+            state.status = "CONFLICT";
+            state.lastEventUtc = event.occurredUtc;
+            state.lastDevice = event.deviceId;
+            state.lastEventId = event.eventId;
+            state.revision++;
+            return;
         }
         if ("PACKAGE_RECEIVED".equals(event.eventType)) {
             if ("READY_FOR_PICKUP".equals(state.status)) {
@@ -45,14 +66,26 @@ public final class Projection {
             }
         } else if ("PACKAGE_VOIDED".equals(event.eventType)) {
             state.status = "VOIDED";
-        } else if ("RECIPIENT_ASSIGNED".equals(event.eventType)) {
+        } else if ("RECIPIENT_ASSIGNED".equals(event.eventType)
+                || "PACKAGE_RECIPIENT_ASSIGNED".equals(event.eventType)) {
             state.recipient = event.recipient;
+        } else if ("PACKAGE_CORRECTED".equals(event.eventType)) {
+            if (event.location.length() > 0) state.location = event.location;
+            if (event.recipient.length() > 0) state.recipient = event.recipient;
+        } else if ("CONFLICT_RESOLVED".equals(event.eventType)) {
+            state.status = event.status.length() == 0 ? "READY_FOR_PICKUP" : event.status;
+            final String tracking = event.trackingNumber.toUpperCase();
+            conflicts.removeIf(value -> value.toUpperCase().contains(tracking));
+        } else if ("MANIFEST_PREPARED".equals(event.eventType)) {
+            state.manifestId = event.manifestId;
         }
         if (event.carrier.length() > 0) state.carrier = event.carrier;
         if (event.location.length() > 0) state.location = event.location;
         if (event.recipient.length() > 0) state.recipient = event.recipient;
         state.lastEventUtc = event.occurredUtc;
         state.lastDevice = event.deviceId;
+        state.lastEventId = event.eventId;
+        if (event.manifestId.length() > 0) state.manifestId = event.manifestId;
         state.revision++;
     }
 

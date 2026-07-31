@@ -9,6 +9,7 @@ public final class ParserTest {
         expect(parser, "123456789012", "123456789012", "FedEx");
         expect(parser, "TBA123456789012", "TBA123456789012", "Amazon");
         expect(parser, "PKG|UPS|1Z999AA10123456784", "1Z999AA10123456784", "UPS");
+        expect(parser, "PKGID-SYNTHETIC123", "SYNTHETIC123", "Application");
         expect(parser, "[)>\u001e01\u001d31Z12345678901234567890\u001d11ZJANE DOE\u001d2.5LB\u001e\u0004",
                 "12345678901234567890", "FedEx");
         ParseResult gs1 = parser.parse("(401)ABC123456(420)98431");
@@ -18,8 +19,12 @@ public final class ParserTest {
         ParseResult rawGs1 = parser.parse("]C1401ABC123\u001d42098431");
         check("ABC123".equals(rawGs1.getTrackingNumber()), "Raw GS1 401");
         check("98431".equals(rawGs1.getMetadata().get("shipToPostalCode")), "Raw GS1 postal");
+        String framed = "]C1401ABC123\u001d42098431\u001d";
+        check(framed.equals(BarcodeParserChain.normalize(framed)), "meaningful trailing separator preserved");
         ParseResult unknown = parser.parse("NOT A VALID SCAN !");
         check(!unknown.isSuccess(), "invalid scan should fail");
+        ParseResult evidence = parser.parse("1Z999AA10123456784");
+        check("UPS_1Z".equals(evidence.getEvidence().get("trackingNumber").source), "field provenance");
         System.out.println("ParserTest: PASS");
     }
 

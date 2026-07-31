@@ -46,10 +46,18 @@ public final class BarcodeParserChain implements BarcodeParser {
         while (value.endsWith("\r") || value.endsWith("\n")) {
             value = value.substring(0, value.length() - 1);
         }
-        return value.trim();
+        return value;
     }
 
     private ParseResult parseApplicationReference(String raw) {
+        if (raw.regionMatches(true, 0, "PKGID-", 0, 6)) {
+            String packageReference = raw.substring(6).trim();
+            Map<String, String> meta = new LinkedHashMap<String, String>();
+            meta.put("labelType", "Application package reference");
+            meta.put("packageReference", packageReference);
+            return result(packageReference, "Application", ParseResult.Confidence.VERIFIED,
+                    "APPLICATION_PKGID", false, meta);
+        }
         if (raw.regionMatches(true, 0, "PKG|", 0, 4)) {
             String[] parts = raw.split("\\|");
             String tracking = parts.length == 0 ? "" : parts[parts.length - 1].trim();
@@ -208,6 +216,11 @@ public final class BarcodeParserChain implements BarcodeParser {
                                String source, boolean confirmation) {
         return new ParseResult(tracking, carrier, confidence, source, confirmation,
                 Collections.<String, String>emptyMap());
+    }
+
+    private ParseResult result(String tracking, String carrier, ParseResult.Confidence confidence,
+                               String source, boolean confirmation, Map<String, String> metadata) {
+        return new ParseResult(tracking, carrier, confidence, source, confirmation, metadata);
     }
 
     private ParseResult empty(String source) {

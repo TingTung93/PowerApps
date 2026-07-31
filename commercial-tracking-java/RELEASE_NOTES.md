@@ -6,28 +6,40 @@ Deployment: Portable folder; no installer or elevation
 
 ## Purpose
 
-Monday release-candidate testing of the OneDrive/Teams synchronized immutable-event architecture and scanner workflow.
+Specification-complete repository candidate for qualification of the
+OneDrive/Teams synchronized immutable-event architecture and scanner workflow.
 
 ## Included
 
-- Modern React/Material UI dashboard compiled into the JAR.
+- Modern React/Material UI task workspaces compiled into the JAR.
 - Offline Roboto fonts and SVG Material icons.
 - Loopback-only Java HTTP service with an ephemeral port.
 - Random per-launch API token and request-origin enforcement.
 - System-browser launch with Swing `--classic-ui` fallback.
-- Inbound receiving at four locations.
-- Outbound release using locally observed shared state.
+- First-run shared-root validation, harmless write probe, device identity, and
+  initial cache rebuild.
+- Inbound receiving and verified, explicitly confirmed outbound release.
+- Scanner automatic/terminator/manual completion, suffixless burst capture,
+  paste capture, edit cancellation, and calibration.
 - UPS, USPS, FedEx, DHL, Amazon, application-reference, ANSI MH10 `31Z`, and bounded GS1 parsing.
 - Parser confidence, provenance, and confirmation for ambiguous identifiers.
 - Immutable JSON event files partitioned by UTC year/month.
 - Local pending file followed by `.partial` and finalized event commit.
-- Cross-workstation event refresh every 15 seconds and on demand.
+- WatchService notification plus 15-second reconciliation and safe pending retry.
 - Current-session ledger and derived package history.
 - Duplicate receive and competing release conflict reporting.
 - Recipient assignment and audited package voiding.
-- Printable inbound-session HTML manifest.
+- Audited inbound and custody manifest PDF/HTML output, checksums, register,
+  exact membership, and reprint.
+- Day/week/month/custom receiving and custody report PDF/HTML/CSV output.
+- Shared operational settings validation, immutable audit, last-valid fallback,
+  and rollback.
+- Rebuildable checksummed local event index and redacted diagnostics export.
 - Malformed-event diagnostics.
 - Packaged `--self-test`.
+- Packaged-browser receive, recipient-assignment, and verified-release smoke
+  workflow.
+- Automated 100,000-event projection performance smoke gate.
 
 ## Important limitations
 
@@ -37,10 +49,10 @@ Monday release-candidate testing of the OneDrive/Teams synchronized immutable-ev
 - OneDrive upload completion cannot be proven by ordinary filesystem access; the UI reports locally observed state.
 - Cross-workstation updates are eventually consistent.
 - Windows username is audit context, not verified Microsoft identity.
-- Existing `PKGID-<SharePoint ID>` barcodes cannot resolve because the filesystem event store has no SharePoint numeric list IDs. `PKG|...|<tracking>` references are supported.
+- `PKGID-<tracking>` and `PKG|...|<tracking>` application references are supported.
 - Carrier APIs and secrets are not included.
 - Carrier-specific 2D metadata needs validation against approved redacted scanner captures.
-- Printable manifests use the system browser rather than a bundled PDF engine.
+- PDF files are generated locally; HTML remains an accessible print fallback.
 - No automated retention or archive maintenance is included.
 
 ## Stop-test conditions
