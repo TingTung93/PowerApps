@@ -8,6 +8,8 @@ Primary runtime: Java 8
 Storage transport: User-authenticated OneDrive synchronization of a Teams/SharePoint document library  
 Deployment model: Portable desktop application; no installer, elevation, tenant app registration, or direct Microsoft 365 API access
 
+Companion UI/UX specification: `java-commercial-tracking-ui-ux-spec.md`
+
 ## 1. Purpose
 
 Replace the Commercial Tracking Power App with a streamlined, exceptionally easy-to-use receiving application optimized for keyboard-wedge barcode scanners while retaining Teams/SharePoint Online as the shared storage system.
