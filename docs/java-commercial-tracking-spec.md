@@ -80,7 +80,7 @@ Product decisions must follow these principles:
 - The OneDrive client starts independently of this application.
 - Normal operations involve no more than two concurrent users.
 - The two users generally work in separate receiving locations or streams.
-- Keyboard-wedge scanners send an Enter/Return suffix.
+- Keyboard-wedge scanners may send Enter, Tab, another configurable suffix, or no suffix at all.
 - Occasional synchronization delays of seconds or minutes are operationally acceptable.
 - A rare conflicting package operation may be resolved by a supervisor.
 
@@ -380,6 +380,37 @@ OneDrive shell overlay icons may be useful to the operator, but the application 
 
 Barcode interpretation uses a deterministic parser pipeline rather than one monolithic expression or an unstructured sequence of substring guesses.
 
+#### 14.2.1 Scanner input framing
+
+The input layer must not require a CR, Enter, or Tab suffix. It supports four completion signals:
+
+1. A configured terminator such as Enter, CR, Tab, or another non-data key.
+2. A paste operation containing a complete barcode payload.
+3. A short configurable idle period after a scanner-speed burst.
+4. Explicit operator submission for manually typed or edited input.
+
+In **Automatic** mode, a suffix completes the scan immediately when present. Without a suffix, the client waits for a quiet interval after the last character and submits only when the input resembles a scanner burst and the parser considers the payload complete or plausibly complete. The quiet interval prevents a fixed-length barcode from being submitted while additional scanner characters are still arriving.
+
+The initial suffixless defaults are:
+
+- Idle completion delay: 120 milliseconds after the last character.
+- Scanner-burst inter-character threshold: 50 milliseconds.
+- Minimum automatic-submit length: 6 characters.
+
+These values are pilot defaults, not hard-coded protocol facts. They must be adjustable per workstation within safe bounds and validated using the actual deployed scanner. The application must tolerate slower scanners, remote-desktop input, and long 2D payloads without truncation.
+
+Human typing must not be mistaken for a completed scan merely because the operator paused. Input that does not meet the scanner-burst rule remains visible and awaits Enter or the explicit **Process** action. Editing an automatically captured value cancels pending auto-submission until another qualifying burst or explicit submission occurs.
+
+The input layer must:
+
+- Preserve meaningful ASCII group, record, and file separators delivered by 2D scanners.
+- Remove only configured framing characters; never strip data merely because it is non-printing.
+- Treat CR/LF pairs as one terminator and suppress a trailing Tab/Enter from creating a second submission.
+- Debounce duplicate suffixes and prevent the same buffered payload from being committed twice.
+- Keep the buffer intact and show a recoverable message when parsing or saving fails.
+- Display a subtle “capturing scan” state during the idle window without distracting the operator.
+- Provide a scanner test panel that reports character count, terminator detected, elapsed duration, inter-character timing summary, and chosen completion reason. Raw payload display or export follows the diagnostic redaction policy.
+
 Parsing order:
 
 1. Normalize scanner framing without discarding meaningful control separators.
@@ -577,7 +608,7 @@ Advanced workspaces must not add fields or persistent action bars to the scanner
 For a recognized, non-duplicate inbound barcode with a previously selected location:
 
 1. The scan field already has focus.
-2. The operator scans once; the scanner's Enter suffix submits it.
+2. The operator scans once; a configured suffix or suffixless idle detection submits it.
 3. The application parses, validates, and durably saves the event.
 4. A large success result shows tracking number, carrier, location, local received time, and whether a recipient is assigned.
 5. Focus returns to the scan field automatically.
@@ -589,10 +620,12 @@ The main screen shows one current-state row per tracking number. Event-level cha
 Scanner workflow requirements:
 
 - A scan must be processable without mouse input.
-- Enter submits.
+- Enter and Tab can submit when configured, but neither is required.
+- Suffixless scanner bursts submit automatically after the configured quiet interval.
+- Manual typing remains available and requires Enter or the explicit **Process** action unless it independently meets the scanner-burst rule.
 - Focus returns to the scan field.
 - Scan processing must never freeze the UI.
-- Duplicate rapid Enter events must be debounced.
+- Duplicate suffix events and repeated submissions of the same input buffer must be debounced.
 - The visible result remains until the next scan.
 - Color is never the only indication of status.
 - An operator can copy the last tracking number and error details.
@@ -604,6 +637,7 @@ Scanner workflow requirements:
 
 - A new operator can receive a normal package after being told only: “Confirm the location, then scan the barcode.”
 - After initial setup, routine inbound receiving requires zero mouse clicks per recognized package.
+- The normal one-scan workflow works with scanners configured with Enter, Tab, or no suffix.
 - A returning operator can begin scanning without reopening settings.
 - The operator can tell within one second whether the last scan succeeded, needs attention, or was not saved.
 - The current-session package count cannot be confused with the number of audit events.
@@ -653,6 +687,8 @@ Workstation settings are stored under the current user's profile and never synch
 
 - Synchronized data-root folder and a read/write/latency health check.
 - Default scan mode, receiving location, and whether scanner focus is restored automatically.
+- Scanner completion mode (`Automatic`, `Terminator`, or `Manual`), accepted terminators, suffixless idle delay, burst timing threshold, and minimum automatic-submit length.
+- A guided scanner test that recommends workstation timing values without retaining package data.
 - Operational time zone, date/time display style, and 12-hour or 24-hour clock.
 - Default printer behavior, print-preview preference, paper size, and manifest scale guidance.
 - Sound and visual acknowledgement preferences.
@@ -929,6 +965,10 @@ Exit criterion: no corruption or lost unique files, and propagation is operation
 - Invalid shared configuration leaves the last known valid configuration active and visible in Diagnostics.
 - A first-time operator can complete a normal receive with only location confirmation and one barcode scan.
 - After setup, a recognized normal inbound package requires no mouse interaction or audit-field entry.
+- Representative scanners configured with Enter, Tab, and no suffix each complete exactly one scan without truncation or duplicate submission.
+- A suffixless 2D scan containing meaningful separators remains byte-for-byte intact through input framing.
+- Normal human typing and pauses do not cause premature automatic submission.
+- Slow-scanner and remote-desktop timing fixtures can be accommodated through workstation settings without code changes.
 - The last-scan result unambiguously states success, attention required, or not saved.
 - The default scanner workspace does not expose manifest configuration, daily-report configuration, or shared administration controls.
 - Current Session displays one package row per tracking number while Session Activity preserves every audit event.
