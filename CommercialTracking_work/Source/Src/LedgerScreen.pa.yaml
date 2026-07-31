@@ -262,7 +262,6 @@ Screens:
                       Control: FluentV8/Label@1.8.6
                       Properties:
                         Color: =RGBA(255, 255, 255, 1)
-                        Fill: =If(varScanDirection = "Inbound", RGBA(16, 124, 16, 1), RGBA(164, 38, 44, 1))
                         FontWeight: =FontWeight.Semibold
                         Height: =38
                         Text: =If(varScanDirection = "Inbound", "INBOUND RECEIVING | Select location and blind scan", "OUTBOUND RELEASE | Verify recipient before custody transfer")
