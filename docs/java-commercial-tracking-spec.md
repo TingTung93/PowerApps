@@ -92,7 +92,7 @@ Product decisions must follow these principles:
 +------------------------+
 | Java desktop client    |
 |                        |
-| Swing UI               |
+| bundled browser UI     |
 | barcode parser         |
 | business rules         |
 | event projector        |
@@ -133,6 +133,11 @@ CommercialTracking/
 │   ├── 2026/
 │   │   ├── inbound/
 │   │   └── custody/
+├── reports/
+│   ├── 2026/
+│   │   ├── daily/
+│   │   ├── weekly/
+│   │   └── monthly/
 ├── snapshots/
 ├── reconciliation/
 └── diagnostics/
@@ -187,7 +192,7 @@ Example:
 20260731T001530284Z_WS017_a18f79a9-058c-4f63-86a4-3a8f11480e13_PACKAGE_RECEIVED.json
 ```
 
-Device identifiers must contain only uppercase letters, digits, and hyphens. The event ID, rather than the timestamp or device ID, provides uniqueness.
+Device identifiers default to the normalized Windows computer name and must contain only uppercase letters, digits, and hyphens. The event ID, rather than the timestamp or device ID, provides uniqueness.
 
 ### 8.2 Safe commit procedure
 
@@ -224,7 +229,7 @@ If an atomic move is not supported by the synchronized directory, the applicatio
 }
 ```
 
-`actor` is audit context, not a cryptographically verified Microsoft identity. SharePoint's Created By file metadata remains available outside the application if an authoritative uploader identity is needed during investigation.
+`actor.windowsAccount` is populated automatically from the current Windows account—the same enterprise-style identity normally returned by `whoami`—and `deviceId` is derived from the workstation name. Both are audit context, not cryptographically verified Microsoft identities. SharePoint's Created By file metadata remains available outside the application if an authoritative uploader identity is needed during investigation.
 
 `packageKey` is created from the normalized tracking number. It must not be used as a filename because tracking numbers may be operationally sensitive.
 
@@ -247,11 +252,12 @@ Required payload:
   "displayWeight": "",
   "displayPackageType": "",
   "scanNotes": "",
-  "rawBarcodeHash": "sha256:..."
+  "rawBarcodeHash": "sha256:...",
+  "rawBarcode": "optional original scanner payload"
 }
 ```
 
-Raw label data should not be retained unless operationally required. Prefer storing parsed fields and a hash of the raw input.
+Raw scanner payload retention is permitted because it supports parser improvement and later audit review. It is enabled through shared configuration, stored inside the access-controlled event body, and accompanied by a hash. Raw payloads must never be used in filenames or routine logs.
 
 ### 10.2 `PACKAGE_LOCATION_CHANGED`
 
@@ -523,7 +529,9 @@ Parser development uses an anonymized fixture corpus containing representative r
 - Require a two-step confirmation for void.
 - Require a reason for correction or conflict resolution.
 - Never delete an event file.
-- Restrict supervisor functions through an application-configured allowlist only as a workflow aid; without verified identity, this is not a security boundary.
+- Permit correction, void, conflict-resolution, and shared-settings workflows to users who already have write access to the synchronized application folder.
+- Record Windows account, device, time, prior value, new value, and reason for every corrective action.
+- Do not add an application-maintained supervisor allowlist; SharePoint/Teams and filesystem access are the operational authorization boundary.
 
 ### 14.9 Manifests
 
@@ -539,8 +547,8 @@ Parser development uses an anonymized fixture corpus containing representative r
 - Write the audit event and finalized document before reporting success. If the print dialog is canceled, the manifest remains finalized and is available for reprint.
 - Provide a searchable manifest register with filters for manifest ID, type, date range, location, recipient, creator/device, and package tracking number.
 - Allow preview, reprint, and approved-format export from the register. Reprinting must not create a new manifest or alter membership.
-- Produce PDF when a suitable bundled Java PDF library is approved.
-- Otherwise produce self-contained printable HTML and open the system browser/print dialog.
+- Produce PDF as the preferred finalized format using a bundled Java 8-compatible library.
+- Retain self-contained printable HTML as the fallback when PDF generation fails or a workstation-specific print path requires it.
 - Store finalized documents under `manifests/<year>/<type>/`.
 - Store a SHA-256 checksum in `MANIFEST_PRINTED`.
 - Preserve layouts comparable to the Power App:
@@ -550,19 +558,35 @@ Parser development uses an anonymized fixture corpus containing representative r
 - Include the manifest ID, document type, location or recipient, prepared date/time, package count, page numbering, and signature/certification blocks.
 - Render user-facing dates in the workstation's configured local time and retain exact UTC timestamps in audit metadata.
 
-### 14.10 Daily packing lists and reporting extracts
+### 14.10 On-demand packing lists and reporting extracts
 
-- Provide a dedicated **Daily Lists** workspace for operational reporting that does not alter package or manifest audit state.
-- Support a **Daily Receiving** extract filtered by local calendar date, optional location, carrier, recipient assignment state, and package status.
-- Support an **Outbound/Custody** extract filtered by local calendar date, recipient, location, and release status.
+- Provide a dedicated **Reports** workspace for on-demand operational reporting that does not alter package or manifest audit state.
+- Do not schedule or automatically distribute reports.
+- Support **Receiving Activity** and **Outbound/Custody Activity** extracts for a selected day, week, month, or custom local date range.
+- Receiving Activity can filter by location, carrier, recipient assignment state, package status, and manifest state.
+- Outbound/Custody Activity can filter by recipient, location, carrier, and release status.
 - Allow an operator to choose visible columns, sort order, grouping, and whether summary totals are included.
-- Provide an on-screen preview and printable HTML output; CSV export may be enabled by configuration.
+- Provide an on-screen preview, printable/PDF output, and CSV export on demand.
 - Clearly label an ad-hoc daily list as **Reporting Extract**, never **Audited Manifest**.
 - A reporting extract must not assign a manifest ID, mark packages manifested, or emit `MANIFEST_PRINTED`.
 - If every selected row belongs to the same existing audited manifest, the UI may offer **Open audited manifest** instead of presenting the extract as authoritative.
 - Date boundaries use the configured operational time zone. The preview must show that time zone and the exact inclusive date/time range used.
-- Daily extracts may span more than 100 packages and paginate normally; the audited-manifest 100-package limit does not apply.
+- Reporting extracts may span more than 100 packages and paginate normally; the audited-manifest 100-package limit does not apply.
 - Saved extract preferences are local settings. Generated extract files are temporary unless the operator explicitly selects **Save copy**.
+- **Save copy** writes the report to synchronized storage under `reports/<year>/<period>/`.
+- Operational recipient information may appear in synchronized report files and exports. Access is governed by the permissions on the synchronized library and the operator's approved export destination.
+
+Recommended default report:
+
+- Name: **Receiving Activity Report**.
+- Default range: current local day.
+- Grouping: receiving location, then received date/time ascending.
+- Detail columns: received local time, tracking number, carrier, recipient or `Unassigned`, location, current status, manifest ID, receiving Windows account, and workstation.
+- Summary: total packages plus counts by location, carrier, recipient assignment state, and status.
+- Header: report title, generated local date/time, selected range and time zone, filters, generated-by Windows account/device, and package count.
+- Footer: page number and `Reporting Extract — not an audited manifest`.
+- Daily, weekly, and monthly presets use the same report definition; only the selected range changes.
+- CSV contains the visible detail fields plus exact UTC timestamps and immutable event/package identifiers needed for reconciliation.
 
 ### 14.11 Optional carrier enrichment
 
@@ -600,7 +624,7 @@ The default interface is a modern browser UI embedded in the Java 8 application 
 The information architecture has three levels:
 
 1. **Operations:** Receive/Release and the current session. This is the default workspace and remains visually dominant.
-2. **Accountability:** Package History, Recipient Reconciliation, Manifests, Daily Lists, and Conflicts/Recovery.
+2. **Accountability:** Package History, Recipient Reconciliation, Manifests, Reports, and Conflicts/Recovery.
 3. **Administration:** Settings and Diagnostics.
 
 Advanced workspaces must not add fields or persistent action bars to the scanner. They are reached through simple top-level navigation and return the operator to a scan-ready state when closed.
@@ -695,7 +719,7 @@ Workstation settings are stored under the current user's profile and never synch
 - Default printer behavior, print-preview preference, paper size, and manifest scale guidance.
 - Sound and visual acknowledgement preferences.
 - History page size, default filters, and remembered table columns.
-- Optional CSV export enablement and the default local export folder.
+- Default report format and approved export folder; on-demand CSV export is enabled.
 - Diagnostic verbosity and redacted diagnostic export.
 
 Changing the synchronized data root requires validation and an explicit confirmation. The UI must explain that it changes where this workstation reads and writes shared records; it does not migrate existing data.
@@ -708,10 +732,9 @@ Shared settings live below `config/` in the synchronized root and include:
 - Manifest numbering prefix and layout thresholds.
 - Enabled carrier parsers and confirmation thresholds.
 - Retention/display policy metadata.
-- Optional supervisor workflow allowlist.
-- Feature switches for custody manifests, daily extracts, CSV export, and carrier enrichment.
+- Feature switches for custody manifests, reporting extracts, PDF/CSV export, raw-barcode retention, and carrier enrichment.
 
-Shared settings changes must use immutable versioned configuration documents, identify the authoring device, retain the previous valid version, and produce a configuration audit event. Because the client cannot verify Microsoft 365 identity, an application allowlist is a workflow control rather than a security boundary.
+Shared settings are validated JSON files in the synchronized filesystem. Changes must identify the Windows account and authoring device, retain the previous valid version, and produce a configuration audit event. Configuration files do not require application-level digital signatures; SharePoint/Teams permissions, filesystem access, and SharePoint version history are the operational controls.
 
 The settings UI must support previewing a proposed change, validation, and rollback to a prior valid version. Ordinary operators may view effective shared settings even when editing is disabled.
 
@@ -734,11 +757,12 @@ The Diagnostics view shows the effective value and source for each setting. An i
   "eventScanSeconds": 15,
   "pendingWarningSeconds": 120,
   "defaultTimeZone": "America/Los_Angeles",
-  "historyRetentionYears": 7,
+  "historyRetentionYears": 1,
   "maximumDetailedManifestItems": 20,
   "maximumManifestItems": 100,
   "manifestIdPrefix": "MNF",
-  "dailyCsvExportEnabled": false,
+  "reportCsvExportEnabled": true,
+  "retainRawBarcodePayload": true,
   "custodyManifestsEnabled": true
 }
 ```
@@ -762,7 +786,8 @@ Every configuration document must be validated before replacing the last known v
 ## 19. Security and information protection
 
 - Store only operationally required package and recipient information.
-- Do not retain raw barcode payloads by default.
+- Recipient names and raw barcode payloads are permitted in synchronized event bodies and generated reports.
+- Retain raw payloads only when `retainRawBarcodePayload` is enabled; always retain the parsed fields and raw-input hash.
 - Permit parser diagnostic capture only through an explicit redacted/anonymized workflow.
 - Sanitize all filenames and generated HTML.
 - Parse JSON with bounded sizes and nesting depth.
@@ -774,6 +799,7 @@ Every configuration document must be validated before replacing the last known v
 - Make diagnostic export an explicit operator action.
 - Use SharePoint/Teams permissions and managed-device controls as the actual access boundary.
 - Record the local Windows account for audit context while clearly documenting that it is not a verified Microsoft identity.
+- Keep routine operational records available for one year. Automated deletion is not performed by the client; final disposition uses the approved SharePoint/library retention process so immutable event relationships are not partially removed by a workstation.
 
 ## 20. Reliability and recovery
 
@@ -800,6 +826,8 @@ On a representative managed workstation:
 
 OneDrive propagation time is measured during the pilot but is not included in local UI latency targets.
 
+Under normal connected pilot conditions, new shared events should become visible on the other workstation within 30 seconds. Exceeding 30 seconds produces synchronization-attention status but does not invalidate a locally saved operation.
+
 ## 22. Packaging and deployment
 
 ### 22.1 Java 8 baseline
@@ -817,6 +845,7 @@ CommercialTracking/
 - Compile for Java 8 bytecode.
 - Use Swing, avoiding a separate JavaFX dependency.
 - Bundle all third-party JARs.
+- Bundle a Java 8-compatible PDF library and its licenses; no workstation installation or download is permitted.
 - Prefer a launcher that checks the Java version and produces a readable error.
 - Do not write beside the executable after startup.
 - Support execution from a read-only deployment folder.
@@ -857,6 +886,8 @@ Disadvantages:
 - Application-control policy may require signing or approval.
 
 The synchronized event protocol in this specification is language-neutral. A .NET client can use exactly the same files and coexist with a Java client during migration testing.
+
+The event-store, parser, projection, and report contracts must remain UI-independent and reusable by a later inventory application. Commercial Tracking-specific fields use versioned payload extensions rather than assumptions embedded in the shared storage layer.
 
 ### Other alternatives considered
 
@@ -982,21 +1013,23 @@ Exit criterion: no corruption or lost unique files, and propagation is operation
 - The application runs without installation or elevation on a representative managed workstation.
 - No direct Microsoft API authentication is required.
 
-## 27. Open decisions
+## 27. Resolved product decisions
 
-1. Whether PDF generation libraries are acceptable or printable HTML is required.
-2. Required retention period.
-3. Whether recipient names are permitted in synchronized event bodies.
-4. Whether raw carrier barcode payloads may be retained.
-5. How workstation/device IDs are assigned.
-6. Who may perform corrections and shared-settings changes, and how those workflows are operationally enforced.
-7. Acceptable OneDrive propagation delay.
-8. Whether shared configuration changes require signed files or only SharePoint permissions/version history.
-9. Whether daily CSV export is permitted and which columns may contain recipient information.
-10. Required daily packing-list variants, grouping, columns, and certification language.
-11. Whether saved reporting extracts belong in synchronized storage or only an operator-selected local folder.
-12. Whether the inventory application will reuse the same event-store library in a later phase.
-13. Which scanner symbologies and control-character transmission modes are enabled.
-14. Whether a redacted sample-label corpus may be retained for regression testing.
-15. Whether external carrier endpoints are reachable from an approved worker.
-16. Whether carrier enrollment and terms permit this receiving use case.
+- PDF is the preferred finalized manifest/report format; printable HTML is the fallback.
+- Operational history is retained for one year.
+- Recipient names and raw scanner payloads are permitted in synchronized event bodies.
+- Workstation name identifies the device; the current Windows account identifies the actor for audit context.
+- Any user with write access to the synchronized application files may perform corrections and shared-settings changes; every such action remains audited.
+- Normal connected cross-workstation visibility may take up to 30 seconds.
+- Shared configuration is validated JSON stored in the synchronized filesystem and does not require application-level signatures.
+- Reports are generated on demand for day, week, month, or custom ranges; there are no scheduled reports.
+- PDF, print, and CSV exports are permitted, including operational recipient information.
+- Explicitly saved reporting extracts are stored in the synchronized repository.
+- Shared storage and parsing contracts are designed for later inventory-application reuse.
+- Pilot scanners include Code 128, Data Matrix, and other enabled 2D symbologies; meaningful control characters must be preserved when transmitted.
+- A redacted sample-label corpus may be retained for regression testing.
+
+## 28. Remaining external decisions
+
+1. Confirm which carrier endpoints are reachable through workstation/network filtering or through an approved external worker.
+2. Confirm carrier enrollment, licensing, and terms permit the intended receiving use case.

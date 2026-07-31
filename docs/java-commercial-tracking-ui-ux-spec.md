@@ -73,7 +73,7 @@ ACCOUNTABILITY
   Package History
   Recipients
   Manifests
-  Daily Lists
+  Reports
   Attention                 conflicts, pending work, malformed input
 
 ADMINISTRATION
@@ -358,14 +358,15 @@ Search and filters:
 
 Selecting a manifest opens an immutable detail view containing membership, original preparation/finalization metadata, checksum status, and reprint. **Reprint** never creates a new manifest ID.
 
-## 11. Daily Lists workspace
+## 11. Reports workspace
 
-Daily Lists are operational reports, not audited manifests.
+Reports are generated on demand and are not audited manifests.
 
 The page includes:
 
-- Report type: Daily Receiving or Outbound/Custody.
-- Local reporting date.
+- Report type: Receiving Activity or Outbound/Custody Activity.
+- Range preset: Day, Week, Month, or Custom.
+- Local reporting range and operational time zone.
 - Optional location, carrier, status, or recipient filters.
 - Group-by and sort controls under **Layout options**.
 - Live count and preview.
@@ -374,8 +375,10 @@ A persistent banner states:
 
 `Reporting extract — creating or printing this list does not change package records.`
 
-Primary action: **Open print view**.  
-Secondary action, when enabled: **Export CSV**.
+Primary action: **Create PDF / Print**.
+Secondary actions: **Export CSV** and **Save copy to shared reports**.
+
+Receiving Activity defaults to the current local day, grouped by location and sorted by received time. It includes received time, tracking, carrier, recipient, location, status, manifest ID, Windows account, and workstation, plus counts by location, carrier, assignment state, and status.
 
 If all rows share one audited manifest ID, offer **Open audited manifest**.
 
@@ -560,7 +563,8 @@ The following choices are firm unless usability testing disproves them:
 - One current-state row per package; event history is separate.
 - Recipient is not a required inbound field.
 - Manifest creation is a reviewed, multi-step accountability workflow.
-- Daily Lists never mutate audit state.
+- Reports never mutate package or manifest audit state.
+- Reports are always generated on demand; the application does not schedule or distribute them.
 - Settings and diagnostics are removed from the routine scanner surface.
 - Local time is primary for people; UTC remains available for audit.
 - Browser/MUI is the default interface; Swing is fallback only.
@@ -573,6 +577,6 @@ The following choices are firm unless usability testing disproves them:
 3. Whether release always requires confirmation or may use a supervisor-enabled rapid-release mode.
 4. Whether recipient suggestions may be retained locally.
 5. Required signature and certification wording.
-6. Approved paper size, printer defaults, CSV fields, and export locations.
+6. Approved paper size, printer defaults, and export locations.
 7. Whether routine operators may close a session without a manifest.
 8. Whether shared-settings editing is exposed in the pilot or remains file-managed.
