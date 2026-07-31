@@ -1,14 +1,17 @@
 # Commercial Tracking RC
 
-Portable Java 8-compatible desktop release candidate for package receiving and release using a OneDrive-synchronized Teams/SharePoint folder as an immutable event store.
+Portable Java 8-compatible release candidate for package receiving and release using a OneDrive-synchronized Teams/SharePoint folder as an immutable event store.
+
+The default interface is a precompiled React/Material UI application served by Java over a loopback-only HTTP endpoint. React, MUI, fonts, icons, CSS, and JavaScript are embedded in the JAR. Test workstations need only Java 8 and an existing modern browser; Node and npm are development-time tools only.
 
 ## Build
 
 Requirements:
 
 - JDK 9 or newer to compile with `--release 8`.
+- Node and npm on the development computer to compile the MUI frontend.
 - PowerShell.
-- No Maven, Gradle, or downloaded dependencies.
+- No Maven or Gradle.
 
 ```powershell
 .\build.ps1
@@ -35,10 +38,19 @@ run-commercial-tracking.cmd
 
 On first run, select a locally synchronized empty pilot folder. Do not point the release candidate at production package records.
 
+The default launcher opens the modern MUI interface in the system browser. The local service binds only to `127.0.0.1` with an ephemeral port and random session token.
+
+Classic Swing fallback:
+
+```text
+run-commercial-tracking.cmd --classic-ui
+```
+
 ## RC scope
 
 Included:
 
+- Offline bundled Material UI dashboard.
 - Inbound and outbound scanner modes.
 - Four receiving locations.
 - UPS, USPS, FedEx, DHL, Amazon, ANSI MH10 `31Z`, GS1, generic, and application-reference parsing.

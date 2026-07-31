@@ -1,4 +1,4 @@
-# Commercial Tracking 0.1.0-rc1
+# Commercial Tracking 0.2.0-rc1
 
 Build date: 2026-07-30  
 Runtime: Java 8 or newer  
@@ -10,6 +10,11 @@ Monday release-candidate testing of the OneDrive/Teams synchronized immutable-ev
 
 ## Included
 
+- Modern React/Material UI dashboard compiled into the JAR.
+- Offline Roboto fonts and SVG Material icons.
+- Loopback-only Java HTTP service with an ephemeral port.
+- Random per-launch API token and request-origin enforcement.
+- System-browser launch with Swing `--classic-ui` fallback.
 - Inbound receiving at four locations.
 - Outbound release using locally observed shared state.
 - UPS, USPS, FedEx, DHL, Amazon, application-reference, ANSI MH10 `31Z`, and bounded GS1 parsing.
@@ -27,6 +32,7 @@ Monday release-candidate testing of the OneDrive/Teams synchronized immutable-ev
 ## Important limitations
 
 - This RC does not update the production SharePoint `Tracking` list.
+- Test workstations need Java 8 and a supported existing Edge/Chrome browser; they do not need Node, npm, React, MUI, or internet access.
 - Use only an empty non-production synchronized test folder.
 - OneDrive upload completion cannot be proven by ordinary filesystem access; the UI reports locally observed state.
 - Cross-workstation updates are eventually consistent.

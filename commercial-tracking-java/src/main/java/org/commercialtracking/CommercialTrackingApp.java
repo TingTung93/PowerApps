@@ -87,6 +87,16 @@ public final class CommercialTrackingApp extends JFrame {
             }
             return;
         }
+        if (args.length == 0 || !"--classic-ui".equals(args[0])) {
+            try {
+                new BrowserServer(AppConfig.load()).startAndOpen();
+            } catch (Exception ex) {
+                System.err.println("Modern UI failed: " + ex.getMessage());
+                System.err.println("Run with --classic-ui to use the Swing fallback.");
+                System.exit(1);
+            }
+            return;
+        }
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) {}

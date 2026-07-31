@@ -8,7 +8,7 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-java -jar "%APP_DIR%CommercialTracking-RC.jar"
+java -jar "%APP_DIR%CommercialTracking-RC.jar" %*
 if errorlevel 1 (
   echo.
   echo Commercial Tracking ended with an error.

@@ -1,5 +1,6 @@
 param(
-    [switch]$SkipTests
+    [switch]$SkipTests,
+    [switch]$SkipFrontend
 )
 
 $ErrorActionPreference = "Stop"
@@ -8,6 +9,20 @@ $buildRoot = Join-Path $projectRoot "build"
 $classes = Join-Path $buildRoot "classes"
 $testClasses = Join-Path $buildRoot "test-classes"
 $dist = Join-Path $projectRoot "dist"
+
+if (-not $SkipFrontend) {
+    $frontendRoot = Join-Path $projectRoot "frontend"
+    if (-not (Test-Path (Join-Path $frontendRoot "node_modules"))) {
+        throw "Frontend dependencies are missing. Run npm install in frontend, or use -SkipFrontend with existing compiled assets."
+    }
+    Push-Location $frontendRoot
+    try {
+        & npm run build
+        if ($LASTEXITCODE -ne 0) { throw "Frontend build failed." }
+    } finally {
+        Pop-Location
+    }
+}
 
 if (Test-Path $buildRoot) {
     Remove-Item -LiteralPath $buildRoot -Recurse -Force
@@ -23,6 +38,11 @@ $mainSources = Get-ChildItem -Path (Join-Path $projectRoot "src\main\java") -Rec
     ForEach-Object { $_.FullName }
 & javac --release 8 -encoding UTF-8 -d $classes $mainSources
 if ($LASTEXITCODE -ne 0) { throw "Main compilation failed." }
+
+$resources = Join-Path $projectRoot "src\main\resources"
+if (Test-Path $resources) {
+    Copy-Item -Path (Join-Path $resources "*") -Destination $classes -Recurse -Force
+}
 
 $testSources = Get-ChildItem -Path (Join-Path $projectRoot "src\test\java") -Recurse -Filter *.java |
     ForEach-Object { $_.FullName }
@@ -41,7 +61,7 @@ $manifest = Join-Path $buildRoot "MANIFEST.MF"
     "Manifest-Version: 1.0"
     "Main-Class: org.commercialtracking.CommercialTrackingApp"
     "Implementation-Title: Commercial Tracking RC"
-    "Implementation-Version: 0.1.0-rc1"
+    "Implementation-Version: 0.2.0-rc1"
     ""
 ) | Set-Content -LiteralPath $manifest -Encoding ascii
 

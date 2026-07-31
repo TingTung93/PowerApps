@@ -2,6 +2,9 @@ package org.commercialtracking;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 final class SelfTest {
     private SelfTest() {}
@@ -13,6 +16,12 @@ final class SelfTest {
         require("FedEx".equals(parser.parse("123456789012").getCarrier()), "FedEx parser");
         require("ABC123456".equals(parser.parse("(401)ABC123456(420)98431").getTrackingNumber()),
                 "GS1 parser");
+        require(SelfTest.class.getResource("/web/index.html") != null, "embedded MUI index");
+        require(SelfTest.class.getResource("/web/assets") != null, "embedded MUI assets");
+        Map<String, Object> jsonSample = new LinkedHashMap<String, Object>();
+        jsonSample.put("ok", true);
+        jsonSample.put("values", new ArrayList<String>());
+        require("{\"ok\":true,\"values\":[]}".equals(JsonOutput.write(jsonSample)), "browser JSON output");
 
         Path root = Files.createTempDirectory("commercial-tracking-self-test-");
         EventStore store = new EventStore(root.resolve("shared"), root.resolve("local"));

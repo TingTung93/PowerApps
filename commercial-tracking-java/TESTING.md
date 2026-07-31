@@ -1,6 +1,6 @@
 # Commercial Tracking RC Test Instructions
 
-Version: 0.1.0-rc1
+Version: 0.2.0-rc1
 
 ## Important
 
@@ -11,8 +11,11 @@ Use an empty, non-production Teams/SharePoint synchronized folder. This release 
 1. Synchronize the same pilot folder on both test workstations.
 2. Copy the complete `dist` folder to each workstation.
 3. Run `run-commercial-tracking.cmd`.
-4. Select the synchronized pilot root when prompted.
-5. Confirm each workstation displays a different device ID in its generated events.
+4. Confirm the default browser opens the Commercial Tracking dashboard.
+5. Select **Change folder** and enter the full synchronized pilot path if it is not already configured.
+6. Verify that the dashboard loads without any internet connection.
+7. Keep the Java launcher running while the browser interface is in use.
+8. Confirm each workstation displays a different device ID in the application header and generated events.
 
 Before opening the interface, the packaged binary can be verified from Command Prompt:
 
@@ -21,6 +24,12 @@ java -jar CommercialTracking-RC.jar --self-test
 ```
 
 Continue only if it reports `CommercialTracking RC self-test: PASS`.
+
+If the browser interface is unavailable, verify the fallback independently:
+
+```text
+run-commercial-tracking.cmd --classic-ui
+```
 
 ## Core tests
 
