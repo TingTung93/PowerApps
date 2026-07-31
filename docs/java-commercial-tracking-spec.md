@@ -10,7 +10,9 @@ Deployment model: Portable desktop application; no installer, elevation, tenant 
 
 ## 1. Purpose
 
-Replace the Commercial Tracking Power App with a responsive desktop application optimized for keyboard-wedge barcode scanners while retaining Teams/SharePoint Online as the shared storage system.
+Replace the Commercial Tracking Power App with a streamlined, exceptionally easy-to-use receiving application optimized for keyboard-wedge barcode scanners while retaining Teams/SharePoint Online as the shared storage system.
+
+The product's primary outcome is trustworthy package accountability with the least practical operator effort. Receiving a normal package must feel like a single-purpose appliance: select a location once, scan, receive an unmistakable result, and continue. The application captures the audit trail automatically rather than asking the operator to understand the storage or event model.
 
 The application will access only ordinary files in a locally synchronized folder. The installed OneDrive client remains responsible for Microsoft authentication, authorization, upload, download, retry, and offline synchronization.
 
@@ -27,6 +29,9 @@ The first release targets at most two concurrent operators working primarily in 
 - Continue operating temporarily when SharePoint or the network is unavailable.
 - Avoid corruptible shared database files and concurrent file editing.
 - Provide materially faster scanning, searching, navigation, and printing than the canvas app.
+- Make the common receiving path obvious to a first-time operator with minimal training.
+- Keep routine receiving free of administrative, reporting, and audit-model complexity.
+- Create a complete, human-readable accountability trail automatically for every accepted package operation.
 - Make local persistence and synchronization state clear to the operator.
 - Allow a later migration to a server API without changing the user-facing workflows or historical event format.
 
@@ -42,6 +47,29 @@ The first release targets at most two concurrent operators working primarily in 
 - Supporting arbitrary numbers of simultaneous high-volume scanners.
 - Treating OneDrive synchronization as a conventional network filesystem.
 - Editing finalized transaction files.
+- Exposing every available field or administrative option in the routine receiving workflow.
+- Requiring operators to understand event sourcing, OneDrive synchronization internals, or manifest audit mechanics.
+
+## 3.1 Governing product principles
+
+When requirements compete, use this priority order:
+
+1. **Correct package and custody record.**
+2. **Fast, unmistakable routine receiving.**
+3. **Recoverable audit and accountability trail.**
+4. **Supervisor control and reporting depth.**
+5. **Customization.**
+
+Product decisions must follow these principles:
+
+- **Progressive disclosure:** routine operators see only what is needed for the current task. Advanced manifest, reporting, correction, and configuration controls live in their own workspaces.
+- **Safe defaults:** location, scan mode, time display, and printer behavior are remembered when safe. A normal scan should not require repeated selections.
+- **One clear next action:** each operational screen emphasizes one primary action and avoids competing button clusters.
+- **Automatic audit:** actor/device, timestamps, location, source event, and synchronization state are captured without extra operator data entry.
+- **Recognition over recall:** use plain labels, visible status, recent activity, and package summaries rather than codes the operator must remember.
+- **Errors must be actionable:** state what happened, whether the package was saved, and exactly what the operator should do next.
+- **Advanced capability without default complexity:** a feature does not belong on the scanner simply because it exists elsewhere in the application.
+- **No silent uncertainty:** ambiguous barcodes, conflicts, pending synchronization, and destructive corrections require clear confirmation or escalation.
 
 ## 4. Operating assumptions
 
@@ -466,16 +494,44 @@ Parser development uses an anonymized fixture corpus containing representative r
 
 ### 14.9 Manifests
 
-- Generate inbound receiving manifests from exact event IDs in the current session.
-- Generate recipient custody manifests from exact active package revisions.
-- Assign a UUID-based manifest ID.
+- Provide a dedicated **Manifests** workspace; manifest creation, review, reprint, and export must not be hidden behind a scanner-screen button.
+- Support two audited manifest types:
+  - **Inbound receiving manifest**, assembled from exact unmanifested inbound event IDs in one or more explicitly selected local sessions.
+  - **Recipient custody manifest**, assembled from exact active package revisions for one explicitly selected recipient.
+- Show a review step before finalization with manifest type, location or recipient, package count, included packages, excluded packages, prepared time, and the proposed manifest ID.
+- Permit operators to include or exclude individual eligible packages before finalization. Exclusions do not modify or void package records.
+- Prevent a package revision from being silently assigned to two audited manifests of the same operational type. A reprint retains the original manifest ID and package membership.
+- Assign a collision-resistant, human-readable manifest ID such as `MNF-YYYYMMDD-HHMMSS-XXXXXX`.
+- Record the exact event IDs or package revisions, manifest type, creator/device, local prepared time, UTC prepared time, finalized time, output format, and document checksum.
+- Write the audit event and finalized document before reporting success. If the print dialog is canceled, the manifest remains finalized and is available for reprint.
+- Provide a searchable manifest register with filters for manifest ID, type, date range, location, recipient, creator/device, and package tracking number.
+- Allow preview, reprint, and approved-format export from the register. Reprinting must not create a new manifest or alter membership.
 - Produce PDF when a suitable bundled Java PDF library is approved.
-- Otherwise produce printable HTML and open the system browser/print dialog.
-- Store the finalized document under `manifests/<year>/<type>/`.
+- Otherwise produce self-contained printable HTML and open the system browser/print dialog.
+- Store finalized documents under `manifests/<year>/<type>/`.
 - Store a SHA-256 checksum in `MANIFEST_PRINTED`.
-- Preserve detailed and high-density layouts comparable to the Power App.
+- Preserve layouts comparable to the Power App:
+  - 1–20 packages use a detailed layout with one package per row and a compact scannable package reference where supported.
+  - 21–100 packages use a four-column high-density accountability index and omit individual barcodes.
+  - More than 100 packages cannot be finalized as one audited manifest; the UI must help split the selection into batches of 100 or fewer.
+- Include the manifest ID, document type, location or recipient, prepared date/time, package count, page numbering, and signature/certification blocks.
+- Render user-facing dates in the workstation's configured local time and retain exact UTC timestamps in audit metadata.
 
-### 14.10 Optional carrier enrichment
+### 14.10 Daily packing lists and reporting extracts
+
+- Provide a dedicated **Daily Lists** workspace for operational reporting that does not alter package or manifest audit state.
+- Support a **Daily Receiving** extract filtered by local calendar date, optional location, carrier, recipient assignment state, and package status.
+- Support an **Outbound/Custody** extract filtered by local calendar date, recipient, location, and release status.
+- Allow an operator to choose visible columns, sort order, grouping, and whether summary totals are included.
+- Provide an on-screen preview and printable HTML output; CSV export may be enabled by configuration.
+- Clearly label an ad-hoc daily list as **Reporting Extract**, never **Audited Manifest**.
+- A reporting extract must not assign a manifest ID, mark packages manifested, or emit `MANIFEST_PRINTED`.
+- If every selected row belongs to the same existing audited manifest, the UI may offer **Open audited manifest** instead of presenting the extract as authoritative.
+- Date boundaries use the configured operational time zone. The preview must show that time zone and the exact inclusive date/time range used.
+- Daily extracts may span more than 100 packages and paginate normally; the audited-manifest 100-package limit does not apply.
+- Saved extract preferences are local settings. Generated extract files are temporary unless the operator explicitly selects **Save copy**.
+
+### 14.11 Optional carrier enrichment
 
 Carrier APIs are optional, asynchronous metadata providers. They are not barcode decoders and are not part of the critical scan-commit path.
 
@@ -506,28 +562,53 @@ Requirements:
 
 ## 15. User interface
 
-Initial implementation uses Java Swing with the system look and feel.
+The default interface is a modern browser UI embedded in the Java 8 application and served only on a random localhost port. All web assets are bundled in the application; the workstation does not require Node.js, an installed web server, or internet access. Java Swing remains an emergency compatibility fallback.
 
-Primary views:
+The information architecture has three levels:
 
-1. Receive and Release
-2. Current Session
-3. Package History
-4. Reconcile Recipients
-5. Manifests
-6. Conflicts and Recovery
-7. Settings and Diagnostics
+1. **Operations:** Receive/Release and the current session. This is the default workspace and remains visually dominant.
+2. **Accountability:** Package History, Recipient Reconciliation, Manifests, Daily Lists, and Conflicts/Recovery.
+3. **Administration:** Settings and Diagnostics.
+
+Advanced workspaces must not add fields or persistent action bars to the scanner. They are reached through simple top-level navigation and return the operator to a scan-ready state when closed.
+
+### 15.1 Primary receiving journey
+
+For a recognized, non-duplicate inbound barcode with a previously selected location:
+
+1. The scan field already has focus.
+2. The operator scans once; the scanner's Enter suffix submits it.
+3. The application parses, validates, and durably saves the event.
+4. A large success result shows tracking number, carrier, location, local received time, and whether a recipient is assigned.
+5. Focus returns to the scan field automatically.
+
+No additional click, modal confirmation, recipient selection, manifest selection, or audit-field entry is allowed on this happy path. Confirmation appears only for ambiguity, duplicates requiring a decision, conflicts, or policy-controlled exceptions.
+
+The main screen shows one current-state row per tracking number. Event-level changes such as recipient assignment appear in a separate **Session Activity** audit view so operators do not mistake multiple events for multiple packages.
 
 Scanner workflow requirements:
 
 - A scan must be processable without mouse input.
 - Enter submits.
 - Focus returns to the scan field.
-- Scan processing must never block the Swing event-dispatch thread.
+- Scan processing must never freeze the UI.
 - Duplicate rapid Enter events must be debounced.
 - The visible result remains until the next scan.
 - Color is never the only indication of status.
 - An operator can copy the last tracking number and error details.
+- User-facing timestamps use a compact local date/time format; exact UTC is available in record details and on hover where practical.
+- Routine success messages use plain operational language and do not expose event IDs, filenames, or synchronization implementation details.
+- Pending local upload is visible but does not falsely present a locally durable scan as lost.
+
+### 15.2 Usability acceptance
+
+- A new operator can receive a normal package after being told only: “Confirm the location, then scan the barcode.”
+- After initial setup, routine inbound receiving requires zero mouse clicks per recognized package.
+- A returning operator can begin scanning without reopening settings.
+- The operator can tell within one second whether the last scan succeeded, needs attention, or was not saved.
+- The current-session package count cannot be confused with the number of audit events.
+- Manifest and daily-list controls are discoverable from navigation but do not appear as competing primary actions beside the scan field.
+- Destructive or exceptional actions use plain-language confirmation and state their audit effect.
 
 ## 16. Local index
 
@@ -564,6 +645,48 @@ The index must use one local writer and must never be placed inside OneDrive.
 
 ## 18. Configuration
 
+The browser UI provides a dedicated **Settings** workspace. Settings are divided by scope so operators can tell whether a change affects only their workstation or every synchronized client.
+
+### 18.1 Workstation settings
+
+Workstation settings are stored under the current user's profile and never synchronized unless exported intentionally. The operator can configure:
+
+- Synchronized data-root folder and a read/write/latency health check.
+- Default scan mode, receiving location, and whether scanner focus is restored automatically.
+- Operational time zone, date/time display style, and 12-hour or 24-hour clock.
+- Default printer behavior, print-preview preference, paper size, and manifest scale guidance.
+- Sound and visual acknowledgement preferences.
+- History page size, default filters, and remembered table columns.
+- Optional CSV export enablement and the default local export folder.
+- Diagnostic verbosity and redacted diagnostic export.
+
+Changing the synchronized data root requires validation and an explicit confirmation. The UI must explain that it changes where this workstation reads and writes shared records; it does not migrate existing data.
+
+### 18.2 Shared operational settings
+
+Shared settings live below `config/` in the synchronized root and include:
+
+- Enabled receiving locations and stable location IDs.
+- Manifest numbering prefix and layout thresholds.
+- Enabled carrier parsers and confirmation thresholds.
+- Retention/display policy metadata.
+- Optional supervisor workflow allowlist.
+- Feature switches for custody manifests, daily extracts, CSV export, and carrier enrichment.
+
+Shared settings changes must use immutable versioned configuration documents, identify the authoring device, retain the previous valid version, and produce a configuration audit event. Because the client cannot verify Microsoft 365 identity, an application allowlist is a workflow control rather than a security boundary.
+
+The settings UI must support previewing a proposed change, validation, and rollback to a prior valid version. Ordinary operators may view effective shared settings even when editing is disabled.
+
+### 18.3 Configuration precedence
+
+Configuration resolves in this order:
+
+1. Built-in safe defaults.
+2. Latest valid shared operational configuration.
+3. Workstation-specific preferences for fields explicitly allowed to vary locally.
+
+The Diagnostics view shows the effective value and source for each setting. An invalid shared configuration is quarantined and the last known valid configuration remains active.
+
 `application.json`:
 
 ```json
@@ -575,7 +698,10 @@ The index must use one local writer and must never be placed inside OneDrive.
   "defaultTimeZone": "America/Los_Angeles",
   "historyRetentionYears": 7,
   "maximumDetailedManifestItems": 20,
-  "maximumManifestItems": 100
+  "maximumManifestItems": 100,
+  "manifestIdPrefix": "MNF",
+  "dailyCsvExportEnabled": false,
+  "custodyManifestsEnabled": true
 }
 ```
 
@@ -795,6 +921,17 @@ Exit criterion: no corruption or lost unique files, and propagation is operation
 - Offline events are retained and submitted after reconnecting.
 - A malformed file does not stop application startup or event ingestion.
 - Manifest content references exact immutable event IDs.
+- Audited manifest preview supports explicit package membership review before finalization.
+- Reprinting an audited manifest preserves its ID, membership, and original audit record.
+- A daily packing list is visibly labeled as a reporting extract and does not mutate package or manifest state.
+- Daily date filters use the configured operational time zone and show their effective range.
+- Workstation settings survive restart without modifying shared settings.
+- Invalid shared configuration leaves the last known valid configuration active and visible in Diagnostics.
+- A first-time operator can complete a normal receive with only location confirmation and one barcode scan.
+- After setup, a recognized normal inbound package requires no mouse interaction or audit-field entry.
+- The last-scan result unambiguously states success, attention required, or not saved.
+- The default scanner workspace does not expose manifest configuration, daily-report configuration, or shared administration controls.
+- Current Session displays one package row per tracking number while Session Activity preserves every audit event.
 - Scanner operation requires no mouse use during a normal batch.
 - Standards-encoded fixtures parse deterministically and preserve FNC1/group separators.
 - Ambiguous carrier results require confirmation rather than a silent choice.
@@ -805,17 +942,19 @@ Exit criterion: no corruption or lost unique files, and propagation is operation
 
 ## 27. Open decisions
 
-1. Java 8 Swing or self-contained .NET 8 WPF for the pilot.
-2. Whether PDF generation libraries are acceptable or printable HTML is required.
-3. Required retention period.
-4. Whether recipient names are permitted in synchronized event bodies.
-5. Whether raw carrier barcode payloads may be retained.
-6. How workstation/device IDs are assigned.
-7. Who may perform corrections and how that workflow is operationally enforced.
-8. Acceptable OneDrive propagation delay.
-9. Whether configuration changes require signed files or only SharePoint permissions/version history.
-10. Whether the inventory application will reuse the same event-store library in a later phase.
-11. Which scanner symbologies and control-character transmission modes are enabled.
-12. Whether a redacted sample-label corpus may be retained for regression testing.
-13. Whether external carrier endpoints are reachable from an approved worker.
-14. Whether carrier enrollment and terms permit this receiving use case.
+1. Whether PDF generation libraries are acceptable or printable HTML is required.
+2. Required retention period.
+3. Whether recipient names are permitted in synchronized event bodies.
+4. Whether raw carrier barcode payloads may be retained.
+5. How workstation/device IDs are assigned.
+6. Who may perform corrections and shared-settings changes, and how those workflows are operationally enforced.
+7. Acceptable OneDrive propagation delay.
+8. Whether shared configuration changes require signed files or only SharePoint permissions/version history.
+9. Whether daily CSV export is permitted and which columns may contain recipient information.
+10. Required daily packing-list variants, grouping, columns, and certification language.
+11. Whether saved reporting extracts belong in synchronized storage or only an operator-selected local folder.
+12. Whether the inventory application will reuse the same event-store library in a later phase.
+13. Which scanner symbologies and control-character transmission modes are enabled.
+14. Whether a redacted sample-label corpus may be retained for regression testing.
+15. Whether external carrier endpoints are reachable from an approved worker.
+16. Whether carrier enrollment and terms permit this receiving use case.
