@@ -1,7 +1,8 @@
 param(
     [switch]$SkipTests,
     [switch]$SkipFrontend,
-    [string]$OutputDirectory = "dist"
+    [string]$OutputDirectory = "dist",
+    [string]$Version = "0.2.0-rc1"
 )
 
 $ErrorActionPreference = "Stop"
@@ -87,7 +88,7 @@ $manifest = Join-Path $buildRoot "MANIFEST.MF"
     "Manifest-Version: 1.0"
     "Main-Class: org.commercialtracking.CommercialTrackingApp"
     "Implementation-Title: Commercial Tracking RC"
-    "Implementation-Version: 0.2.0-rc1"
+    "Implementation-Version: $Version"
     ""
 ) | Set-Content -LiteralPath $manifest -Encoding ascii
 

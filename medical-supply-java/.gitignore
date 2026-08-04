@@ -1,5 +1,6 @@
 /build/
 /dist/
 /dist-review/
+/dist-*/
 /src/main/resources/web/
 /frontend/node_modules/
