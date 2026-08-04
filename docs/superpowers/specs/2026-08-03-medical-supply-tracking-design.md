@@ -1,7 +1,7 @@
 # Medical Supply Tracking — Design Spec
 
 **Date:** 2026-08-03
-**Status:** Approved (design), pending spec review
+**Status:** Approved
 **Author:** danangboy13@gmail.com (with Claude)
 
 ## 1. Purpose & context
@@ -46,7 +46,7 @@ Two Dataverse entities in the original app, both reproduced as **projections** h
 | ItemName (`cr31c_name`) | required |
 | ItemManufacturer (`cr31c_itemmanufacturer`) | |
 | UnitPrice (`cr31c_unitprice`) | currency |
-| ItemCategory (`cr31c_itemcategory`) | multi-select choice |
+| ItemCategory (`cr31c_itemcategory`) | multi-select from a managed pick list (see below) |
 | PAR (`cr31c_par`) | number; reorder/par level |
 | Notes (`cr31c_notes`) | |
 
@@ -63,6 +63,14 @@ Two Dataverse entities in the original app, both reproduced as **projections** h
 | CleanedBarcode (`cr31c_cleanedbarcode`) | GTIN + Batch |
 | Notes/Comments (`cr31c_notescomments`) | |
 | Modified On / Modified By | system audit |
+
+**ItemCategory rules:** categories are a **managed pick list** (the set of category
+values seen so far, editable in Registration/Settings). When registering a product via
+GUDID, the GMDN preferred term(s) are the **suggested default** category, but the
+operator can override — selecting existing pick-list values or adding a new one, which
+then joins the list. A new category value first used this way is captured on the
+`PRODUCT_REGISTERED`/`PRODUCT_UPDATED` event, so the pick list is itself a projection
+over catalog events (no separate storage).
 
 Derived UI states from the PowerApp we must preserve:
 - **Expiring soon**: `Expiration <= today+7` → red; `<= today+30` → yellow.
@@ -145,7 +153,7 @@ Ambiguous/low-confidence parses return a result flagged for user confirmation
 **Field mapping → catalog:**
 - `brandName` → ItemName (fallback `deviceDescription`)
 - `companyName` → ItemManufacturer
-- `gmdnTerms[].gmdnPTName` → ItemCategory (joined)
+- `gmdnTerms[].gmdnPTName` → ItemCategory (suggested default; see §2 category rules)
 - `versionModelNumber` / `catalogNumber` → Notes
 
 **Transport:** Java 8 `HttpsURLConnection` (TLS 1.2 default on 8u121+), ~4s connect/read
@@ -264,12 +272,11 @@ Workspaces:
 | — (new) | `InventoryAnalytics` + `ReorderAdvisor` (dashboard metrics & heuristics) |
 | `build.ps1`, launchers, test harness | Adapt |
 
-## 10. Open items for spec review
-- Confirm ItemCategory should be free-text-from-GMDN vs a fixed choice list (PowerApp
-  used a fixed multi-select choice; GUDID GMDN terms are free-form). Current plan:
-  store the GMDN preferred term(s) as the category value.
-- Confirm whether UnitPrice/PAR are in scope for v1 UI (present in catalog model; not in
-  the four selected workflows explicitly). Current plan: UnitPrice and PAR are now used
-  by the dashboard (on-hand value, reorder alerts); both are edited in Registration.
-- Confirm the default reorder-heuristic parameters (window 90d, lead 7d, safety 7d,
-  coverage 28d) and the stale threshold (30d). These are configurable in Settings.
+## 10. Resolved decisions
+- **ItemCategory** — a managed, overridable multi-select pick list. GUDID GMDN preferred
+  term(s) prefill as the suggested default; the operator may pick existing values or add
+  a new one (§2 category rules).
+- **UnitPrice / PAR** — in scope: used by the dashboard (on-hand value, reorder alerts)
+  and edited in Registration.
+- **Reorder-heuristic defaults** — window 90d, lead 7d, safety 7d, coverage 28d, stale
+  30d. Accepted as defaults; all configurable in Settings.
