@@ -20,6 +20,9 @@ project and reuses its portability blueprint and storage engine wherever possibl
 ### Goals
 - Mirror the core workflows of the PowerApp: scan-to-stock, batch scan, browse/search
   with expiry alerts, product registration, and printable QR labels.
+- Add a management/reporting **dashboard** for at-a-glance issues (expiry, stock-outs,
+  reorder needs) plus **PAR + consumption-heuristic reorder alerts**, and an
+  exportable management report.
 - Back product registration with the **FDA AccessGUDID** device database, while
   remaining fully usable offline.
 - Run on Java 8 with no Maven/Gradle, distributed as a single JAR + launcher, using a
@@ -165,7 +168,48 @@ timeouts, `User-Agent` set, no external HTTP/JSON libraries. Requires a small
 
 Tests use a saved JSON fixture — **no live network call in the build.**
 
-## 6. User interface
+## 6. Dashboard & reorder analytics (`InventoryAnalytics`)
+
+A read-only analytics component computes metrics from the inventory + catalog
+projections and the raw `STOCK_PICKED` history. Pure functions over already-loaded
+events — no new storage, no writes.
+
+### 6.1 At-a-glance issue metrics (dashboard KPI tiles)
+Each tile shows a count and drills into a filtered Inventory list:
+- **Expired** — `Expiration < today` (count + on-hand units).
+- **Expiring soon** — `≤ today+7` (red) and `≤ today+30` (yellow).
+- **Out of / low stock** — active on-hand `< 1`.
+- **Reorder needed** — on-hand below PAR / suggested reorder point (see §6.2).
+- **Stale** — no stock event for the item in N days (default 30; "last counted").
+- **Totals** — distinct SKUs, total on-hand units, and **on-hand value**
+  (`Σ quantity × catalog UnitPrice`) as the management metric.
+- **Recent activity** — events today / last 7 days.
+
+### 6.2 PAR + consumption-heuristic reorder alerts (`ReorderAdvisor`)
+On-hand for a product = sum of active-lot quantities for that GTIN.
+- **PAR set in catalog** → alert when `onHand < PAR`.
+- **No PAR set** → derive from pick history:
+  - `avgDailyUsage = units picked (STOCK_PICKED) over trailing window / window days`
+    (default window 90 days; configurable).
+  - `reorderPoint = ceil(avgDailyUsage × (leadTimeDays + safetyDays))`
+    (defaults: lead 7, safety 7 → ~2 weeks of cover). Alert when `onHand ≤ reorderPoint`.
+  - **Suggested PAR** surfaced for the operator to accept into the catalog.
+- **Suggested order quantity** = `max(0, target − onHand)`, where `target` = PAR if set,
+  else a coverage goal (`ceil(avgDailyUsage × coverageDays)`, default coverage 28 days).
+- **Estimated order cost** = suggested order qty × UnitPrice (for the report).
+- **Confidence:** flagged "insufficient history" when the trailing window has few picks
+  or short history, rather than emitting a misleading number.
+
+All window/lead/safety/coverage parameters live in Settings (shared config).
+
+### 6.3 Exportable management report
+On demand, generate a management report via the reused `ReportWriter` /
+`PortablePdf` (PDF/HTML/CSV), containing: the reorder list (GTIN, name, manufacturer,
+on-hand, PAR/suggested, avg usage, suggested order qty, est. cost), the expiry list,
+a valuation summary, and a per-category breakdown. Written under
+`<shared-root>/reports/`.
+
+## 7. User interface
 
 Primary UI is a precompiled React/MUI SPA embedded in the JAR and served by
 `BrowserServer` on `127.0.0.1` with an ephemeral port and random session token
@@ -173,6 +217,8 @@ Primary UI is a precompiled React/MUI SPA embedded in the JAR and served by
 Node/npm are development-time only.
 
 Workspaces:
+0. **Dashboard** (landing screen) — the §6.1 issue tiles, the §6.2 reorder list, and a
+   button to export the §6.3 management report. Each tile drills into a filtered list.
 1. **Scan (Quick Pick)** — single scan → decode → resolve product (catalog or GUDID) →
    set quantity → `STOCK_RECEIVED`. Existing item routes to quantity edit; unknown GTIN
    routes to inline registration.
@@ -188,36 +234,42 @@ Workspaces:
    library — not the external `api.qrserver.com` URL the PowerApp used, which would
    break the offline model.
 6. **Diagnostics / Settings** — shared folder selection & probe, GUDID enable/disable +
-   endpoint, malformed-event list, local index rebuild, pending-event retry.
+   endpoint, reorder heuristic parameters (window / lead / safety / coverage days),
+   malformed-event list, local index rebuild, pending-event retry.
 
-## 7. Testing, build & qualification
+## 8. Testing, build & qualification
 
 - No test framework. Plain `main()`-method test classes run from `build.ps1`, mirroring
   commercial tracking: `Gs1ParserTest`, `ProjectionTest` (catalog + inventory replay),
-  `GudidClientTest` (parses saved fixture, offline), `EventStoreTest`, JSON tests,
-  `PerformanceSmokeTest`. A `--self-test` entry point runs a smoke check.
+  `ReorderAdvisorTest` (heuristic: PAR, consumption-derived, insufficient-history),
+  `InventoryAnalyticsTest` (issue-metric counts), `GudidClientTest` (parses saved
+  fixture, offline), `EventStoreTest`, JSON tests, `PerformanceSmokeTest`. A
+  `--self-test` entry point runs a smoke check.
 - `build.ps1` adapted: npm build of the MUI frontend (skippable), `javac --release 8`,
   run tests, package `MedicalSupply-RC.jar` with `run-medical-supply.cmd`, README,
   TESTING.md, RELEASE_NOTES.md, and a `qualification/` folder.
 - Produce `dist-review/qualification` browser-smoke evidence in the same form as
   `commercial-tracking-java/dist-review/qualification/browser-smoke-evidence.md`.
 
-## 8. Reuse map (commercial-tracking-java → medical-supply-java)
+## 9. Reuse map (commercial-tracking-java → medical-supply-java)
 
 | Component | Disposition |
 |---|---|
 | `EventStore`, `LocalEventIndex`, `EventJson` | Reuse; add medical event types & nested-JSON reader |
 | `AppConfig`, `SharedConfigManager` | Reuse; rename config root, add GUDID settings |
 | `BrowserServer` | Reuse; new SPA bundle & JSON API routes |
-| `PortablePdf`, `ReportWriter`, `ManifestWriter` | Reuse where reports/labels overlap |
+| `PortablePdf`, `ReportWriter`, `ManifestWriter` | Reuse for the §6.3 management report & labels |
 | `BarcodeParserChain` (carrier) | Replace with `Gs1Parser` (GS1 medical) |
 | `Projection` (package state) | Rewrite for catalog + inventory projections |
+| — (new) | `InventoryAnalytics` + `ReorderAdvisor` (dashboard metrics & heuristics) |
 | `build.ps1`, launchers, test harness | Adapt |
 
-## 9. Open items for spec review
+## 10. Open items for spec review
 - Confirm ItemCategory should be free-text-from-GMDN vs a fixed choice list (PowerApp
   used a fixed multi-select choice; GUDID GMDN terms are free-form). Current plan:
   store the GMDN preferred term(s) as the category value.
 - Confirm whether UnitPrice/PAR are in scope for v1 UI (present in catalog model; not in
-  the four selected workflows explicitly). Current plan: carried in the catalog record
-  and shown in Registration, not surfaced elsewhere in v1.
+  the four selected workflows explicitly). Current plan: UnitPrice and PAR are now used
+  by the dashboard (on-hand value, reorder alerts); both are edited in Registration.
+- Confirm the default reorder-heuristic parameters (window 90d, lead 7d, safety 7d,
+  coverage 28d) and the stale threshold (30d). These are configurable in Settings.
