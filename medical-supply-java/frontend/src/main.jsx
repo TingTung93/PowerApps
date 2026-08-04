@@ -32,7 +32,7 @@ const NAV = [
   ['count', 'Inventory count', <FactCheckRounded />],
   ['management', 'Management', <AssessmentRounded />],
   ['registration', 'Registration', <AppRegistrationRounded />],
-  ['labels', 'Labels', <QrCode2Rounded />],
+  ['labels', 'Paper count ledger', <QrCode2Rounded />],
   ['settings', 'Settings', <SettingsRounded />],
   ['diagnostics', 'Diagnostics', <TroubleshootRounded />]
 ]
@@ -69,7 +69,15 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppBar position="fixed" elevation={0} sx={{ zIndex: t => t.zIndex.drawer + 1 }}>
+      <style>{`@media print {
+        .app-chrome { display: none !important; }
+        .ledger-screen-only { display: none !important; }
+        .ledger-print { display: block !important; }
+        body { background: white !important; }
+        @page { size: landscape; margin: 0.4in; }
+      }`}</style>
+      <AppBar className="app-chrome" position="fixed" elevation={0}
+        sx={{ zIndex: t => t.zIndex.drawer + 1 }}>
         <Toolbar sx={{ gap: 2 }}>
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="h6" fontWeight={700}>Medical Supply Tracking</Typography>
@@ -80,7 +88,7 @@ function App() {
           {state?.configured && <Chip label="Shared store connected" color="success" size="small" />}
         </Toolbar>
       </AppBar>
-      <Drawer variant="permanent" sx={{ width: DRAWER, '& .MuiDrawer-paper': {
+      <Drawer className="app-chrome" variant="permanent" sx={{ width: DRAWER, '& .MuiDrawer-paper': {
         width: DRAWER, borderRightColor: 'divider', backgroundImage: 'none'
       } }}>
         <Toolbar />
@@ -102,7 +110,8 @@ function App() {
           </Typography>
         </Box>
       </Drawer>
-      <Box component="main" sx={{ ml: `${DRAWER}px`, p: { xs: 2, md: 3 }, mt: 8, minHeight: '100vh' }}>
+      <Box component="main" sx={{ ml: `${DRAWER}px`, p: { xs: 2, md: 3 }, mt: 8,
+        minHeight: '100vh', '@media print': { ml: 0, p: 0, mt: 0 } }}>
         <Box sx={{ maxWidth: 1440, mx: 'auto' }}>
         {!state ? <Typography>Loading…</Typography>
           : !state.configured && !['diagnostics', 'settings'].includes(view)
@@ -299,6 +308,10 @@ function Inventory({ state, run }) {
 function Count({ state, run }) {
   const active = (state.stock || []).filter(line => line.active)
   const [filter, setFilter] = useState('')
+  const [scanValue, setScanValue] = useState('')
+  const [selectedKey, setSelectedKey] = useState('')
+  const [delta, setDelta] = useState('')
+  const [scanMessage, setScanMessage] = useState('')
   const [counts, setCounts] = useState(() => Object.fromEntries(
     active.map(line => [line.itemKey, String(line.quantity)])))
 
@@ -312,6 +325,47 @@ function Count({ state, run }) {
     `${line.name} ${line.gtin} ${line.lot}`.toLowerCase().includes(filter.toLowerCase()))
   const changed = active.filter(line =>
     Number(counts[line.itemKey]) !== line.quantity && counts[line.itemKey] !== '')
+  const selected = active.find(line => line.itemKey === selectedKey)
+
+  const resolveLedgerQr = () => {
+    const scanned = scanValue.trim()
+    const key = scanned.startsWith('MSITEM:') ? scanned.slice(7) : scanned
+    const match = active.find(line => line.itemKey === key || line.gtin === key)
+    if (!match) {
+      setSelectedKey('')
+      setScanMessage('No active stock line matches that QR code.')
+      return
+    }
+    setSelectedKey(match.itemKey)
+    setDelta('')
+    setScanMessage('')
+  }
+
+  const applyDelta = () => {
+    if (!selected) return
+    const amount = Number(delta)
+    if (!Number.isInteger(amount) || amount === 0) {
+      setScanMessage('Enter a whole-number delta such as -2 or +3.')
+      return
+    }
+    const newQuantity = selected.quantity + amount
+    if (newQuantity < 0) {
+      setScanMessage('That delta would make inventory negative.')
+      return
+    }
+    run(async () => {
+      await api.adjust({
+        gtin: selected.gtin,
+        lot: selected.lot,
+        expirationIso: selected.expirationIso,
+        quantity: String(newQuantity)
+      })
+      setScanValue('')
+      setSelectedKey('')
+      setDelta('')
+      setScanMessage('')
+    }, `Applied ${amount > 0 ? '+' : ''}${amount} to ${selected.name || selected.gtin}`)
+  }
 
   const save = () => run(async () => {
     for (const line of changed) {
@@ -327,11 +381,36 @@ function Count({ state, run }) {
   return (
     <Stack spacing={2}>
       <PageHeader title="Inventory count"
-        description="Record physical counts by lot. Only changed quantities will be posted."
+        description="Reconcile the paper ledger by scanning its QR codes, or enter physical counts in bulk."
         actions={<Button variant="contained" disabled={!changed.length} onClick={save}>
           Post {changed.length || ''} adjustment{changed.length === 1 ? '' : 's'}
         </Button>} />
+      <Card><CardContent>
+        <Typography variant="h6">Scan paper ledger QR</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Scan a row from the printed ledger, then enter the signed change recorded on paper.
+        </Typography>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} alignItems={{ md: 'center' }}>
+          <TextField autoFocus size="small" label="Scan QR code" value={scanValue}
+            onChange={event => setScanValue(event.target.value)}
+            onKeyDown={event => event.key === 'Enter' && resolveLedgerQr()} sx={{ minWidth: 340 }} />
+          <Button variant="outlined" onClick={resolveLedgerQr}>Look up</Button>
+          {selected && <>
+            <Divider orientation="vertical" flexItem />
+            <Box sx={{ minWidth: 220 }}><Typography variant="body2" fontWeight={700}>
+              {selected.name || selected.gtin}</Typography>
+              <Typography variant="caption">Lot {selected.lot || '—'} · Current {selected.quantity}</Typography></Box>
+            <TextField size="small" label="Delta (+ / -)" type="number" value={delta}
+              onChange={event => setDelta(event.target.value)}
+              onKeyDown={event => event.key === 'Enter' && applyDelta()} sx={{ width: 150 }} />
+            <Button variant="contained" onClick={applyDelta}>Apply delta</Button>
+          </>}
+        </Stack>
+        {scanMessage && <Alert severity="warning" sx={{ mt: 2 }}>{scanMessage}</Alert>}
+      </CardContent></Card>
       <Card><CardContent sx={{ p: 0 }}>
+        <Box sx={{ px: 2, pt: 2 }}><Typography variant="h6">Bulk physical count</Typography>
+          <Typography variant="body2" color="text.secondary">Enter counted quantities directly when transcribing the full sheet.</Typography></Box>
         <Box sx={{ p: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
           <TextField size="small" label="Find product or lot" value={filter}
             onChange={event => setFilter(event.target.value)} sx={{ width: 340 }} />
@@ -510,30 +589,63 @@ function Registration({ state, run }) {
 
 function Labels({ state }) {
   const [urls, setUrls] = useState({})
-  const rows = (state.stock || []).filter(l => l.active)
+  const rows = (state.stock || []).filter(line => line.active).sort((a, b) =>
+    (a.category || 'Uncategorized').localeCompare(b.category || 'Uncategorized')
+      || (a.name || a.gtin).localeCompare(b.name || b.gtin)
+      || a.lot.localeCompare(b.lot))
+  const groups = rows.reduce((result, line) => {
+    const category = line.category || 'Uncategorized'
+    if (!result[category]) result[category] = []
+    result[category].push(line)
+    return result
+  }, {})
   useEffect(() => {
     let cancelled = false
-    Promise.all(rows.map(l => QRCode.toDataURL(l.barcode || l.gtin, { margin: 1, width: 96 })
-      .then(url => [l.itemKey, url]))).then(pairs => { if (!cancelled) setUrls(Object.fromEntries(pairs)) })
+    const stock = (state.stock || []).filter(line => line.active)
+    Promise.all(stock.map(line => QRCode.toDataURL(`MSITEM:${line.itemKey}`, { margin: 1, width: 96 })
+      .then(url => [line.itemKey, url]))).then(pairs => {
+        if (!cancelled) setUrls(Object.fromEntries(pairs))
+      })
     return () => { cancelled = true }
-  }, [state])
+  }, [state.stock])
   return (
     <Box>
-      <PageHeader title="Labels" description="Print offline QR labels for active inventory stock lines."
-        actions={<Button variant="contained" onClick={() => window.print()}>Print labels</Button>} />
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 1 }}>
-        {rows.map(l => (
-          <Card key={l.itemKey} variant="outlined"><CardContent sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            {urls[l.itemKey] && <img src={urls[l.itemKey]} width="72" height="72" alt="QR" />}
-            <Box>
-              <Typography variant="body2" fontWeight={600}>{l.name || l.gtin}</Typography>
-              <Typography variant="caption" display="block">Lot: {l.lot}</Typography>
-              <Typography variant="caption" display="block">Exp: {l.expirationIso || '—'} · Qty: {l.quantity}</Typography>
-            </Box>
-          </CardContent></Card>
-        ))}
+      <Box className="ledger-screen-only">
+        <PageHeader title="Paper count ledger"
+          description="Print the complete category-sorted inventory, record counts while away from the workstation, then scan row QR codes in Inventory Count."
+          actions={<Button variant="contained" onClick={() => window.print()}>Print inventory ledger</Button>} />
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Write the physical count and variance on paper. Back at the workstation, open Inventory Count and scan each changed row.
+        </Alert>
       </Box>
-      {!rows.length && <Card><EmptyState>No active inventory is available for labels.</EmptyState></Card>}
+      <Box className="ledger-print">
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h5">Medical Supply Inventory Count Ledger</Typography>
+          <Typography variant="body2">Printed {new Date().toLocaleString()} · {rows.length} active stock lines</Typography>
+          <Typography variant="caption">Location / team: ____________________  Counter: ____________________  Date: __________</Typography>
+        </Box>
+        {Object.entries(groups).map(([category, lines]) => <Box key={category}
+          sx={{ mb: 2, breakInside: 'avoid-page' }}>
+          <Typography variant="subtitle1" fontWeight={800} sx={{ px: 1, py: .5,
+            bgcolor: '#e8eaf6', border: '1px solid #9fa8da' }}>{category}</Typography>
+          <Table size="small" sx={{ '& td, & th': { border: '1px solid #9ca3af', py: .4, px: .7 } }}>
+            <TableHead><TableRow><TableCell sx={{ width: 64 }}>Lookup</TableCell>
+              <TableCell>Product / GTIN</TableCell><TableCell>Lot</TableCell><TableCell>Expiration</TableCell>
+              <TableCell align="right">System</TableCell><TableCell sx={{ width: 90 }}>Counted</TableCell>
+              <TableCell sx={{ width: 80 }}>Delta</TableCell><TableCell sx={{ width: 70 }}>Initials</TableCell>
+            </TableRow></TableHead>
+            <TableBody>{lines.map(line => <TableRow key={line.itemKey}>
+              <TableCell>{urls[line.itemKey] && <img src={urls[line.itemKey]} width="52" height="52" alt="QR lookup" />}</TableCell>
+              <TableCell><Typography variant="body2" fontWeight={700}>{line.name || 'Unregistered product'}</Typography>
+                <Typography variant="caption">{line.gtin}</Typography></TableCell>
+              <TableCell>{line.lot || '—'}</TableCell><TableCell>{line.expirationIso || '—'}</TableCell>
+              <TableCell align="right">{line.quantity}</TableCell><TableCell></TableCell>
+              <TableCell></TableCell><TableCell></TableCell>
+            </TableRow>)}</TableBody>
+          </Table>
+        </Box>)}
+      </Box>
+      {!rows.length && <Card><EmptyState>No active inventory is available for the ledger.</EmptyState></Card>}
     </Box>
   )
 }
