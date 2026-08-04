@@ -21,7 +21,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -164,10 +166,6 @@ public final class BrowserServer {
         if ("/api/state".equals(path) && "GET".equals(method)) {
             return service.snapshot(now);
         }
-        if ("/api/configure".equals(path)) {
-            service.configure(Paths.get(required(body, "sharedRoot")));
-            return message("Shared folder configured.");
-        }
         if ("/api/choose-folder".equals(path)) {
             Path selected = folderPicker.choose(config.sharedRoot);
             if (selected == null) {
@@ -180,9 +178,17 @@ public final class BrowserServer {
             response.put("sharedRoot", config.sharedRoot.toString());
             return response;
         }
+        if ("/api/preview-receive".equals(path)) {
+            return service.previewReceive(required(body, "raw"));
+        }
+        if ("/api/item-history".equals(path)) {
+            return service.itemHistory(required(body, "gtin"), value(body, "lot", ""),
+                    value(body, "expirationIso", ""));
+        }
         if ("/api/settings".equals(path)) {
             return service.updateSettings(body);
         }
+        if ("/api/distro".equals(path)) return service.updateDistro(value(body, "members", ""));
         if ("/api/receive".equals(path)) {
             return service.receive(required(body, "raw"), intValue(body, "quantity", 1),
                     "true".equalsIgnoreCase(value(body, "force", "false")));
@@ -199,6 +205,13 @@ public final class BrowserServer {
             return service.archive(required(body, "gtin"), value(body, "lot", ""),
                     value(body, "expirationIso", ""), required(body, "reason"));
         }
+        if ("/api/restore".equals(path)) {
+            return service.restore(required(body, "gtin"), value(body, "lot", ""),
+                    value(body, "expirationIso", ""), value(body, "reason", "Restored by operator"));
+        }
+        if ("/api/archive-expired".equals(path)) return service.archiveExpired(now);
+        if ("/api/retire-product".equals(path))
+            return service.retireProduct(required(body, "gtin"), required(body, "reason"));
         if ("/api/register".equals(path)) {
             return service.registerProduct(required(body, "gtin"), required(body, "name"),
                     value(body, "manufacturer", ""), value(body, "category", ""),
@@ -209,10 +222,7 @@ public final class BrowserServer {
             return service.lookupGudid(required(body, "gtin"));
         }
         if ("/api/report".equals(path)) {
-            if (!service.configured()) throw new AppService.BadRequest("Configure a folder first.");
-            ManagementReport.Result result = ManagementReport.write(
-                    service.store().getSharedRoot().resolve("reports"),
-                    service.dashboard(now), service.reorder(now), service.stock(), now);
+            ManagementReport.Result result = service.writeManagementReport(now);
             Map<String, Object> response = message("Management report written.");
             response.put("htmlFile", result.html.getFileName().toString());
             response.put("csvFile", result.csv.getFileName().toString());
@@ -351,6 +361,48 @@ public final class BrowserServer {
                 throw new AppService.BadRequest(
                         "The folder picker is unavailable in headless mode. Use the classic UI.");
             }
+            if (System.getProperty("os.name", "").toLowerCase(Locale.ENGLISH).contains("windows")) {
+                return chooseWithWindowsShell(initialFolder);
+            }
+            return chooseWithSwing(initialFolder);
+        }
+
+        private Path chooseWithWindowsShell(Path initialFolder) throws IOException {
+            String initial = initialFolder == null ? "" : initialFolder.toAbsolutePath().toString();
+            String script = "[Console]::OutputEncoding=New-Object System.Text.UTF8Encoding($false);"
+                    + "$shell=New-Object -ComObject Shell.Application;"
+                    + "$folder=$shell.BrowseForFolder(0,'Select synchronized OneDrive folder',65,'"
+                    + initial.replace("'", "''") + "');"
+                    + "if($folder){[Console]::Out.Write($folder.Self.Path)}";
+            String encoded = Base64.getEncoder().encodeToString(
+                    script.getBytes(StandardCharsets.UTF_16LE));
+            Process process = new ProcessBuilder(
+                    "powershell.exe", "-NoProfile", "-STA", "-EncodedCommand", encoded)
+                    .redirectErrorStream(true)
+                    .start();
+            String output;
+            try (InputStream input = process.getInputStream()) {
+                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                byte[] buffer = new byte[1024];
+                int count;
+                while ((count = input.read(buffer)) >= 0) {
+                    bytes.write(buffer, 0, count);
+                }
+                output = new String(bytes.toByteArray(), StandardCharsets.UTF_8).trim();
+            }
+            try {
+                int exitCode = process.waitFor();
+                if (exitCode != 0) {
+                    throw new IOException("Windows folder picker failed: " + output);
+                }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                throw new IOException("Folder selection was interrupted.", ex);
+            }
+            return output.length() == 0 ? null : Paths.get(output);
+        }
+
+        private Path chooseWithSwing(Path initialFolder) throws IOException {
             AtomicReference<Path> selected = new AtomicReference<Path>();
             AtomicReference<RuntimeException> failure = new AtomicReference<RuntimeException>();
             try {

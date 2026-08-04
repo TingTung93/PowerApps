@@ -13,6 +13,8 @@ public final class AppServiceGudidTest {
         GudidClient client = new GudidClient("https://x/api", new GudidClient.Fetcher() {
             public String fetch(String url) {
                 return "{\"gudid\":{\"device\":{\"brandName\":\"Stent\",\"companyName\":\"Abbott\","
+                        + "\"deviceDescription\":\"Drug-eluting coronary stent\","
+                        + "\"versionModelNumber\":\"MODEL-1\",\"catalogNumber\":\"CAT-9\","
                         + "\"gmdnTerms\":{\"gmdn\":[{\"gmdnPTName\":\"Coronary stent\"}]}}}}";
             }
         });
@@ -23,6 +25,20 @@ public final class AppServiceGudidTest {
         check("Stent".equals(Json.str(r, "name")), "name");
         check("Abbott".equals(Json.str(r, "manufacturer")), "manufacturer");
         check("Coronary stent".equals(Json.str(r, "category")), "category");
+        check("Stent".equals(Json.str(r, "brandName")), "brand name");
+        check("Drug-eluting coronary stent".equals(Json.str(r, "deviceDescription")),
+                "device description");
+        check("MODEL-1".equals(Json.str(r, "versionModelNumber")), "model");
+        check("CAT-9".equals(Json.str(r, "catalogNumber")), "catalog number");
+        check(Json.asList(r.get("gmdnTerms")).size() == 1, "generic names");
+
+        svc.configure(base.resolve("shared"));
+        Map<String, Object> preview = svc.previewReceive("01003807400000101726113010LOT1");
+        check("00380740000010".equals(Json.str(preview, "gtin")), "preview GTIN");
+        check("LOT1".equals(Json.str(preview, "lot")), "preview lot");
+        check(!Boolean.TRUE.equals(preview.get("registered")), "preview unknown product");
+        check("Stent".equals(Json.str(Json.asMap(preview.get("gudid")), "brandName")),
+                "preview GUDID metadata");
 
         AppService disabled = new AppService(config, null);
         check(Boolean.FALSE.equals(disabled.lookupGudid("x").get("enabled")), "disabled when null");

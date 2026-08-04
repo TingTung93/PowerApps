@@ -5,9 +5,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.StandardOpenOption;
+import java.nio.channels.FileChannel;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
 public final class AppConfig {
     public Path sharedRoot;
@@ -22,6 +28,10 @@ public final class AppConfig {
     public int reorderCoverageDays = 28;
     public int staleDays = 30;
     public int scannerMinimumLength = 5;
+    public boolean scannerAutoFocus = true;
+    public boolean scannerSound = true;
+    public boolean scannerAutoSubmit = false;
+    public int scannerDefaultQuantity = 1;
     public String activeSessionId = "";
 
     private AppConfig(Path localRoot) { this.localRoot = localRoot; }
@@ -41,7 +51,8 @@ public final class AppConfig {
         String root = Json.str(values, "sharedRoot");
         config.sharedRoot = root.length() == 0 ? null : Paths.get(root);
         config.deviceId = orDefault(Json.str(values, "deviceId"), defaultDevice());
-        config.actor = orDefault(Json.str(values, "actor"), defaultActor());
+        // Attribution is always derived from the authenticated OS session. Never trust persisted input.
+        config.actor = defaultActor();
         config.gudidEnabled = !"false".equals(Json.str(values, "gudidEnabled"));
         config.gudidEndpoint = orDefault(Json.str(values, "gudidEndpoint"), config.gudidEndpoint);
         config.reorderWindowDays = intOr(values, "reorderWindowDays", 90, 7, 365);
@@ -50,6 +61,10 @@ public final class AppConfig {
         config.reorderCoverageDays = intOr(values, "reorderCoverageDays", 28, 1, 365);
         config.staleDays = intOr(values, "staleDays", 30, 1, 365);
         config.scannerMinimumLength = intOr(values, "scannerMinimumLength", 5, 4, 100);
+        config.scannerAutoFocus = !"false".equals(Json.str(values, "scannerAutoFocus"));
+        config.scannerSound = !"false".equals(Json.str(values, "scannerSound"));
+        config.scannerAutoSubmit = "true".equals(Json.str(values, "scannerAutoSubmit"));
+        config.scannerDefaultQuantity = intOr(values, "scannerDefaultQuantity", 1, 1, 9999);
         config.activeSessionId = orDefault(Json.str(values, "activeSessionId"), UUID.randomUUID().toString());
         if (!Files.isRegularFile(file)) config.save();
         return config;
@@ -59,7 +74,6 @@ public final class AppConfig {
         Map<String, Object> values = new LinkedHashMap<String, Object>();
         values.put("sharedRoot", sharedRoot == null ? "" : sharedRoot.toString());
         values.put("deviceId", deviceId);
-        values.put("actor", actor);
         values.put("gudidEnabled", gudidEnabled ? "true" : "false");
         values.put("gudidEndpoint", gudidEndpoint);
         values.put("reorderWindowDays", Integer.valueOf(reorderWindowDays));
@@ -68,10 +82,27 @@ public final class AppConfig {
         values.put("reorderCoverageDays", Integer.valueOf(reorderCoverageDays));
         values.put("staleDays", Integer.valueOf(staleDays));
         values.put("scannerMinimumLength", Integer.valueOf(scannerMinimumLength));
+        values.put("scannerAutoFocus", Boolean.valueOf(scannerAutoFocus));
+        values.put("scannerSound", Boolean.valueOf(scannerSound));
+        values.put("scannerAutoSubmit", Boolean.valueOf(scannerAutoSubmit));
+        values.put("scannerDefaultQuantity", Integer.valueOf(scannerDefaultQuantity));
         values.put("activeSessionId", activeSessionId);
         Path configRoot = localRoot.resolve("config");
         Files.createDirectories(configRoot);
-        Files.write(configRoot.resolve("client.json"), Json.write(values).getBytes(StandardCharsets.UTF_8));
+        Path target = configRoot.resolve("client.json");
+        Path temporary = configRoot.resolve("client.json.tmp");
+        Files.write(temporary, Json.write(values).getBytes(StandardCharsets.UTF_8),
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING,
+                StandardOpenOption.WRITE);
+        try (FileChannel channel = FileChannel.open(temporary, StandardOpenOption.WRITE)) {
+            channel.force(true);
+        }
+        try {
+            Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException ex) {
+            Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 
     private static String orDefault(String value, String fallback) {
@@ -92,8 +123,31 @@ public final class AppConfig {
     }
 
     private static String defaultActor() {
-        String user = System.getProperty("user.name", "unknown");
-        String domain = System.getenv("USERDOMAIN");
-        return domain == null || domain.trim().length() == 0 ? user : domain + "\\" + user;
+        try {
+            // `user.name` and USERDOMAIN are caller-controlled. The Windows system `whoami`
+            // executable obtains its value from the process access token instead.
+            Path whoami = Paths.get("C:\\Windows\\System32\\whoami.exe");
+            if (!Files.isRegularFile(whoami))
+                throw new IllegalStateException("Windows identity provider is unavailable");
+            Process process = new ProcessBuilder(whoami.toString()).redirectErrorStream(true).start();
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            try (InputStream input = process.getInputStream()) {
+                byte[] buffer = new byte[256];
+                int total = 0;
+                int read;
+                while ((read = input.read(buffer)) >= 0) {
+                    total += read;
+                    if (total > 4096) throw new IllegalStateException("Windows identity response is too large");
+                    output.write(buffer, 0, read);
+                }
+            }
+            if (process.waitFor() != 0) throw new IllegalStateException("Windows identity lookup failed");
+            String actor = new String(output.toByteArray(), StandardCharsets.UTF_8).trim();
+            if (actor.length() == 0 || actor.length() > 200 || actor.indexOf('\\') < 1)
+                throw new IllegalStateException("Windows returned an invalid authenticated principal");
+            return actor;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Could not obtain the authenticated Windows principal", ex);
+        }
     }
 }

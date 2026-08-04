@@ -3,6 +3,7 @@ package org.medsupply;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.net.URLEncoder;
 
 public final class GudidClient {
     public interface Fetcher {
@@ -21,7 +22,8 @@ public final class GudidClient {
         GudidResult result = new GudidResult();
         result.gtin = gtin == null ? "" : gtin;
         try {
-            String body = fetcher.fetch(endpoint + "?di=" + result.gtin);
+            String body = fetcher.fetch(endpoint + "?di="
+                    + URLEncoder.encode(result.gtin, "UTF-8"));
             Map<String, Object> device = locateDevice(Json.asMap(Json.parse(body)));
             if (device.isEmpty()) return result;
             result.brandName = Json.str(device, "brandName");
@@ -34,6 +36,8 @@ public final class GudidClient {
                     || result.companyName.length() > 0;
         } catch (Exception ex) {
             result.found = false;
+            result.lookupFailed = true;
+            result.error = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
         }
         return result;
     }

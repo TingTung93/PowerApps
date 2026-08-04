@@ -14,21 +14,31 @@ public final class SelfTest {
         Path local = Files.createTempDirectory("medsupply-selftest-local");
         EventStore store = new EventStore(shared, local);
 
-        SupplyEvent event = new SupplyEvent();
-        event.eventType = "STOCK_RECEIVED";
-        event.deviceId = "SELFTEST";
-        event.occurredUtc = "2026-08-03T12:00:00Z";
-        event.recordedUtc = "2026-08-03T12:00:00Z";
-        event.payload.put("gtin", "00380740000010");
-        event.payload.put("quantityDelta", "3");
+        SupplyEvents.Identity self = new SupplyEvents.Identity("SELFTEST", "selftest", "sess");
+        SupplyEvent event = SupplyEvents.stockReceived(self, "2026-08-03T12:00:00Z",
+                "00380740000010", "LOT-0", "2026-12-31", "selftest", 3);
         store.append(event);
 
         EventStore.LoadResult loaded = store.loadAll();
         if (!loaded.errors.isEmpty()) throw new AssertionError("Load errors: " + loaded.errors);
         if (loaded.events.size() != 1)
             throw new AssertionError("Expected 1 event, got " + loaded.events.size());
-        if (!"3".equals(loaded.events.get(0).payload("quantityDelta")))
+        if (!"3".equals(loaded.events.get(0).payload(SupplyEvents.K_QUANTITY)))
             throw new AssertionError("Payload roundtrip failed");
+
+        // Crash recovery: a complete shared partial is promoted and replayed.
+        SupplyEvent orphan = SupplyEvents.stockReceived(self, "2026-08-03T12:01:00Z",
+                "00380740000010", "LOT-1", "2026-12-31", "selftest", 1);
+        Path orphanPath = shared.resolve("events").resolve("orphan.json.partial");
+        Files.write(orphanPath, SupplyEventJson.write(orphan).getBytes("UTF-8"));
+        EventStore.LoadResult recovered = store.loadAll();
+        if (!recovered.errors.isEmpty() || recovered.events.size() != 2)
+            throw new AssertionError("Orphan partial recovery failed: " + recovered.errors);
+
+        // Completeness: corrupt artifacts must be reported, never silently omitted.
+        Files.write(shared.resolve("events").resolve("corrupt.json"), "not-json".getBytes("UTF-8"));
+        if (store.loadAll().errors.isEmpty())
+            throw new AssertionError("Corrupt event did not mark the trail incomplete");
 
         // Domain pipeline smoke: parse a GS1 label, receive stock, project, analyze, advise.
         Gs1Scan parsed = Gs1Parser.parse("010038074000001017261130" + "10LOT1");

@@ -5,6 +5,8 @@ import java.util.List;
 
 public final class GudidResult {
     public boolean found;
+    public boolean lookupFailed;
+    public String error = "";
     public String gtin = "";
     public String brandName = "";
     public String companyName = "";

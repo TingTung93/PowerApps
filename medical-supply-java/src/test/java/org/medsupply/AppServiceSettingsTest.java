@@ -30,6 +30,7 @@ public final class AppServiceSettingsTest {
         check("COUNT-CART-1".equals(Json.str(settings, "deviceId")), "device");
         check("60".equals(Json.str(settings, "reorderWindowDays")), "window");
         check(Boolean.FALSE.equals(settings.get("gudidEnabled")), "gudid disabled");
+        check(!"Supply Team".equals(Json.str(settings, "actor")), "actor input ignored");
 
         AppConfig reloaded = AppConfig.load();
         check(reloaded.staleDays == 45, "persisted stale days");

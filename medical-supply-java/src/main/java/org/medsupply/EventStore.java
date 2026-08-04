@@ -11,6 +11,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 public final class EventStore {
@@ -30,11 +32,21 @@ public final class EventStore {
     private final Path sharedRoot;
     private final Path pendingRoot;
     private final LocalEventIndex index;
+    private final Publisher publisher;
+
+    interface Publisher {
+        Path publish(SupplyEvent event, Path local) throws IOException;
+    }
 
     public EventStore(Path sharedRoot, Path localRoot) throws IOException {
+        this(sharedRoot, localRoot, null);
+    }
+
+    EventStore(Path sharedRoot, Path localRoot, Publisher publisher) throws IOException {
         this.sharedRoot = sharedRoot;
         this.pendingRoot = localRoot.resolve("pending");
         this.index = new LocalEventIndex(localRoot);
+        this.publisher = publisher == null ? this::finalizeShared : publisher;
         Files.createDirectories(sharedRoot.resolve("events"));
         Files.createDirectories(sharedRoot.resolve("reports"));
         Files.createDirectories(sharedRoot.resolve("configuration"));
@@ -49,9 +61,15 @@ public final class EventStore {
         Files.write(local, json.getBytes(StandardCharsets.UTF_8),
                 StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
         force(local);
-        Path published = finalizeShared(event, local);
-        Files.deleteIfExists(local);
-        return published;
+        try {
+            Path published = publisher.publish(event, local);
+            Files.deleteIfExists(local);
+            return published;
+        } catch (IOException ex) {
+            // The operation is durably accepted locally. Returning the pending path avoids an
+            // ambiguous 500/retry cycle that could create a second logical inventory operation.
+            return local;
+        }
     }
 
     private Path finalizeShared(SupplyEvent event, Path local) throws IOException {
@@ -85,7 +103,7 @@ public final class EventStore {
                     SupplyEvent event = SupplyEventJson.read(
                             new String(Files.readAllBytes(local), StandardCharsets.UTF_8));
                     validate(event);
-                    finalizeShared(event, local);
+                    publisher.publish(event, local);
                     Files.deleteIfExists(local);
                     recovered++;
                 } catch (Exception ex) {
@@ -106,6 +124,7 @@ public final class EventStore {
         Map<String, LocalEventIndex.Entry> currentIndex = new HashMap<String, LocalEventIndex.Entry>();
         Path eventsRoot = sharedRoot.resolve("events");
         if (!Files.isDirectory(eventsRoot)) return new LoadResult(events, errors);
+        recoverPartials(eventsRoot, errors);
         try (Stream<Path> paths = Files.walk(eventsRoot)) {
             paths.filter(path -> path.getFileName().toString().endsWith(".json"))
                     .forEach(path -> {
@@ -114,9 +133,9 @@ public final class EventStore {
                             String relative = sharedRoot.relativize(path).toString();
                             long size = Files.size(path);
                             long modified = Files.getLastModifiedTime(path).toMillis();
-                            LocalEventIndex.Entry cached = index.find(relative, size, modified);
-                            String json = cached == null
-                                    ? new String(Files.readAllBytes(path), StandardCharsets.UTF_8) : cached.json;
+                            // Always read the source bytes. Size/mtime are not integrity evidence and
+                            // a metadata-only cache could conceal a same-size, timestamp-preserving edit.
+                            String json = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
                             SupplyEvent event = SupplyEventJson.read(json);
                             validate(event);
                             String hash = sha256(SupplyEventJson.write(event).getBytes(StandardCharsets.UTF_8));
@@ -140,6 +159,39 @@ public final class EventStore {
             errors.add("Local index update failed: " + ex.getMessage());
         }
         return new LoadResult(events, errors);
+    }
+
+    private void recoverPartials(Path eventsRoot, List<String> errors) {
+        try (Stream<Path> paths = Files.walk(eventsRoot)) {
+            paths.filter(path -> path.getFileName().toString().endsWith(".json.partial"))
+                    .forEach(path -> {
+                        try {
+                            if (Files.size(path) > 1024 * 1024) throw new IOException("File exceeds 1 MB");
+                            SupplyEvent event = SupplyEventJson.read(
+                                    new String(Files.readAllBytes(path), StandardCharsets.UTF_8));
+                            validate(event);
+                            Path target = path.resolveSibling(path.getFileName().toString()
+                                    .substring(0, path.getFileName().toString().length() - ".partial".length()));
+                            if (Files.exists(target)) {
+                                String partialHash = sha256(Files.readAllBytes(path));
+                                String targetHash = sha256(Files.readAllBytes(target));
+                                if (!partialHash.equals(targetHash))
+                                    throw new IOException("published event differs from partial");
+                                Files.delete(path);
+                            } else {
+                                try {
+                                    Files.move(path, target, StandardCopyOption.ATOMIC_MOVE);
+                                } catch (AtomicMoveNotSupportedException ex) {
+                                    Files.move(path, target);
+                                }
+                            }
+                        } catch (Exception ex) {
+                            errors.add(path.getFileName() + ": unrecovered partial: " + ex.getMessage());
+                        }
+                    });
+        } catch (IOException ex) {
+            errors.add("Partial event scan failed: " + ex.getMessage());
+        }
     }
 
     public Path getSharedRoot() { return sharedRoot; }
@@ -167,12 +219,110 @@ public final class EventStore {
         } catch (Exception ex) { throw new IllegalStateException(ex); }
     }
 
-    private static void validate(SupplyEvent event) {
+    static void validate(SupplyEvent event) {
         if (!"1".equals(event.schemaVersion)) throw new IllegalArgumentException("Unsupported schema");
-        if (!event.eventId.matches("[0-9a-fA-F-]{36}")) throw new IllegalArgumentException("Invalid event ID");
+        try {
+            if (!UUID.fromString(event.eventId).toString().equalsIgnoreCase(event.eventId))
+                throw new IllegalArgumentException("Invalid event ID");
+        } catch (RuntimeException ex) { throw new IllegalArgumentException("Invalid event ID"); }
         if (event.eventType.length() == 0 || event.eventType.length() > 40)
             throw new IllegalArgumentException("Invalid event type");
         Instant.parse(event.occurredUtc);
+        Instant.parse(event.recordedUtc);
+        required(event.deviceId, "deviceId", 100);
+        required(event.actor, "actor", 200);
+        String type = event.eventType;
+        for (Map.Entry<String, String> field : event.payload.entrySet()) {
+            if (!allowedPayload(type, field.getKey()))
+                throw new IllegalArgumentException("Unknown payload field: " + field.getKey());
+            if (field.getValue() != null && field.getValue().length() > 10000)
+                throw new IllegalArgumentException(field.getKey() + " is too long");
+        }
+        if (SupplyEvents.PRODUCT_REGISTERED.equals(type) || SupplyEvents.PRODUCT_UPDATED.equals(type)) {
+            required(event.payload(SupplyEvents.K_GTIN), "gtin", 64);
+            required(event.payload(SupplyEvents.K_NAME), "name", 500);
+            decimal(event.payload(SupplyEvents.K_UNIT_PRICE), "unitPrice", 0.0);
+            integer(event.payload(SupplyEvents.K_PAR), "par", -1);
+        } else if (SupplyEvents.PRODUCT_RETIRED.equals(type)) {
+            required(event.payload(SupplyEvents.K_GTIN), "gtin", 64);
+            required(event.payload(SupplyEvents.K_REASON), "reason", 1000);
+        } else if (SupplyEvents.DISTRO_UPDATED.equals(type)) {
+            if (event.payload(SupplyEvents.K_MEMBERS).length() > 10000)
+                throw new IllegalArgumentException("members is too long");
+        } else if (isStockType(type)) {
+            String gtin = required(event.payload(SupplyEvents.K_GTIN), "gtin", 64);
+            String lot = event.payload(SupplyEvents.K_LOT);
+            String expiration = event.payload(SupplyEvents.K_EXPIRATION);
+            if (lot.length() > 500) throw new IllegalArgumentException("lot is too long");
+            if (expiration.length() > 0) {
+                try { LocalDate.parse(expiration); }
+                catch (RuntimeException ex) { throw new IllegalArgumentException("expiration is invalid"); }
+            }
+            String expectedKey = ItemKey.of(gtin, lot, expiration);
+            if (!expectedKey.equals(event.payload(SupplyEvents.K_ITEM_KEY)))
+                throw new IllegalArgumentException("itemKey does not match stock identity");
+            if (SupplyEvents.STOCK_RECEIVED.equals(type) || SupplyEvents.STOCK_PICKED.equals(type))
+                integer(event.payload(SupplyEvents.K_QUANTITY), "quantity", 1);
+            if (SupplyEvents.STOCK_ADJUSTED.equals(type))
+                integer(event.payload(SupplyEvents.K_QUANTITY), "quantity", 0);
+            if ((SupplyEvents.STOCK_ARCHIVED.equals(type) || SupplyEvents.STOCK_VOIDED.equals(type))
+                    && event.payload(SupplyEvents.K_REASON).trim().length() == 0)
+                throw new IllegalArgumentException("reason is required");
+            if (SupplyEvents.STOCK_RESTORED.equals(type)
+                    && event.payload(SupplyEvents.K_REASON).trim().length() == 0)
+                throw new IllegalArgumentException("reason is required");
+        } else {
+            throw new IllegalArgumentException("Unknown event type: " + type);
+        }
+    }
+
+    private static boolean allowedPayload(String type, String key) {
+        if (SupplyEvents.PRODUCT_REGISTERED.equals(type) || SupplyEvents.PRODUCT_UPDATED.equals(type))
+            return oneOf(key, SupplyEvents.K_GTIN, SupplyEvents.K_NAME, SupplyEvents.K_MANUFACTURER,
+                    SupplyEvents.K_CATEGORY, SupplyEvents.K_UNIT_PRICE, SupplyEvents.K_PAR,
+                    SupplyEvents.K_NOTES, SupplyEvents.K_SOURCE);
+        if (SupplyEvents.PRODUCT_RETIRED.equals(type))
+            return oneOf(key, SupplyEvents.K_GTIN, SupplyEvents.K_REASON);
+        if (SupplyEvents.DISTRO_UPDATED.equals(type)) return SupplyEvents.K_MEMBERS.equals(key);
+        if (isStockType(type))
+            return oneOf(key, SupplyEvents.K_GTIN, SupplyEvents.K_LOT, SupplyEvents.K_EXPIRATION,
+                    SupplyEvents.K_ITEM_KEY, SupplyEvents.K_BARCODE, SupplyEvents.K_QUANTITY,
+                    SupplyEvents.K_REASON, SupplyEvents.K_AUTO_ARCHIVE);
+        return false;
+    }
+
+    private static boolean oneOf(String value, String... choices) {
+        for (String choice : choices) if (choice.equals(value)) return true;
+        return false;
+    }
+
+    private static boolean isStockType(String type) {
+        return SupplyEvents.STOCK_RECEIVED.equals(type) || SupplyEvents.STOCK_PICKED.equals(type)
+                || SupplyEvents.STOCK_ADJUSTED.equals(type) || SupplyEvents.STOCK_ARCHIVED.equals(type)
+                || SupplyEvents.STOCK_VOIDED.equals(type) || SupplyEvents.STOCK_RESTORED.equals(type);
+    }
+
+    private static String required(String value, String label, int max) {
+        if (value == null || value.trim().length() == 0) throw new IllegalArgumentException(label + " is required");
+        if (value.length() > max) throw new IllegalArgumentException(label + " is too long");
+        return value;
+    }
+
+    private static int integer(String value, String label, int min) {
+        try {
+            int parsed = Integer.parseInt(value);
+            if (parsed < min) throw new IllegalArgumentException(label + " must be at least " + min);
+            return parsed;
+        } catch (NumberFormatException ex) { throw new IllegalArgumentException(label + " is invalid"); }
+    }
+
+    private static double decimal(String value, String label, double min) {
+        try {
+            double parsed = Double.parseDouble(value);
+            if (!Double.isFinite(parsed) || parsed < min)
+                throw new IllegalArgumentException(label + " must be at least " + min);
+            return parsed;
+        } catch (NumberFormatException ex) { throw new IllegalArgumentException(label + " is invalid"); }
     }
 
     public static final class LoadResult {

@@ -41,6 +41,8 @@ public final class GudidClientTest {
         });
         GudidResult r = client.lookup("00380740000010");
         check(!r.found, "offline -> not found, no throw");
+        check(r.lookupFailed, "offline distinguished from not found");
+        check(r.error.contains("offline"), "failure reason retained");
         System.out.println("");
     }
 

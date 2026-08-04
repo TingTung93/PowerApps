@@ -5,11 +5,15 @@ public final class SupplyEvents {
 
     public static final String PRODUCT_REGISTERED = "PRODUCT_REGISTERED";
     public static final String PRODUCT_UPDATED = "PRODUCT_UPDATED";
+    public static final String PRODUCT_RETIRED = "PRODUCT_RETIRED";
     public static final String STOCK_RECEIVED = "STOCK_RECEIVED";
     public static final String STOCK_PICKED = "STOCK_PICKED";
     public static final String STOCK_ADJUSTED = "STOCK_ADJUSTED";
     public static final String STOCK_ARCHIVED = "STOCK_ARCHIVED";
     public static final String STOCK_VOIDED = "STOCK_VOIDED";
+    public static final String STOCK_RESTORED = "STOCK_RESTORED";
+    public static final String DISTRO_UPDATED = "DISTRO_UPDATED";
+    public static final String K_MEMBERS = "members";
 
     public static final String K_GTIN = "gtin";
     public static final String K_LOT = "lot";
@@ -25,6 +29,7 @@ public final class SupplyEvents {
     public static final String K_NOTES = "notes";
     public static final String K_SOURCE = "source";
     public static final String K_REASON = "reason";
+    public static final String K_AUTO_ARCHIVE = "autoArchive";
 
     public static final class Identity {
         public final String deviceId;
@@ -73,8 +78,14 @@ public final class SupplyEvents {
 
     public static SupplyEvent stockPicked(Identity id, String nowIso, String gtin, String lot,
             String expirationIso, int quantity) {
+        return stockPicked(id, nowIso, gtin, lot, expirationIso, quantity, false);
+    }
+
+    public static SupplyEvent stockPicked(Identity id, String nowIso, String gtin, String lot,
+            String expirationIso, int quantity, boolean autoArchive) {
         SupplyEvent e = stock(STOCK_PICKED, id, nowIso, gtin, lot, expirationIso);
         e.payload.put(K_QUANTITY, Integer.toString(quantity));
+        if (autoArchive) e.payload.put(K_AUTO_ARCHIVE, "true");
         return e;
     }
 
@@ -96,6 +107,26 @@ public final class SupplyEvents {
             String expirationIso, String reason) {
         SupplyEvent e = stock(STOCK_VOIDED, id, nowIso, gtin, lot, expirationIso);
         e.payload.put(K_REASON, nz(reason));
+        return e;
+    }
+
+    public static SupplyEvent stockRestored(Identity id, String nowIso, String gtin, String lot,
+            String expirationIso, String reason) {
+        SupplyEvent e = stock(STOCK_RESTORED, id, nowIso, gtin, lot, expirationIso);
+        e.payload.put(K_REASON, nz(reason));
+        return e;
+    }
+
+    public static SupplyEvent productRetired(Identity id, String nowIso, String gtin, String reason) {
+        SupplyEvent e = base(PRODUCT_RETIRED, id, nowIso);
+        e.payload.put(K_GTIN, nz(gtin));
+        e.payload.put(K_REASON, nz(reason));
+        return e;
+    }
+
+    public static SupplyEvent distroUpdated(Identity id, String nowIso, String members) {
+        SupplyEvent e = base(DISTRO_UPDATED, id, nowIso);
+        e.payload.put(K_MEMBERS, nz(members));
         return e;
     }
 
