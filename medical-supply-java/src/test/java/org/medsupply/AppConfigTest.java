@@ -1,3 +1,32 @@
 package org.medsupply;
-import java.nio.file.Files;import java.nio.file.Path;
-public final class AppConfigTest {public static void main(String[] args)throws Exception{Path base=Files.createTempDirectory("medsupply-cfg");System.setProperty("medsupply.localBase",base.toString());AppConfig config=AppConfig.load();check(config.gudidEnabled,"gudid");check(config.reorderWindowDays==90,"window");check(config.staleDays==30,"stale");config.sharedRoot=base.resolve("shared");config.reorderWindowDays=45;config.gudidEnabled=false;config.save();AppConfig loaded=AppConfig.load();check(base.resolve("shared").equals(loaded.sharedRoot),"root");check(loaded.reorderWindowDays==45&&!loaded.gudidEnabled,"persisted");System.out.println("AppConfigTest: PASS");}private static void check(boolean c,String s){if(!c)throw new AssertionError("Failed: "+s);}}
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public final class AppConfigTest {
+    public static void main(String[] args) throws Exception {
+        Path base = Files.createTempDirectory("medsupply-cfg");
+        System.setProperty("medsupply.localBase", base.toString());
+
+        AppConfig config = AppConfig.load();
+        check(config.gudidEnabled, "gudid default on");
+        check(config.reorderWindowDays == 90, "window default");
+        check(config.staleDays == 30, "stale default");
+        check(config.gudidEndpoint.startsWith("https://accessgudid"), "endpoint default");
+
+        config.sharedRoot = base.resolve("shared");
+        config.reorderWindowDays = 45;
+        config.gudidEnabled = false;
+        config.save();
+
+        AppConfig reloaded = AppConfig.load();
+        check(base.resolve("shared").equals(reloaded.sharedRoot), "shared persisted");
+        check(reloaded.reorderWindowDays == 45, "window persisted");
+        check(!reloaded.gudidEnabled, "gudid persisted");
+        System.out.println("AppConfigTest: PASS");
+    }
+
+    private static void check(boolean cond, String label) {
+        if (!cond) throw new AssertionError("Failed: " + label);
+    }
+}
