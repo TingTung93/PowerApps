@@ -92,9 +92,11 @@ public final class Gs1Parser {
         if ("11".equals(ai) || "15".equals(ai) || "17".equals(ai))
             return hasDigits(s, valueStart, 6)
                     && toIso(s.substring(valueStart, valueStart + 6)).length() > 0;
-        if ("30".equals(ai))
-            return valueStart < s.length() && Character.isDigit(s.charAt(valueStart));
-        return valueStart < s.length();
+        // Variable-length AIs (10, 21, 30, 240, 91) cannot legally follow another
+        // variable-length field without an FNC1/GS separator, so a digit pair that
+        // merely looks like one of them inside the data is not a real boundary.
+        // Only fixed, validatable AIs above may terminate a variable field heuristically.
+        return false;
     }
 
     private static boolean hasDigits(String s, int start, int length) {

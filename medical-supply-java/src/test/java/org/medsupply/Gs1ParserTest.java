@@ -8,6 +8,8 @@ public final class Gs1ParserTest {
         parsesWithGsSeparator();
         parsesParenthesizedHumanReadable();
         lotContainingSeventeenNotMisparsed();
+        variableLotEmbeddingAiNotMisparsed();
+        variableSerialEmbeddingAiNotMisparsed();
         endOfMonthDayZero();
         failsWithoutGtin();
         System.out.println("Gs1ParserTest: PASS");
@@ -44,6 +46,20 @@ public final class Gs1ParserTest {
         Gs1Scan s = Gs1Parser.parse(raw);
         check("1799".equals(s.lot), "lot literal 1799: " + s.lot);
         check("2027-01-01".equals(s.expirationIso), "exp after lot");
+    }
+
+    // A lot value that embeds the digits "10" (itself an AI) must not be split when
+    // there is no GS separator; a variable field runs to the end of the barcode.
+    private static void variableLotEmbeddingAiNotMisparsed() {
+        Gs1Scan s = Gs1Parser.parse("0100380740000010" + "10AB10CD");
+        check(s.success, "success embed");
+        check("AB10CD".equals(s.lot), "lot embed 10: " + s.lot);
+    }
+
+    // Same for a serial (AI 21) value that embeds "21".
+    private static void variableSerialEmbeddingAiNotMisparsed() {
+        Gs1Scan s = Gs1Parser.parse("0100380740000010" + "21X21Y");
+        check("X21Y".equals(s.serial), "serial embed 21: " + s.serial);
     }
 
     private static void endOfMonthDayZero() {
