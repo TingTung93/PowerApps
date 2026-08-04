@@ -6,7 +6,11 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 import java.awt.Desktop;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GraphicsEnvironment;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +29,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.JFileChooser;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
 public final class BrowserServer {
     private final AppService service;
@@ -35,6 +45,7 @@ public final class BrowserServer {
     private final CountDownLatch stopped = new CountDownLatch(1);
     private HttpServer server;
     private String origin;
+    private JFrame controlWindow;
 
     public BrowserServer(AppService service, AppConfig config) {
         this(service, config, new NativeFolderPicker());
@@ -76,17 +87,76 @@ public final class BrowserServer {
         if (Boolean.getBoolean("medsupply.noDesktop")) {
             // Automated/smoke runs attach a browser explicitly.
         } else if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            Desktop.getDesktop().browse(uri);
+            showControlWindow(uri);
+            try {
+                Desktop.getDesktop().browse(uri);
+            } catch (IOException ex) {
+                stop();
+                throw ex;
+            }
         } else {
+            stop();
             throw new IOException("No supported system browser was found. Run with --classic-ui.");
         }
         stopped.await();
     }
 
-    public void stop() {
+    public synchronized void stop() {
         if (server != null) server.stop(0);
         server = null;
+        JFrame window = controlWindow;
+        controlWindow = null;
+        if (window != null) {
+            if (SwingUtilities.isEventDispatchThread()) {
+                window.dispose();
+            } else {
+                SwingUtilities.invokeLater(window::dispose);
+            }
+        }
         stopped.countDown();
+    }
+
+    private void showControlWindow(URI uri) throws Exception {
+        SwingUtilities.invokeAndWait(() -> {
+            JFrame window = new JFrame("Medical Supply Tracking");
+            window.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+            window.addWindowListener(new WindowAdapter() {
+                public void windowClosing(WindowEvent event) {
+                    stop();
+                }
+            });
+
+            JLabel status = new JLabel("Medical Supply is running. Close this window to stop the app.");
+            JTextField address = new JTextField(uri.toString());
+            address.setEditable(false);
+            address.setCaretPosition(0);
+
+            JButton open = new JButton("Open browser");
+            open.addActionListener(event -> {
+                try {
+                    Desktop.getDesktop().browse(uri);
+                } catch (IOException ex) {
+                    status.setText("Could not open the browser: " + ex.getMessage());
+                }
+            });
+            JButton stopButton = new JButton("Stop app");
+            stopButton.addActionListener(event -> stop());
+
+            JPanel buttons = new JPanel();
+            buttons.add(open);
+            buttons.add(stopButton);
+            JPanel content = new JPanel(new BorderLayout(8, 8));
+            content.setBorder(javax.swing.BorderFactory.createEmptyBorder(14, 14, 14, 14));
+            content.add(status, BorderLayout.NORTH);
+            content.add(address, BorderLayout.CENTER);
+            content.add(buttons, BorderLayout.SOUTH);
+            window.setContentPane(content);
+            window.setMinimumSize(new Dimension(500, 150));
+            window.pack();
+            window.setLocationByPlatform(true);
+            controlWindow = window;
+            window.setVisible(true);
+        });
     }
 
     private Map<String, Object> route(String path, String method, Map<String, String> body) throws IOException {
