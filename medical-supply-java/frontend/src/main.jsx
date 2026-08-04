@@ -17,6 +17,7 @@ import FactCheckRounded from '@mui/icons-material/FactCheckRounded'
 import SettingsRounded from '@mui/icons-material/SettingsRounded'
 import FolderRounded from '@mui/icons-material/FolderRounded'
 import DownloadRounded from '@mui/icons-material/DownloadRounded'
+import PlaylistAddCheckRounded from '@mui/icons-material/PlaylistAddCheckRounded'
 import '@fontsource/roboto/400.css'
 import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
@@ -28,6 +29,7 @@ const DRAWER = 240
 const NAV = [
   ['dashboard', 'Dashboard', <DashboardRounded />],
   ['scan', 'Receive stock', <QrCodeScannerRounded />],
+  ['batch', 'Batch scanner', <PlaylistAddCheckRounded />],
   ['inventory', 'Inventory', <Inventory2Rounded />],
   ['count', 'Inventory count', <FactCheckRounded />],
   ['management', 'Management', <AssessmentRounded />],
@@ -119,6 +121,7 @@ function App() {
           : {
               dashboard: <Dashboard state={state} run={run} setView={setView} />,
               scan: <Scan run={run} refresh={refresh} setToast={setToast} />,
+              batch: <BatchScanner refresh={refresh} setToast={setToast} setView={setView} />,
               inventory: <Inventory state={state} run={run} />,
               count: <Count state={state} run={run} />,
               management: <Management state={state} run={run} />,
@@ -262,6 +265,175 @@ function Scan({ run, refresh, setToast }) {
       </Stack>
     </CardContent></Card>
     <Alert severity="info">Keep the barcode field focused for rapid scanner entry. Unknown products will open registration.</Alert>
+    </Stack>
+  )
+}
+
+const BATCH_QUEUE_KEY = 'medsupply.batchScannerQueue'
+
+function BatchScanner({ refresh, setToast, setView }) {
+  const [buffer, setBuffer] = useState('')
+  const [posting, setPosting] = useState(false)
+  const [queue, setQueue] = useState(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(BATCH_QUEUE_KEY) || '[]')
+      return Array.isArray(saved) ? saved : []
+    } catch (error) {
+      return []
+    }
+  })
+
+  useEffect(() => {
+    sessionStorage.setItem(BATCH_QUEUE_KEY, JSON.stringify(queue))
+  }, [queue])
+
+  const addScan = rawValue => {
+    const raw = rawValue.trim()
+    if (!raw) return
+    setQueue(current => {
+      const existing = current.find(item => item.raw === raw && item.status !== 'posted')
+      if (existing) {
+        return current.map(item => item.id === existing.id
+          ? { ...item, quantity: item.quantity + 1, status: 'queued', message: '' }
+          : item)
+      }
+      return [...current, {
+        id: `${Date.now()}-${Math.random()}`,
+        raw,
+        quantity: 1,
+        status: 'queued',
+        message: ''
+      }]
+    })
+  }
+
+  const acceptRelease = value => {
+    const parts = value.split(/\r\n|\n|\r/)
+    if (parts.length === 1) {
+      setBuffer(value)
+      return
+    }
+    parts.slice(0, -1).forEach(addScan)
+    setBuffer(parts[parts.length - 1])
+  }
+
+  const finishBuffer = () => {
+    addScan(buffer)
+    setBuffer('')
+  }
+
+  const updateItem = (id, update) => setQueue(current =>
+    current.map(item => item.id === id ? { ...item, ...update } : item))
+
+  const postBatch = async () => {
+    const pending = queue.filter(item => item.status !== 'posted')
+    if (!pending.length) return
+    setPosting(true)
+    let posted = 0
+    let unresolved = 0
+    for (const item of pending) {
+      updateItem(item.id, { status: 'posting', message: '' })
+      try {
+        const result = await api.receive({
+          raw: item.raw,
+          quantity: String(item.quantity),
+          force: 'false'
+        })
+        if (result.needsRegistration) {
+          unresolved += 1
+          updateItem(item.id, {
+            status: 'registration',
+            message: `Register GTIN ${result.gtin} before posting`,
+            gtin: result.gtin,
+            suggestion: result.suggestion || {}
+          })
+        } else {
+          posted += 1
+          updateItem(item.id, { status: 'posted', message: result.message || 'Posted' })
+        }
+      } catch (error) {
+        updateItem(item.id, { status: 'error', message: error.message })
+      }
+    }
+    setPosting(false)
+    await refresh()
+    setToast(`${posted} line${posted === 1 ? '' : 's'} posted${unresolved ? `; ${unresolved} need registration` : ''}`)
+  }
+
+  const openRegistration = item => {
+    sessionStorage.setItem('medsupply.registrationDraft', JSON.stringify({
+      gtin: item.gtin || '',
+      name: item.suggestion?.name || '',
+      manufacturer: item.suggestion?.manufacturer || '',
+      category: item.suggestion?.category || ''
+    }))
+    setView('registration')
+  }
+
+  const statusColor = status => ({
+    queued: 'default', posting: 'info', posted: 'success', registration: 'warning', error: 'error'
+  }[status] || 'default')
+  const pendingCount = queue.filter(item => item.status !== 'posted').length
+  const scanCount = queue.reduce((sum, item) => sum + item.quantity, 0)
+
+  return (
+    <Stack spacing={2}>
+      <PageHeader title="Batch scanner"
+        description="Capture and review scans released from a scanner's onboard memory before updating inventory."
+        actions={<Button variant="contained" disabled={!pendingCount || posting} onClick={postBatch}>
+          {posting ? 'Posting…' : `Post batch (${pendingCount})`}
+        </Button>} />
+      <Alert severity="info">
+        Configure the scanner to send Enter, CR/LF, or Tab after each stored barcode. Place the cursor below,
+        release the scanner memory, then review the queue before posting.
+      </Alert>
+      <Card><CardContent>
+        <Typography variant="h6" gutterBottom>Scanner capture</Typography>
+        <TextField autoFocus fullWidth multiline minRows={3} label="Release stored scans here"
+          value={buffer} onChange={event => acceptRelease(event.target.value)}
+          onKeyDown={event => {
+            if (event.key === 'Enter' || event.key === 'Tab') {
+              event.preventDefault()
+              finishBuffer()
+            }
+          }}
+          helperText="Each terminator adds one scan. Repeated identical scans are combined into a quantity." />
+        <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+          <Button variant="outlined" disabled={!buffer.trim()} onClick={finishBuffer}>Add current scan</Button>
+          <Chip label={`${queue.length} queue lines`} />
+          <Chip label={`${scanCount} total scans`} />
+        </Stack>
+      </CardContent></Card>
+      <Card><CardContent sx={{ p: 0 }}>
+        <Box sx={{ px: 2.5, py: 2, display: 'flex', justifyContent: 'space-between' }}>
+          <Box><Typography variant="h6">Release queue</Typography>
+            <Typography variant="body2" color="text.secondary">Nothing is written until Post batch is selected.</Typography></Box>
+          <Stack direction="row" spacing={1}>
+            <Button size="small" onClick={() => setQueue(current => current.filter(item => item.status !== 'posted'))}>
+              Clear posted
+            </Button>
+            <Button size="small" color="error" onClick={() => setQueue([])}>Clear all</Button>
+          </Stack>
+        </Box>
+        <Table size="small"><TableHead><TableRow><TableCell>Captured barcode</TableCell>
+          <TableCell sx={{ width: 130 }}>Quantity</TableCell><TableCell sx={{ width: 150 }}>Status</TableCell>
+          <TableCell>Message</TableCell><TableCell sx={{ width: 120 }}>Action</TableCell></TableRow></TableHead>
+          <TableBody>{queue.map(item => <TableRow key={item.id}>
+            <TableCell sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>{item.raw}</TableCell>
+            <TableCell><TextField size="small" type="number" value={item.quantity}
+              disabled={item.status === 'posted' || posting} inputProps={{ min: 1 }}
+              onChange={event => updateItem(item.id, {
+                quantity: Math.max(1, Number(event.target.value) || 1), status: 'queued'
+              })} /></TableCell>
+            <TableCell><Chip size="small" color={statusColor(item.status)} label={item.status} /></TableCell>
+            <TableCell>{item.message}</TableCell>
+            <TableCell>{item.status === 'registration'
+              ? <Button size="small" onClick={() => openRegistration(item)}>Register</Button>
+              : item.status !== 'posted' && <Button size="small" color="error"
+                onClick={() => setQueue(current => current.filter(row => row.id !== item.id))}>Remove</Button>}</TableCell>
+          </TableRow>)}</TableBody></Table>
+        {!queue.length && <EmptyState>Release scanner memory to begin a batch.</EmptyState>}
+      </CardContent></Card>
     </Stack>
   )
 }
@@ -549,7 +721,14 @@ function Settings({ state, run }) {
 }
 
 function Registration({ state, run }) {
-  const [form, setForm] = useState({ gtin: '', name: '', manufacturer: '', category: '', unitPrice: '', par: '', notes: '' })
+  const [form, setForm] = useState(() => {
+    const empty = { gtin: '', name: '', manufacturer: '', category: '', unitPrice: '', par: '', notes: '' }
+    try {
+      return { ...empty, ...JSON.parse(sessionStorage.getItem('medsupply.registrationDraft') || '{}') }
+    } catch (error) {
+      return empty
+    }
+  })
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const lookup = async () => {
     try {
@@ -557,6 +736,15 @@ function Registration({ state, run }) {
       if (r.enabled && r.found) setForm(f => ({ ...f, name: r.name || f.name, manufacturer: r.manufacturer || f.manufacturer, category: r.category || f.category }))
     } catch (e) { /* offline is fine */ }
   }
+  const save = () => run(async () => {
+    await api.register({
+      ...form,
+      unitPrice: form.unitPrice || '0',
+      par: form.par === '' ? '-1' : form.par,
+      source: 'MANUAL'
+    })
+    sessionStorage.removeItem('medsupply.registrationDraft')
+  }, 'Saved')
   const categories = [...new Set((state.catalog || []).map(c => c.category).filter(Boolean))]
   return (
     <Stack spacing={2}>
@@ -578,9 +766,7 @@ function Registration({ state, run }) {
           <TextField size="small" label="PAR (blank = none)" value={form.par} onChange={e => set('par', e.target.value)} />
         </Stack>
         <TextField size="small" label="Notes" value={form.notes} onChange={e => set('notes', e.target.value)} />
-        <Button variant="contained" onClick={() => run(() => api.register({
-          ...form, unitPrice: form.unitPrice || '0', par: form.par === '' ? '-1' : form.par, source: 'MANUAL'
-        }), 'Saved')}>Save product</Button>
+        <Button variant="contained" onClick={save}>Save product</Button>
       </Stack>
     </CardContent></Card>
     </Stack>
