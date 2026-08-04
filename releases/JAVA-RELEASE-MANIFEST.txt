@@ -1,14 +1,14 @@
 Java application release artifacts
-Generated: 2026-08-04T14:17:05Z
+Generated: 2026-08-04T16:06:43Z
 
 CommercialTracking 0.2.0-rc1 [candidate]
   End-user/workstation: CommercialTracking-0.2.0-rc1-workstation.zip
-  SHA-256: 8f2bdf208b70b403c44eb7ebdd0e2e4dab4f9708774e5e3af06dad19cb53b014
+  SHA-256: feecbcc6910b167b2ed48c9d3c33f56014127feba3df1a7d28fbe15a4c55971d
   Deployment/support: CommercialTracking-0.2.0-rc1-deployment-kit.zip
-  SHA-256: 6ef2b8dfce34bbfc6b895542e664fed31da3729319dc944df90453fbd1284fb0
+  SHA-256: 5cbf80e34844a4f376757ea9749406df9db2d258b1d0602a04808869f5ad0abc
 
 MedicalSupply 0.1.0 [stable]
   End-user/workstation: MedicalSupply-0.1.0-workstation.zip
-  SHA-256: 8e3074f1c692b631f5ef9758cf955f5b06c978f9cb0d27493e4bc0e689c0a52a
+  SHA-256: 33d60b41348f3c3a8b57cb4b05ab4d9383d0fbf71c5b5de9962820cd3dc42bf3
   Deployment/support: MedicalSupply-0.1.0-deployment-kit.zip
-  SHA-256: d138cdd3c674dc114700ad6288008fcf143ade2b5d4f8315aae5278e2b673ef0
+  SHA-256: 985ee726950910877711fc49df90c4865aeb3e8b606db0d0c1dbf8bdd3f56696
