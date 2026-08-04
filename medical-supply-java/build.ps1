@@ -1,7 +1,8 @@
 param(
     [switch]$SkipTests,
     [switch]$SkipFrontend,
-    [string]$OutputDirectory = "dist"
+    [string]$OutputDirectory = "dist",
+    [string]$Version = "0.1.0"
 )
 $ErrorActionPreference = "Stop"
 $projectRoot = $PSScriptRoot
@@ -51,7 +52,7 @@ if (Test-Path $testJavaRoot) {
     }
 }
 $manifest = Join-Path $buildRoot "MANIFEST.MF"
-@("Manifest-Version: 1.0", "Main-Class: org.medsupply.MedicalSupplyApp", "Implementation-Title: Medical Supply RC", "Implementation-Version: 0.1.0-foundation", "") | Set-Content -LiteralPath $manifest -Encoding ascii
+@("Manifest-Version: 1.0", "Main-Class: org.medsupply.MedicalSupplyApp", "Implementation-Title: Medical Supply RC", "Implementation-Version: $Version", "") | Set-Content -LiteralPath $manifest -Encoding ascii
 $jar = Join-Path $dist "MedicalSupply-RC.jar"
 # Locate the JDK 'jar' tool robustly: a configured JAVA_HOME, then PATH, then the
 # JDK backing the running 'java' (the last-resort probe must not let native stderr
