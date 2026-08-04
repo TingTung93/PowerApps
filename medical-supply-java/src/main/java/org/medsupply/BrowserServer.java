@@ -180,6 +180,9 @@ public final class BrowserServer {
             response.put("sharedRoot", config.sharedRoot.toString());
             return response;
         }
+        if ("/api/settings".equals(path)) {
+            return service.updateSettings(body);
+        }
         if ("/api/receive".equals(path)) {
             return service.receive(required(body, "raw"), intValue(body, "quantity", 1),
                     "true".equalsIgnoreCase(value(body, "force", "false")));

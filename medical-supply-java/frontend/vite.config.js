@@ -13,6 +13,17 @@ export default defineConfig({
     emptyOutDir: true,
     assetsInlineLimit: 4096,
     target: ['chrome100', 'edge100'],
-    sourcemap: false
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined
+          if (id.includes('@mui') || id.includes('@emotion')) return 'mui'
+          if (id.includes('react')) return 'react'
+          if (id.includes('qrcode')) return 'qrcode'
+          return 'vendor'
+        }
+      }
+    }
   }
 })

@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public final class AppService {
     private final AppConfig config;
-    private final GudidClient gudid;
+    private GudidClient gudid;
     private EventStore store;
     private Projection projection = Projection.replay(new ArrayList<SupplyEvent>());
     private final List<SupplyEvent> events = new ArrayList<SupplyEvent>();
@@ -115,8 +115,76 @@ public final class AppService {
         value.put("stock", stockMaps());
         value.put("catalog", catalogMaps());
         value.put("reorder", reorderMaps(now));
+        value.put("settings", settingsMap());
         value.put("errors", new ArrayList<String>(errors));
         return value;
+    }
+
+    private Map<String, Object> settingsMap() {
+        Map<String, Object> value = new LinkedHashMap<String, Object>();
+        value.put("deviceId", config.deviceId);
+        value.put("actor", config.actor);
+        value.put("gudidEnabled", Boolean.valueOf(config.gudidEnabled));
+        value.put("gudidEndpoint", config.gudidEndpoint);
+        value.put("reorderWindowDays", Integer.valueOf(config.reorderWindowDays));
+        value.put("reorderLeadDays", Integer.valueOf(config.reorderLeadDays));
+        value.put("reorderSafetyDays", Integer.valueOf(config.reorderSafetyDays));
+        value.put("reorderCoverageDays", Integer.valueOf(config.reorderCoverageDays));
+        value.put("staleDays", Integer.valueOf(config.staleDays));
+        value.put("scannerMinimumLength", Integer.valueOf(config.scannerMinimumLength));
+        return value;
+    }
+
+    public synchronized Map<String, Object> updateSettings(Map<String, String> values)
+            throws IOException {
+        String deviceId = requiredSetting(values, "deviceId");
+        String actor = requiredSetting(values, "actor");
+        boolean gudidEnabled = Boolean.parseBoolean(setting(values, "gudidEnabled", "true"));
+        int reorderWindowDays = intSetting(values, "reorderWindowDays", 7, 365);
+        int reorderLeadDays = intSetting(values, "reorderLeadDays", 0, 120);
+        int reorderSafetyDays = intSetting(values, "reorderSafetyDays", 0, 120);
+        int reorderCoverageDays = intSetting(values, "reorderCoverageDays", 1, 365);
+        int staleDays = intSetting(values, "staleDays", 1, 365);
+        int scannerMinimumLength = intSetting(values, "scannerMinimumLength", 4, 100);
+
+        config.deviceId = deviceId;
+        config.actor = actor;
+        config.gudidEnabled = gudidEnabled;
+        config.reorderWindowDays = reorderWindowDays;
+        config.reorderLeadDays = reorderLeadDays;
+        config.reorderSafetyDays = reorderSafetyDays;
+        config.reorderCoverageDays = reorderCoverageDays;
+        config.staleDays = staleDays;
+        config.scannerMinimumLength = scannerMinimumLength;
+        if (config.gudidEnabled && gudid == null) {
+            gudid = new GudidClient(config.gudidEndpoint, new HttpsFetcher());
+        }
+        config.save();
+        Map<String, Object> response = ok("Settings saved.");
+        response.put("settings", settingsMap());
+        return response;
+    }
+
+    private static String requiredSetting(Map<String, String> values, String key) {
+        String value = setting(values, key, "");
+        if (value.length() == 0) throw new BadRequest("Missing " + key + ".");
+        return value;
+    }
+
+    private static String setting(Map<String, String> values, String key, String fallback) {
+        String value = values.get(key);
+        return value == null ? fallback : value.trim();
+    }
+
+    private static int intSetting(Map<String, String> values, String key, int min, int max) {
+        try {
+            int value = Integer.parseInt(setting(values, key, ""));
+            if (value < min || value > max)
+                throw new BadRequest(key + " must be between " + min + " and " + max + ".");
+            return value;
+        } catch (NumberFormatException ex) {
+            throw new BadRequest("Invalid " + key + ".");
+        }
     }
 
     static Map<String, Object> metricsMap(DashboardMetrics m) {
@@ -215,6 +283,9 @@ public final class AppService {
             throws IOException {
         requireConfigured();
         if (quantity <= 0) throw new BadRequest("Quantity must be greater than zero.");
+        if (raw == null || raw.trim().length() < config.scannerMinimumLength)
+            throw new BadRequest("Barcode must be at least " + config.scannerMinimumLength
+                    + " characters.");
         Gs1Scan parsed = Gs1Parser.parse(raw);
         if (!parsed.success) throw new BadRequest("No GTIN was found in the barcode.");
         if (!force && !projection.catalog().containsKey(parsed.gtin)) {

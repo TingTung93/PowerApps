@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
-  AppBar, Box, Button, Card, CardContent, Chip, CssBaseline, Divider, Drawer, IconButton,
-  List, ListItemButton, ListItemIcon, ListItemText, Snackbar, Stack, Table, TableBody, TableCell,
-  TableHead, TableRow, TextField, ThemeProvider, Toolbar, Typography
+  Alert, AppBar, Box, Button, Card, CardContent, Chip, CssBaseline, Divider, Drawer,
+  FormControlLabel, List, ListItemButton, ListItemIcon, ListItemText, Snackbar, Stack,
+  Switch, Table, TableBody, TableCell, TableHead, TableRow,
+  TextField, ThemeProvider, Toolbar, Typography
 } from '@mui/material'
 import DashboardRounded from '@mui/icons-material/DashboardRounded'
 import QrCodeScannerRounded from '@mui/icons-material/QrCodeScannerRounded'
@@ -11,6 +12,11 @@ import Inventory2Rounded from '@mui/icons-material/Inventory2Rounded'
 import AppRegistrationRounded from '@mui/icons-material/AppRegistrationRounded'
 import QrCode2Rounded from '@mui/icons-material/QrCode2Rounded'
 import TroubleshootRounded from '@mui/icons-material/TroubleshootRounded'
+import AssessmentRounded from '@mui/icons-material/AssessmentRounded'
+import FactCheckRounded from '@mui/icons-material/FactCheckRounded'
+import SettingsRounded from '@mui/icons-material/SettingsRounded'
+import FolderRounded from '@mui/icons-material/FolderRounded'
+import DownloadRounded from '@mui/icons-material/DownloadRounded'
 import '@fontsource/roboto/400.css'
 import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
@@ -21,10 +27,13 @@ import { theme } from './theme'
 const DRAWER = 240
 const NAV = [
   ['dashboard', 'Dashboard', <DashboardRounded />],
-  ['scan', 'Scan', <QrCodeScannerRounded />],
+  ['scan', 'Receive stock', <QrCodeScannerRounded />],
   ['inventory', 'Inventory', <Inventory2Rounded />],
+  ['count', 'Inventory count', <FactCheckRounded />],
+  ['management', 'Management', <AssessmentRounded />],
   ['registration', 'Registration', <AppRegistrationRounded />],
   ['labels', 'Labels', <QrCode2Rounded />],
+  ['settings', 'Settings', <SettingsRounded />],
   ['diagnostics', 'Diagnostics', <TroubleshootRounded />]
 ]
 
@@ -60,31 +69,56 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppBar position="fixed" sx={{ zIndex: t => t.zIndex.drawer + 1 }}>
-        <Toolbar><Typography variant="h6">Medical Supply Tracking</Typography></Toolbar>
+      <AppBar position="fixed" elevation={0} sx={{ zIndex: t => t.zIndex.drawer + 1 }}>
+        <Toolbar sx={{ gap: 2 }}>
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography variant="h6" fontWeight={700}>Medical Supply Tracking</Typography>
+            <Typography variant="caption" sx={{ opacity: .82 }}>
+              Inventory operations and supply readiness
+            </Typography>
+          </Box>
+          {state?.configured && <Chip label="Shared store connected" color="success" size="small" />}
+        </Toolbar>
       </AppBar>
-      <Drawer variant="permanent" sx={{ width: DRAWER, '& .MuiDrawer-paper': { width: DRAWER } }}>
+      <Drawer variant="permanent" sx={{ width: DRAWER, '& .MuiDrawer-paper': {
+        width: DRAWER, borderRightColor: 'divider', backgroundImage: 'none'
+      } }}>
         <Toolbar />
-        <List>
+        <Typography variant="overline" color="text.secondary" sx={{ px: 2.5, pt: 2 }}>Workspaces</Typography>
+        <List sx={{ px: 1 }}>
           {NAV.map(([key, label, icon]) => (
-            <ListItemButton key={key} selected={view === key} onClick={() => setView(key)}>
+            <ListItemButton key={key} selected={view === key} onClick={() => setView(key)}
+              sx={{ borderRadius: 1.5, mb: .5 }}>
               <ListItemIcon>{icon}</ListItemIcon>
               <ListItemText primary={label} />
             </ListItemButton>
           ))}
         </List>
+        <Box sx={{ mt: 'auto', p: 2 }}>
+          <Divider sx={{ mb: 2 }} />
+          <Typography variant="caption" color="text.secondary" display="block">Current folder</Typography>
+          <Typography variant="caption" title={state?.sharedRoot || ''} noWrap display="block">
+            {state?.sharedRoot || 'Not configured'}
+          </Typography>
+        </Box>
       </Drawer>
-      <Box component="main" sx={{ ml: `${DRAWER}px`, p: 3, mt: 8 }}>
-        {!state ? <Typography>Loading…</Typography> : !state.configured && view !== 'diagnostics'
-          ? <FolderPrompt run={run} state={state} />
+      <Box component="main" sx={{ ml: `${DRAWER}px`, p: { xs: 2, md: 3 }, mt: 8, minHeight: '100vh' }}>
+        <Box sx={{ maxWidth: 1440, mx: 'auto' }}>
+        {!state ? <Typography>Loading…</Typography>
+          : !state.configured && !['diagnostics', 'settings'].includes(view)
+          ? <FolderPrompt run={run} />
           : {
-              dashboard: <Dashboard state={state} run={run} />,
+              dashboard: <Dashboard state={state} run={run} setView={setView} />,
               scan: <Scan run={run} refresh={refresh} setToast={setToast} />,
               inventory: <Inventory state={state} run={run} />,
+              count: <Count state={state} run={run} />,
+              management: <Management state={state} run={run} />,
               registration: <Registration state={state} run={run} />,
               labels: <Labels state={state} />,
+              settings: <Settings state={state} run={run} />,
               diagnostics: <Diagnostics state={state} run={run} />
             }[view]}
+        </Box>
       </Box>
       <Snackbar open={!!toast} autoHideDuration={4000} onClose={() => setToast('')} message={toast} />
     </ThemeProvider>
@@ -107,28 +141,56 @@ function FolderPrompt({ run }) {
   )
 }
 
-function Dashboard({ state, run }) {
+function PageHeader({ title, description, actions }) {
+  return (
+    <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between"
+      alignItems={{ sm: 'center' }} spacing={2} sx={{ mb: 3 }}>
+      <Box>
+        <Typography variant="h5">{title}</Typography>
+        <Typography variant="body2" color="text.secondary">{description}</Typography>
+      </Box>
+      {actions && <Stack direction="row" spacing={1}>{actions}</Stack>}
+    </Stack>
+  )
+}
+
+function EmptyState({ children }) {
+  return <Box sx={{ py: 5, textAlign: 'center', color: 'text.secondary' }}>{children}</Box>
+}
+
+function Dashboard({ state, run, setView }) {
   const d = state.dashboard || {}
   const tiles = [
-    ['SKUs', d.distinctSkus], ['On-hand value', (d.onHandValue || 0).toFixed(2)],
-    ['Expired', d.expired], ['Expiring 7d', d.expiring7], ['Expiring 30d', d.expiring30],
-    ['Out of stock', d.outOfStock], ['Stale', d.stale]
+    ['Active SKUs', d.distinctSkus, 'primary.main'],
+    ['On-hand value', `$${(d.onHandValue || 0).toFixed(2)}`, 'secondary.main'],
+    ['Total units', d.totalUnits, 'text.primary'],
+    ['Expired', d.expired, 'error.main'],
+    ['Expiring in 30 days', d.expiring30, 'warning.main'],
+    ['Out of stock', d.outOfStock, 'error.main']
   ]
   const reorder = (state.reorder || []).filter(r => r.needsReorder)
   return (
     <Stack spacing={2}>
+      <PageHeader title="Operations dashboard"
+        description="A live view of inventory health, readiness, and action items."
+        actions={<Button startIcon={<DownloadRounded />} variant="outlined"
+          onClick={() => run(() => api.report(), 'Management report exported')}>Export report</Button>} />
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-        {tiles.map(([label, value]) => (
-          <Card key={label} sx={{ minWidth: 140 }}><CardContent>
-            <Typography variant="h4">{value ?? 0}</Typography>
+        {tiles.map(([label, value, color]) => (
+          <Card key={label} sx={{ minWidth: 175, flex: '1 1 175px' }}><CardContent>
+            <Typography variant="h4" color={color}>{value ?? 0}</Typography>
             <Typography variant="body2" color="text.secondary">{label}</Typography>
           </CardContent></Card>
         ))}
       </Box>
-      <Button variant="outlined" sx={{ alignSelf: 'flex-start' }}
-        onClick={() => run(() => api.report(), 'Report exported')}>Export management report</Button>
-      <Card><CardContent>
-        <Typography variant="h6" gutterBottom>Reorder needed</Typography>
+      {(d.expired > 0 || d.expiring7 > 0) &&
+        <Alert severity="warning">Review {d.expired || 0} expired and {d.expiring7 || 0} near-expiry stock lines.</Alert>}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' }, gap: 2 }}>
+      <Card><CardContent sx={{ p: 0 }}>
+        <Box sx={{ px: 2.5, py: 2 }}>
+          <Typography variant="h6">Priority replenishment</Typography>
+          <Typography variant="body2" color="text.secondary">Items currently below PAR or calculated reorder point.</Typography>
+        </Box>
         <Table size="small">
           <TableHead><TableRow><TableCell>Product</TableCell><TableCell>On hand</TableCell>
             <TableCell>Target</TableCell><TableCell>Order</TableCell><TableCell>Est. cost</TableCell></TableRow></TableHead>
@@ -140,7 +202,21 @@ function Dashboard({ state, run }) {
             ))}
           </TableBody>
         </Table>
+        {!reorder.length && <EmptyState>No replenishment actions right now.</EmptyState>}
       </CardContent></Card>
+      <Card><CardContent>
+        <Typography variant="h6" gutterBottom>Quick actions</Typography>
+        <Stack spacing={1}>
+          <Button variant="contained" onClick={() => setView('scan')}>Receive stock</Button>
+          <Button variant="outlined" onClick={() => setView('count')}>Start inventory count</Button>
+          <Button variant="outlined" onClick={() => setView('registration')}>Register product</Button>
+          <Button variant="text" onClick={() => setView('management')}>Open management workspace</Button>
+        </Stack>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="caption" color="text.secondary">Activity in last 7 days</Typography>
+        <Typography variant="h5">{d.activeEventsLast7 || 0}</Typography>
+      </CardContent></Card>
+      </Box>
     </Stack>
   )
 }
@@ -163,8 +239,11 @@ function Scan({ run, refresh, setToast }) {
     } catch (e) { setToast(e.message) }
   }
   return (
+    <Stack spacing={2}>
+    <PageHeader title="Receive stock"
+      description="Scan a GS1 barcode to capture GTIN, lot, and expiration automatically." />
     <Card><CardContent>
-      <Typography variant="h6" gutterBottom>Scan to receive</Typography>
+      <Typography variant="h6" gutterBottom>New receipt</Typography>
       <Stack direction="row" spacing={1}>
         <TextField autoFocus fullWidth size="small" label="Barcode" value={raw}
           onChange={e => setRaw(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} />
@@ -173,6 +252,8 @@ function Scan({ run, refresh, setToast }) {
         <Button variant="contained" onClick={submit}>Receive</Button>
       </Stack>
     </CardContent></Card>
+    <Alert severity="info">Keep the barcode field focused for rapid scanner entry. Unknown products will open registration.</Alert>
+    </Stack>
   )
 }
 
@@ -181,17 +262,23 @@ function Inventory({ state, run }) {
   const rows = (state.stock || []).filter(l => l.active &&
     (l.name + l.gtin + l.lot).toLowerCase().includes(filter.toLowerCase()))
   return (
+    <Stack spacing={2}>
+    <PageHeader title="Inventory" description="Search active stock by product, GTIN, or lot and perform daily transactions." />
     <Card><CardContent>
       <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-        <TextField size="small" label="Search" value={filter} onChange={e => setFilter(e.target.value)} />
+        <TextField size="small" label="Search inventory" value={filter}
+          onChange={e => setFilter(e.target.value)} sx={{ width: 340 }} />
+        <Chip label={`${rows.length} active stock lines`} />
       </Stack>
       <Table size="small">
-        <TableHead><TableRow><TableCell>Name</TableCell><TableCell>Lot</TableCell><TableCell>Expiration</TableCell>
+        <TableHead><TableRow><TableCell>Product</TableCell><TableCell>GTIN</TableCell><TableCell>Lot</TableCell><TableCell>Expiration</TableCell>
           <TableCell>Qty</TableCell><TableCell>Actions</TableCell></TableRow></TableHead>
         <TableBody>
           {rows.map(l => (
             <TableRow key={l.itemKey}>
-              <TableCell>{l.name || l.gtin}</TableCell><TableCell>{l.lot}</TableCell>
+              <TableCell><Typography variant="body2" fontWeight={600}>{l.name || 'Unregistered product'}</Typography>
+                <Typography variant="caption" color="text.secondary">{l.manufacturer || l.category || ''}</Typography></TableCell>
+              <TableCell>{l.gtin}</TableCell><TableCell>{l.lot || '—'}</TableCell>
               <TableCell><Chip size="small" color={expiryColor(l.expirationIso)} label={l.expirationIso || '—'} /></TableCell>
               <TableCell>{l.quantity}</TableCell>
               <TableCell>
@@ -203,7 +290,182 @@ function Inventory({ state, run }) {
           ))}
         </TableBody>
       </Table>
+      {!rows.length && <EmptyState>No active inventory matches this search.</EmptyState>}
     </CardContent></Card>
+    </Stack>
+  )
+}
+
+function Count({ state, run }) {
+  const active = (state.stock || []).filter(line => line.active)
+  const [filter, setFilter] = useState('')
+  const [counts, setCounts] = useState(() => Object.fromEntries(
+    active.map(line => [line.itemKey, String(line.quantity)])))
+
+  useEffect(() => {
+    setCounts(current => Object.fromEntries(active.map(line => [
+      line.itemKey, current[line.itemKey] ?? String(line.quantity)
+    ])))
+  }, [state.stock])
+
+  const rows = active.filter(line =>
+    `${line.name} ${line.gtin} ${line.lot}`.toLowerCase().includes(filter.toLowerCase()))
+  const changed = active.filter(line =>
+    Number(counts[line.itemKey]) !== line.quantity && counts[line.itemKey] !== '')
+
+  const save = () => run(async () => {
+    for (const line of changed) {
+      await api.adjust({
+        gtin: line.gtin,
+        lot: line.lot,
+        expirationIso: line.expirationIso,
+        quantity: counts[line.itemKey]
+      })
+    }
+  }, `${changed.length} count${changed.length === 1 ? '' : 's'} posted`)
+
+  return (
+    <Stack spacing={2}>
+      <PageHeader title="Inventory count"
+        description="Record physical counts by lot. Only changed quantities will be posted."
+        actions={<Button variant="contained" disabled={!changed.length} onClick={save}>
+          Post {changed.length || ''} adjustment{changed.length === 1 ? '' : 's'}
+        </Button>} />
+      <Card><CardContent sx={{ p: 0 }}>
+        <Box sx={{ p: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+          <TextField size="small" label="Find product or lot" value={filter}
+            onChange={event => setFilter(event.target.value)} sx={{ width: 340 }} />
+          <Chip label={`${active.length} stock lines`} />
+          <Chip color={changed.length ? 'warning' : 'default'} label={`${changed.length} changed`} />
+        </Box>
+        <Table size="small">
+          <TableHead><TableRow><TableCell>Product</TableCell><TableCell>GTIN</TableCell>
+            <TableCell>Lot</TableCell><TableCell>Expiration</TableCell>
+            <TableCell align="right">System qty</TableCell><TableCell sx={{ width: 150 }}>Counted qty</TableCell>
+            <TableCell align="right">Variance</TableCell></TableRow></TableHead>
+          <TableBody>{rows.map(line => {
+            const counted = counts[line.itemKey]
+            const variance = counted === '' ? 0 : Number(counted) - line.quantity
+            return <TableRow key={line.itemKey} sx={variance ? { backgroundColor: '#fff8e1' } : undefined}>
+              <TableCell><Typography variant="body2" fontWeight={600}>{line.name || 'Unregistered product'}</Typography></TableCell>
+              <TableCell>{line.gtin}</TableCell><TableCell>{line.lot || '—'}</TableCell>
+              <TableCell>{line.expirationIso || '—'}</TableCell><TableCell align="right">{line.quantity}</TableCell>
+              <TableCell><TextField size="small" type="number" value={counted ?? ''}
+                inputProps={{ min: 0 }} onChange={event => setCounts(value => ({
+                  ...value, [line.itemKey]: event.target.value
+                }))} /></TableCell>
+              <TableCell align="right"><Chip size="small" color={variance ? 'warning' : 'default'}
+                label={variance > 0 ? `+${variance}` : variance} /></TableCell>
+            </TableRow>
+          })}</TableBody>
+        </Table>
+        {!rows.length && <EmptyState>No active stock lines match this count.</EmptyState>}
+      </CardContent></Card>
+    </Stack>
+  )
+}
+
+function Management({ state, run }) {
+  const reorder = (state.reorder || []).filter(item => item.needsReorder)
+  const catalog = state.catalog || []
+  const estimated = reorder.reduce((sum, item) => sum + (item.estimatedCost || 0), 0)
+  return (
+    <Stack spacing={2}>
+      <PageHeader title="Management"
+        description="Plan replenishment, review catalog controls, and export decision-ready reports."
+        actions={<Button variant="contained" startIcon={<DownloadRounded />}
+          onClick={() => run(() => api.report(), 'HTML, CSV, and PDF reports exported')}>
+          Export report package
+        </Button>} />
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2 }}>
+        <Card><CardContent><Typography color="text.secondary" variant="body2">Reorder lines</Typography>
+          <Typography variant="h4">{reorder.length}</Typography></CardContent></Card>
+        <Card><CardContent><Typography color="text.secondary" variant="body2">Estimated order cost</Typography>
+          <Typography variant="h4">${estimated.toFixed(2)}</Typography></CardContent></Card>
+        <Card><CardContent><Typography color="text.secondary" variant="body2">Catalog products</Typography>
+          <Typography variant="h4">{catalog.length}</Typography></CardContent></Card>
+      </Box>
+      <Card><CardContent sx={{ p: 0 }}>
+        <Box sx={{ p: 2.5 }}><Typography variant="h6">Replenishment plan</Typography>
+          <Typography variant="body2" color="text.secondary">PAR values take precedence; other targets use consumption history.</Typography></Box>
+        <Table size="small"><TableHead><TableRow><TableCell>Product</TableCell><TableCell>GTIN</TableCell>
+          <TableCell align="right">On hand</TableCell><TableCell align="right">Target</TableCell>
+          <TableCell align="right">Order qty</TableCell><TableCell>Basis</TableCell>
+          <TableCell align="right">Est. cost</TableCell></TableRow></TableHead>
+          <TableBody>{reorder.map(item => <TableRow key={item.gtin}>
+            <TableCell>{item.name || item.gtin}</TableCell><TableCell>{item.gtin}</TableCell>
+            <TableCell align="right">{item.onHand}</TableCell>
+            <TableCell align="right">{item.parProvided ? item.par : item.suggestedPar}</TableCell>
+            <TableCell align="right"><Chip color="warning" size="small" label={item.suggestedOrderQty} /></TableCell>
+            <TableCell>{item.parProvided ? 'Configured PAR' : 'Consumption model'}</TableCell>
+            <TableCell align="right">${(item.estimatedCost || 0).toFixed(2)}</TableCell>
+          </TableRow>)}</TableBody></Table>
+        {!reorder.length && <EmptyState>No items currently need replenishment.</EmptyState>}
+      </CardContent></Card>
+      <Card><CardContent sx={{ p: 0 }}>
+        <Box sx={{ p: 2.5 }}><Typography variant="h6">Catalog controls</Typography></Box>
+        <Table size="small"><TableHead><TableRow><TableCell>Product</TableCell><TableCell>Manufacturer</TableCell>
+          <TableCell>Category</TableCell><TableCell align="right">Unit price</TableCell>
+          <TableCell align="right">PAR</TableCell><TableCell>Source</TableCell></TableRow></TableHead>
+          <TableBody>{catalog.map(item => <TableRow key={item.gtin}><TableCell>{item.name}</TableCell>
+            <TableCell>{item.manufacturer || '—'}</TableCell><TableCell>{item.category || '—'}</TableCell>
+            <TableCell align="right">${(item.unitPrice || 0).toFixed(2)}</TableCell>
+            <TableCell align="right">{item.par >= 0 ? item.par : 'Not set'}</TableCell>
+            <TableCell>{item.source || '—'}</TableCell></TableRow>)}</TableBody></Table>
+      </CardContent></Card>
+    </Stack>
+  )
+}
+
+function Settings({ state, run }) {
+  const initial = state.settings || {}
+  const [form, setForm] = useState(() => Object.fromEntries(
+    Object.entries(initial).map(([key, value]) => [key, String(value)])))
+  const set = (key, value) => setForm(current => ({ ...current, [key]: value }))
+  const save = () => run(() => api.settings(form), 'Settings saved')
+  const chooseFolder = () => run(async () => {
+    const result = await api.chooseFolder()
+    if (result.cancelled) throw new Error('Folder selection cancelled')
+  }, 'Shared folder changed')
+  const numberField = (key, label, helper) => <TextField size="small" type="number" label={label}
+    value={form[key] ?? ''} helperText={helper} onChange={event => set(key, event.target.value)} />
+  return (
+    <Stack spacing={2}>
+      <PageHeader title="Settings" description="Configure this workstation and inventory planning behavior."
+        actions={<Button variant="contained" onClick={save}>Save settings</Button>} />
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, gap: 2 }}>
+        <Card><CardContent><Typography variant="h6" gutterBottom>Workstation</Typography>
+          <Stack spacing={2}>
+            <TextField size="small" label="Device ID" value={form.deviceId ?? ''}
+              onChange={event => set('deviceId', event.target.value)} />
+            <TextField size="small" label="Operator / team" value={form.actor ?? ''}
+              onChange={event => set('actor', event.target.value)} />
+            {numberField('scannerMinimumLength', 'Minimum scanner length', 'Reject shorter scanner input')}
+            <Divider />
+            <Typography variant="body2" color="text.secondary">Shared OneDrive folder</Typography>
+            <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>{state.sharedRoot || 'Not configured'}</Typography>
+            <Button startIcon={<FolderRounded />} variant="outlined" onClick={chooseFolder}>Change folder…</Button>
+          </Stack>
+        </CardContent></Card>
+        <Card><CardContent><Typography variant="h6" gutterBottom>Inventory planning</Typography>
+          <Stack spacing={2}>
+            {numberField('staleDays', 'Stale inventory threshold (days)', 'Flags stock with no recent activity')}
+            {numberField('reorderWindowDays', 'Usage history window (days)', 'Period used to calculate average consumption')}
+            {numberField('reorderLeadDays', 'Supplier lead time (days)', 'Expected delivery lead time')}
+            {numberField('reorderSafetyDays', 'Safety stock (days)', 'Additional usage buffer')}
+            {numberField('reorderCoverageDays', 'Order coverage (days)', 'Target stock coverage after replenishment')}
+          </Stack>
+        </CardContent></Card>
+        <Card><CardContent><Typography variant="h6" gutterBottom>FDA AccessGUDID</Typography>
+          <FormControlLabel control={<Switch checked={form.gudidEnabled === 'true'}
+            onChange={event => set('gudidEnabled', String(event.target.checked))} />}
+            label="Use GUDID suggestions for unknown products" />
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, wordBreak: 'break-all' }}>
+            {initial.gudidEndpoint}
+          </Typography>
+        </CardContent></Card>
+      </Box>
+    </Stack>
   )
 }
 
@@ -218,6 +480,9 @@ function Registration({ state, run }) {
   }
   const categories = [...new Set((state.catalog || []).map(c => c.category).filter(Boolean))]
   return (
+    <Stack spacing={2}>
+    <PageHeader title="Product registration"
+      description="Create or maintain catalog records, PAR levels, pricing, and product classification." />
     <Card><CardContent>
       <Typography variant="h6" gutterBottom>Register / update product</Typography>
       <Stack spacing={1} sx={{ maxWidth: 520 }}>
@@ -239,6 +504,7 @@ function Registration({ state, run }) {
         }), 'Saved')}>Save product</Button>
       </Stack>
     </CardContent></Card>
+    </Stack>
   )
 }
 
@@ -253,7 +519,8 @@ function Labels({ state }) {
   }, [state])
   return (
     <Box>
-      <Button variant="outlined" sx={{ mb: 2 }} onClick={() => window.print()}>Print labels</Button>
+      <PageHeader title="Labels" description="Print offline QR labels for active inventory stock lines."
+        actions={<Button variant="contained" onClick={() => window.print()}>Print labels</Button>} />
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 1 }}>
         {rows.map(l => (
           <Card key={l.itemKey} variant="outlined"><CardContent sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -266,6 +533,7 @@ function Labels({ state }) {
           </CardContent></Card>
         ))}
       </Box>
+      {!rows.length && <Card><EmptyState>No active inventory is available for labels.</EmptyState></Card>}
     </Box>
   )
 }

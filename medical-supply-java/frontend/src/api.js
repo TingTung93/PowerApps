@@ -17,6 +17,7 @@ export const api = {
   state: () => request('/api/state'),
   configure: payload => post('/api/configure', payload),
   chooseFolder: () => post('/api/choose-folder', {}),
+  settings: payload => post('/api/settings', payload),
   receive: payload => post('/api/receive', payload),
   pick: payload => post('/api/pick', payload),
   adjust: payload => post('/api/adjust', payload),
