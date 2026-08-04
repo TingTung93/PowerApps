@@ -16,6 +16,7 @@ const post = (path, payload) => request(path, { method: 'POST', body: JSON.strin
 export const api = {
   state: () => request('/api/state'),
   configure: payload => post('/api/configure', payload),
+  chooseFolder: () => post('/api/choose-folder', {}),
   receive: payload => post('/api/receive', payload),
   pick: payload => post('/api/pick', payload),
   adjust: payload => post('/api/adjust', payload),

@@ -6,6 +6,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 import java.awt.Desktop;
+import java.awt.GraphicsEnvironment;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,24 +15,39 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
+
+import javax.swing.JFileChooser;
+import javax.swing.SwingUtilities;
 
 public final class BrowserServer {
     private final AppService service;
     private final AppConfig config;
+    private final FolderPicker folderPicker;
     private final String token = UUID.randomUUID().toString() + UUID.randomUUID().toString();
     private final CountDownLatch stopped = new CountDownLatch(1);
     private HttpServer server;
     private String origin;
 
     public BrowserServer(AppService service, AppConfig config) {
+        this(service, config, new NativeFolderPicker());
+    }
+
+    BrowserServer(AppService service, AppConfig config, FolderPicker folderPicker) {
         this.service = service;
         this.config = config;
+        this.folderPicker = folderPicker;
+    }
+
+    interface FolderPicker {
+        Path choose(Path initialFolder) throws IOException;
     }
 
     public String token() {
@@ -81,6 +97,18 @@ public final class BrowserServer {
         if ("/api/configure".equals(path)) {
             service.configure(Paths.get(required(body, "sharedRoot")));
             return message("Shared folder configured.");
+        }
+        if ("/api/choose-folder".equals(path)) {
+            Path selected = folderPicker.choose(config.sharedRoot);
+            if (selected == null) {
+                Map<String, Object> response = message("Folder selection cancelled.");
+                response.put("cancelled", Boolean.TRUE);
+                return response;
+            }
+            service.configure(selected);
+            Map<String, Object> response = message("Shared folder configured.");
+            response.put("sharedRoot", config.sharedRoot.toString());
+            return response;
         }
         if ("/api/receive".equals(path)) {
             return service.receive(required(body, "raw"), intValue(body, "quantity", 1),
@@ -242,5 +270,39 @@ public final class BrowserServer {
     private static double doubleValue(Map<String, String> values, String key) {
         try { return Double.parseDouble(value(values, key, "0")); }
         catch (NumberFormatException ex) { throw new AppService.BadRequest("Invalid " + key + "."); }
+    }
+
+    private static final class NativeFolderPicker implements FolderPicker {
+        public Path choose(Path initialFolder) throws IOException {
+            if (GraphicsEnvironment.isHeadless()) {
+                throw new AppService.BadRequest(
+                        "The folder picker is unavailable in headless mode. Use the classic UI.");
+            }
+            AtomicReference<Path> selected = new AtomicReference<Path>();
+            AtomicReference<RuntimeException> failure = new AtomicReference<RuntimeException>();
+            try {
+                SwingUtilities.invokeAndWait(() -> {
+                    try {
+                        JFileChooser chooser = initialFolder == null
+                                ? new JFileChooser() : new JFileChooser(initialFolder.toFile());
+                        chooser.setDialogTitle("Select synchronized OneDrive folder");
+                        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                        chooser.setAcceptAllFileFilterUsed(false);
+                        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                            selected.set(chooser.getSelectedFile().toPath());
+                        }
+                    } catch (RuntimeException ex) {
+                        failure.set(ex);
+                    }
+                });
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                throw new IOException("Folder selection was interrupted.", ex);
+            } catch (java.lang.reflect.InvocationTargetException ex) {
+                throw new IOException("Folder picker failed.", ex.getCause());
+            }
+            if (failure.get() != null) throw new IOException("Folder picker failed.", failure.get());
+            return selected.get();
+        }
     }
 }

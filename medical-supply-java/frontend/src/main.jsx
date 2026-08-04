@@ -91,16 +91,18 @@ function App() {
   )
 }
 
-function FolderPrompt({ run, state }) {
-  const [path, setPath] = useState(state.sharedRoot || '')
+function FolderPrompt({ run }) {
+  const chooseFolder = () => run(async () => {
+    const result = await api.chooseFolder()
+    if (result.cancelled) throw new Error('Folder selection cancelled')
+  }, 'Folder set')
   return (
     <Card><CardContent>
       <Typography variant="h6" gutterBottom>Synchronized folder</Typography>
-      <Stack direction="row" spacing={1}>
-        <TextField fullWidth size="small" label="OneDrive folder path" value={path}
-          onChange={e => setPath(e.target.value)} />
-        <Button variant="contained" onClick={() => run(() => api.configure({ sharedRoot: path }), 'Folder set')}>Set</Button>
-      </Stack>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Choose the local OneDrive-synchronized folder used by your team.
+      </Typography>
+      <Button variant="contained" onClick={chooseFolder}>Choose folder…</Button>
     </CardContent></Card>
   )
 }

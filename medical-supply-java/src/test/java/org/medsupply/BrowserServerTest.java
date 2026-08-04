@@ -15,12 +15,15 @@ public final class BrowserServerTest {
         System.setProperty("medsupply.noDesktop", "true");
         AppConfig config = AppConfig.load();
         AppService svc = new AppService(config, null);
-        BrowserServer server = new BrowserServer(svc, config);
+        Path selected = base.resolve("shared");
+        BrowserServer server = new BrowserServer(svc, config, initial -> selected);
         String origin = server.start();
         try {
-            Map<String, Object> configure = post(origin, "/api/configure", server.token(),
-                    "{\"sharedRoot\":" + Json.write(base.resolve("shared").toString()) + "}");
+            Map<String, Object> configure = post(
+                    origin, "/api/choose-folder", server.token(), "{}");
             check(configure.containsKey("message"), "configure ok");
+            check(selected.toAbsolutePath().normalize().toString().equals(
+                    Json.str(configure, "sharedRoot")), "selected path returned");
 
             post(origin, "/api/register", server.token(),
                     "{\"gtin\":\"00380740000010\",\"name\":\"Stent\",\"manufacturer\":\"Abbott\","
