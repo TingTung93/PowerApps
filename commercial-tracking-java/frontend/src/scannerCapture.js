@@ -76,10 +76,17 @@ export class ScannerCapture {
       // identifier, or an embedded separator already proves this is a scanner, not a person
       // typing, so the burst heuristic is unnecessary here: complete the instant the label
       // terminates (EOT), otherwise only after a long settle so the whole label is captured.
-      return this.isTerminated(value) || now - this.lastCharacterAt >= this.settings.structuredIdleDelayMs
+      return this.isTerminated(value) || now - this.lastCharacterAt >= this.structuredSettleMs()
     }
     // A plain linear barcode: the burst heuristic separates a scan from human typing.
     return this.isScannerBurst(value.length) && now - this.lastCharacterAt >= this.settings.idleDelayMs
+  }
+
+  // The structured settle must never fall below the workstation's configured quiet interval —
+  // a scanner calibrated with longer pauses (idleDelayMs up to 2000ms) would otherwise submit a
+  // multi-part label before it is done.
+  structuredSettleMs() {
+    return Math.max(this.settings.structuredIdleDelayMs, this.settings.idleDelayMs)
   }
 
   isStructured(value) {
@@ -94,7 +101,7 @@ export class ScannerCapture {
 
   completionDelayMs(value) {
     return this.isStructured(value) && !this.isTerminated(value)
-      ? this.settings.structuredIdleDelayMs : this.settings.idleDelayMs
+      ? this.structuredSettleMs() : this.settings.idleDelayMs
   }
 
   isScannerBurst(length) {

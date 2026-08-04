@@ -57,6 +57,16 @@ assert.equal(new ScannerCapture().completionDelayMs(openEnvelope), 600, 'open st
 assert.equal(new ScannerCapture().completionDelayMs(terminated), 120, 'terminated payload schedules the short idle delay')
 assert.equal(new ScannerCapture().completionDelayMs('1Z999AA10123456784'), 120, 'a simple burst schedules the short idle delay')
 
+// A workstation may widen the quiet interval (idleDelayMs up to 2000ms) for a slow scanner.
+// The structured settle must never fall below that configured interval, or a multi-part label
+// could still submit truncated before the scanner is done.
+const longIdle = new ScannerCapture({ idleDelayMs: 1000 })
+longIdle.character(1000, 0)
+const openLong = '[)>0131Z123456789012'
+assert.equal(longIdle.shouldCompleteAfterIdle(1600, openLong), false, 'structured scan honors a configured idle delay longer than the structured settle')
+assert.equal(longIdle.shouldCompleteAfterIdle(2000, openLong), true, 'structured scan completes once the longer configured idle delay elapses')
+assert.equal(longIdle.completionDelayMs(openLong), 1000, 'structured settle is at least the configured idle delay')
+
 assert.equal(new ScannerCapture().paste(1000, 'ABC123'), true, 'complete paste is accepted')
 assert.equal(recommendScannerSettings([
   { terminator: 'Enter', maxGapMs: 25 },
