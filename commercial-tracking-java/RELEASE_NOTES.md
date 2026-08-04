@@ -1,7 +1,7 @@
-# Commercial Tracking 0.2.0-rc1
+# Commercial Tracking 0.2.0-rc2
 
-Build date: 2026-07-30  
-Runtime: Java 8 or newer  
+Build date: 2026-08-04
+Runtime: Java 8 or newer
 Deployment: Portable folder; no installer or elevation
 
 ## Purpose
@@ -11,6 +11,10 @@ OneDrive/Teams synchronized immutable-event architecture and scanner workflow.
 
 ## Included
 
+- Shared address book with reusable recipient and department autocomplete.
+- Optional internal contact information and notes on address book entries.
+- Automatic address book updates during single and bulk recipient assignment.
+- Address book creation and editing from the recipient reconciliation workspace.
 - Modern React/Material UI task workspaces compiled into the JAR.
 - Offline Roboto fonts and SVG Material icons.
 - Loopback-only Java HTTP service with an ephemeral port.

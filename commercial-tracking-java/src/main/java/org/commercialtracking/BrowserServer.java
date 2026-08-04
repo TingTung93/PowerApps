@@ -49,6 +49,7 @@ public final class BrowserServer {
     private final CountDownLatch stopped = new CountDownLatch(1);
     private EventStore store;
     private SharedConfigManager sharedConfig;
+    private AddressBookStore addressBook;
     private HttpServer server;
     private String origin;
     private String lastRescanUtc = "";
@@ -97,6 +98,7 @@ public final class BrowserServer {
         }
         store = new EventStore(root, config.localRoot);
         sharedConfig = new SharedConfigManager(root);
+        addressBook = new AddressBookStore(root);
         config.sharedRoot = root.toAbsolutePath().normalize();
         config.save();
         reload();
@@ -157,6 +159,7 @@ public final class BrowserServer {
         if (shared != null && shared.error.length() > 0) attention.add(shared.error);
         value.put("attention", attention);
         value.put("manifests", manifestMaps());
+        value.put("addressBook", addressBook == null ? new ArrayList<Map<String, String>>() : addressBook.load());
         return value;
     }
 
@@ -352,6 +355,7 @@ public final class BrowserServer {
         PackageState current = projection.find(tracking);
         if (current == null) throw new BadRequest("Package was not found.");
         TrackingEvent event = manualEvent("PACKAGE_RECIPIENT_ASSIGNED", current, recipient, "Recipient assigned");
+        saveAddressBook(request, recipient);
         store.append(event);
         session.add(event);
         reload();
@@ -369,6 +373,7 @@ public final class BrowserServer {
                 throw new BadRequest("Bulk assignment stopped before saving because " + tracking + " is not active.");
             targets.add(current);
         }
+        saveAddressBook(request, recipient);
         int saved = 0;
         for (PackageState current : targets) {
             try {
@@ -386,6 +391,20 @@ public final class BrowserServer {
         Map<String, Object> response = message("Recipient assigned to " + saved + " packages.");
         response.put("savedCount", saved);
         return response;
+    }
+
+    private Map<String, Object> saveAddressBook(Map<String, String> request) throws IOException {
+        requireConfigured();
+        String name = required(request, "name");
+        Map<String, String> entry = addressBook.save(name, value(request, "department", ""),
+                value(request, "contactInfo", ""), value(request, "notes", ""));
+        Map<String, Object> response = message("Address book entry saved.");
+        response.put("entry", entry);
+        return response;
+    }
+
+    private void saveAddressBook(Map<String, String> request, String recipient) throws IOException {
+        addressBook.save(recipient, value(request, "department", ""), value(request, "contactInfo", ""), value(request, "notes", ""));
     }
 
     private synchronized Map<String, Object> voidPackage(Map<String, String> request) throws IOException {
@@ -846,6 +865,8 @@ public final class BrowserServer {
                     response = assignRecipient(body(exchange));
                 } else if ("/api/recipients".equals(path) && "POST".equals(method)) {
                     response = assignRecipients(body(exchange));
+                } else if ("/api/address-book".equals(path) && "POST".equals(method)) {
+                    response = saveAddressBook(body(exchange));
                 } else if ("/api/void".equals(path) && "POST".equals(method)) {
                     response = voidPackage(body(exchange));
                 } else if ("/api/correct".equals(path) && "POST".equals(method)) {

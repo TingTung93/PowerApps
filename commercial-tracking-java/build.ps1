@@ -75,6 +75,8 @@ if (-not $SkipTests) {
     if ($LASTEXITCODE -ne 0) { throw "Report writer tests failed." }
     & java -cp "$classes;$testClasses" org.commercialtracking.SharedConfigManagerTest
     if ($LASTEXITCODE -ne 0) { throw "Shared settings tests failed." }
+    & java -cp "$classes;$testClasses" org.commercialtracking.AddressBookStoreTest
+    if ($LASTEXITCODE -ne 0) { throw "Address book tests failed." }
     & java -cp "$classes;$testClasses" org.commercialtracking.AppConfigTest
     if ($LASTEXITCODE -ne 0) { throw "Application configuration tests failed." }
     & java -cp "$classes;$testClasses" org.commercialtracking.PortablePdfTest

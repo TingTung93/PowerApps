@@ -22,6 +22,7 @@ export const api = {
   configure: payload => request('/api/configure', { method: 'POST', body: JSON.stringify(payload) }),
   assignRecipient: payload => request('/api/recipient', { method: 'POST', body: JSON.stringify(payload) }),
   assignRecipients: payload => request('/api/recipients', { method: 'POST', body: JSON.stringify(payload) }),
+  saveAddressBook: payload => request('/api/address-book', { method: 'POST', body: JSON.stringify(payload) }),
   voidPackage: payload => request('/api/void', { method: 'POST', body: JSON.stringify(payload) }),
   correctPackage: payload => request('/api/correct', { method: 'POST', body: JSON.stringify(payload) }),
   resolveConflict: payload => request('/api/conflict/resolve', { method: 'POST', body: JSON.stringify(payload) }),

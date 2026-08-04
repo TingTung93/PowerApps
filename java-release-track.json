@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "applications": {
     "commercialTracking": {
-      "version": "0.2.0-rc1",
+      "version": "0.2.0-rc2",
       "channel": "candidate"
     },
     "medicalSupply": {
