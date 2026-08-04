@@ -115,6 +115,7 @@ public final class BrowserServer {
             Map<String, Object> response = message("Management report written.");
             response.put("htmlFile", result.html.getFileName().toString());
             response.put("csvFile", result.csv.getFileName().toString());
+            response.put("pdfFile", result.pdf.getFileName().toString());
             return response;
         }
         if ("/api/shutdown".equals(path)) {

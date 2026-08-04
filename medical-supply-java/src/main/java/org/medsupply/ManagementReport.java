@@ -15,7 +15,13 @@ public final class ManagementReport {
     public static final class Result {
         public final Path html;
         public final Path csv;
-        Result(Path html, Path csv) { this.html = html; this.csv = csv; }
+        public final Path pdf;
+
+        Result(Path html, Path csv, Path pdf) {
+            this.html = html;
+            this.csv = csv;
+            this.pdf = pdf;
+        }
     }
 
     public static Result write(Path reportsDir, DashboardMetrics metrics, List<ReorderSuggestion> reorder,
@@ -26,7 +32,32 @@ public final class ManagementReport {
         Path csv = reportsDir.resolve("management-report-" + stamp + "-reorder.csv");
         Files.write(html, renderHtml(metrics, reorder, stock, now).getBytes(StandardCharsets.UTF_8));
         Files.write(csv, renderReorderCsv(reorder).getBytes(StandardCharsets.UTF_8));
-        return new Result(html, csv);
+        Path pdf = reportsDir.resolve("management-report-" + stamp + ".pdf");
+        PortablePdf.write(pdf, "Medical Supply Management Report",
+                renderPdfLines(metrics, reorder, stock, now));
+        return new Result(html, csv, pdf);
+    }
+
+    static java.util.List<String> renderPdfLines(DashboardMetrics m,
+            java.util.List<ReorderSuggestion> reorder, java.util.List<StockLine> stock,
+            java.time.Instant now) {
+        java.util.List<String> lines = new java.util.ArrayList<String>();
+        lines.add("Generated UTC: " + now.toString());
+        lines.add("");
+        lines.add("AT A GLANCE");
+        lines.add("SKUs: " + m.distinctSkus + "   On-hand units: " + m.totalUnits
+                + "   On-hand value: " + money(m.onHandValue));
+        lines.add("Expired: " + m.expired + "   Expiring <=7d: " + m.expiring7
+                + "   Expiring <=30d: " + m.expiring30 + "   Out of stock: "
+                + m.outOfStock + "   Stale: " + m.stale);
+        lines.add("");
+        lines.add("REORDER");
+        for (ReorderSuggestion s : reorder) {
+            if (!s.needsReorder) continue;
+            lines.add(s.gtin + "  " + s.name + "  on-hand " + s.onHand + "  order "
+                    + s.suggestedOrderQty + "  est " + money(s.estimatedCost));
+        }
+        return lines;
     }
 
     static String renderHtml(DashboardMetrics m, List<ReorderSuggestion> reorder, List<StockLine> stock, Instant now) {

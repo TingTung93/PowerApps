@@ -46,6 +46,9 @@ public final class ManagementReportTest {
         Path dir = Files.createTempDirectory("medsupply-report");
         ManagementReport.Result r = ManagementReport.write(dir, m, reorder, stock, now);
         check(Files.isRegularFile(r.html) && Files.isRegularFile(r.csv), "files written");
+        check(Files.isRegularFile(r.pdf), "pdf written");
+        check(new String(Files.readAllBytes(r.pdf), "ISO-8859-1").startsWith("%PDF"),
+                "pdf header");
         System.out.println("ManagementReportTest: PASS");
     }
 
