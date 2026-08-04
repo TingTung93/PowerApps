@@ -53,13 +53,39 @@ if (Test-Path $testJavaRoot) {
 $manifest = Join-Path $buildRoot "MANIFEST.MF"
 @("Manifest-Version: 1.0", "Main-Class: org.medsupply.MedicalSupplyApp", "Implementation-Title: Medical Supply RC", "Implementation-Version: 0.1.0-foundation", "") | Set-Content -LiteralPath $manifest -Encoding ascii
 $jar = Join-Path $dist "MedicalSupply-RC.jar"
-$jarCommand = Get-Command jar -ErrorAction SilentlyContinue
-if ($null -ne $jarCommand) { $jarTool = $jarCommand.Source } else {
-    $javaSettings = (& java -XshowSettings:properties -version 2>&1 | Out-String)
-    $javaHomeMatch = [regex]::Match($javaSettings, "java\.home\s*=\s*(.+)")
-    if (-not $javaHomeMatch.Success) { throw "Could not locate the JDK jar tool." }
-    $jarTool = Join-Path $javaHomeMatch.Groups[1].Value.Trim() "bin\jar.exe"
+# Locate the JDK 'jar' tool robustly: a configured JAVA_HOME, then PATH, then the
+# JDK backing the running 'java' (the last-resort probe must not let native stderr
+# abort the build under $ErrorActionPreference = "Stop").
+$jarTool = $null
+if ($env:JAVA_HOME) {
+    $candidate = Join-Path $env:JAVA_HOME "bin\jar.exe"
+    if (Test-Path $candidate) { $jarTool = $candidate }
 }
+if (-not $jarTool) {
+    $jarCommand = Get-Command jar -ErrorAction SilentlyContinue
+    if ($null -ne $jarCommand) { $jarTool = $jarCommand.Source }
+}
+if (-not $jarTool) {
+    $javaCommand = Get-Command java -ErrorAction SilentlyContinue
+    if ($null -ne $javaCommand) {
+        $candidate = Join-Path (Split-Path -Parent $javaCommand.Source) "jar.exe"
+        if (Test-Path $candidate) {
+            $jarTool = $candidate
+        } else {
+            $javaSettings = & {
+                $ErrorActionPreference = "Continue"
+                $PSNativeCommandUseErrorActionPreference = $false
+                (& $javaCommand.Source -XshowSettings:properties -version 2>&1 | Out-String)
+            }
+            $javaHomeMatch = [regex]::Match($javaSettings, "java\.home\s*=\s*(.+)")
+            if ($javaHomeMatch.Success) {
+                $candidate = Join-Path $javaHomeMatch.Groups[1].Value.Trim() "bin\jar.exe"
+                if (Test-Path $candidate) { $jarTool = $candidate }
+            }
+        }
+    }
+}
+if (-not $jarTool) { throw "Could not locate the JDK 'jar' tool. Set JAVA_HOME to a JDK, or put 'jar' on PATH." }
 & $jarTool cfm $jar $manifest -C $classes .
 if ($LASTEXITCODE -ne 0) { throw "JAR packaging failed." }
 Copy-Item -LiteralPath (Join-Path $projectRoot "run-medical-supply.cmd") -Destination $dist
