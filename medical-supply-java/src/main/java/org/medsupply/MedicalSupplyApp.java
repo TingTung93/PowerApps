@@ -16,8 +16,15 @@ public final class MedicalSupplyApp {
             return;
         }
         if (args.length > 0 && "--classic-ui".equals(args[0])) {
-            System.out.println(
-                    "The classic Swing UI arrives in Plan 4. Launch without arguments for the browser UI.");
+            try {
+                AppConfig config = AppConfig.load();
+                GudidClient gudid = config.gudidEnabled
+                        ? new GudidClient(config.gudidEndpoint, new HttpsFetcher()) : null;
+                SwingApp.launch(new AppService(config, gudid));
+            } catch (Exception ex) {
+                System.err.println("Medical Supply classic UI failed: " + ex.getMessage());
+                System.exit(1);
+            }
             return;
         }
         try {
