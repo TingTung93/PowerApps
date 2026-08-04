@@ -37,6 +37,7 @@ public final class ReorderAdvisor {
 
         List<ReorderSuggestion> out = new ArrayList<ReorderSuggestion>();
         for (CatalogProduct product : catalog.values()) {
+            if (!product.active) continue;
             ReorderSuggestion s = new ReorderSuggestion();
             s.gtin = product.gtin;
             s.name = product.name;
