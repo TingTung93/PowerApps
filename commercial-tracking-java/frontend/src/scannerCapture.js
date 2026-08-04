@@ -2,10 +2,18 @@ export const DEFAULT_SCANNER_SETTINGS = Object.freeze({
   completionMode: 'automatic',
   terminator: 'Enter',
   idleDelayMs: 120,
+  structuredIdleDelayMs: 600,
   burstThresholdMs: 50,
   minimumLength: 6,
   duplicateWindowMs: 750
 })
+
+// ANSI MH10 message envelope header and control separators found in FedEx / GS1 2D labels.
+const ANSI_ENVELOPE = '[)>'
+const GS1_SYMBOLOGY = /^\](?:C1|d2|Q1|e0|C0)/
+const GROUP_SEPARATOR = ''
+const RECORD_SEPARATOR = ''
+const END_OF_TRANSMISSION = ''
 
 export class ScannerCapture {
   constructor(settings = {}) {
@@ -60,8 +68,33 @@ export class ScannerCapture {
   }
 
   shouldCompleteAfterIdle(now, value) {
-    return this.settings.completionMode === 'automatic' && !this.edited &&
-      this.isScannerBurst(value.length) && now - this.lastCharacterAt >= this.settings.idleDelayMs
+    if (this.settings.completionMode !== 'automatic' || this.edited) return false
+    if (this.isStructured(value)) {
+      // A structured 2D label (FedEx ANSI MH10, GS1) streams as several separator-delimited
+      // segments whose inter-field pauses routinely exceed the short idle window — completing
+      // on that window truncates the label ("parses early"). The [)> envelope, a symbology
+      // identifier, or an embedded separator already proves this is a scanner, not a person
+      // typing, so the burst heuristic is unnecessary here: complete the instant the label
+      // terminates (EOT), otherwise only after a long settle so the whole label is captured.
+      return this.isTerminated(value) || now - this.lastCharacterAt >= this.settings.structuredIdleDelayMs
+    }
+    // A plain linear barcode: the burst heuristic separates a scan from human typing.
+    return this.isScannerBurst(value.length) && now - this.lastCharacterAt >= this.settings.idleDelayMs
+  }
+
+  isStructured(value) {
+    if (!value) return false
+    return value.startsWith(ANSI_ENVELOPE) || GS1_SYMBOLOGY.test(value) ||
+      value.includes(END_OF_TRANSMISSION) || value.endsWith(GROUP_SEPARATOR) || value.endsWith(RECORD_SEPARATOR)
+  }
+
+  isTerminated(value) {
+    return value.includes(END_OF_TRANSMISSION)
+  }
+
+  completionDelayMs(value) {
+    return this.isStructured(value) && !this.isTerminated(value)
+      ? this.settings.structuredIdleDelayMs : this.settings.idleDelayMs
   }
 
   isScannerBurst(length) {

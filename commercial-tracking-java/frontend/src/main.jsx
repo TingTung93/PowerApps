@@ -351,7 +351,7 @@ function ScanWorkspace({ mode, state, scannerSettings, locations, location, setL
     if (!busy && scan.length >= capture.current.settings.minimumLength) {
       idleTimer.current = setTimeout(() => {
         if (capture.current.shouldCompleteAfterIdle(performance.now(), scan)) complete()
-      }, capture.current.settings.idleDelayMs)
+      }, capture.current.completionDelayMs(scan))
     }
     return () => clearTimeout(idleTimer.current)
   }, [scan, busy])
