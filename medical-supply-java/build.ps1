@@ -13,6 +13,10 @@ New-Item -ItemType Directory -Path $dist | Out-Null
 $mainSources = Get-ChildItem -Path (Join-Path $projectRoot "src\main\java") -Recurse -Filter *.java | ForEach-Object { $_.FullName }
 & javac --release 8 -encoding UTF-8 -d $classes $mainSources
 if ($LASTEXITCODE -ne 0) { throw "Main compilation failed." }
+$resources = Join-Path $projectRoot "src\main\resources"
+if (Test-Path $resources) {
+    Copy-Item -Path (Join-Path $resources "*") -Destination $classes -Recurse -Force
+}
 $testJavaRoot = Join-Path $projectRoot "src\test\java"
 if (Test-Path $testJavaRoot) {
     $testSources = Get-ChildItem -Path $testJavaRoot -Recurse -Filter *.java | ForEach-Object { $_.FullName }
