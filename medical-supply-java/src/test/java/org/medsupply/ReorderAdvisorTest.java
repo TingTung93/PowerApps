@@ -14,6 +14,7 @@ public final class ReorderAdvisorTest {
         parBelowTriggersReorder();
         consumptionDerivedWhenNoPar();
         insufficientHistoryWhenNoPicks();
+        retiredProductsAreExcluded();
         System.out.println("ReorderAdvisorTest: PASS");
     }
 
@@ -57,6 +58,14 @@ public final class ReorderAdvisorTest {
         ReorderSuggestion s = out.get(0);
         check(s.insufficientHistory, "insufficient");
         check(!s.needsReorder, "cannot advise");
+    }
+
+    private static void retiredProductsAreExcluded() {
+        Map<String, CatalogProduct> catalog = catalogOf("retired", "Obsolete", 10.0, 20);
+        catalog.get("retired").active = false;
+        List<ReorderSuggestion> out = ReorderAdvisor.advise(catalog,
+                new ArrayList<StockLine>(), new ArrayList<SupplyEvent>(), NOW, params());
+        check(out.isEmpty(), "retired product excluded from replenishment");
     }
 
     private static ReorderAdvisor.Params params() {

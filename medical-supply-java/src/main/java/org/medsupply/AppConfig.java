@@ -12,6 +12,8 @@ import java.nio.channels.FileChannel;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
 public final class AppConfig {
     public Path sharedRoot;
@@ -121,8 +123,31 @@ public final class AppConfig {
     }
 
     private static String defaultActor() {
-        String user = System.getProperty("user.name", "unknown");
-        String domain = System.getenv("USERDOMAIN");
-        return domain == null || domain.trim().length() == 0 ? user : domain + "\\" + user;
+        try {
+            // `user.name` and USERDOMAIN are caller-controlled. The Windows system `whoami`
+            // executable obtains its value from the process access token instead.
+            Path whoami = Paths.get("C:\\Windows\\System32\\whoami.exe");
+            if (!Files.isRegularFile(whoami))
+                throw new IllegalStateException("Windows identity provider is unavailable");
+            Process process = new ProcessBuilder(whoami.toString()).redirectErrorStream(true).start();
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            try (InputStream input = process.getInputStream()) {
+                byte[] buffer = new byte[256];
+                int total = 0;
+                int read;
+                while ((read = input.read(buffer)) >= 0) {
+                    total += read;
+                    if (total > 4096) throw new IllegalStateException("Windows identity response is too large");
+                    output.write(buffer, 0, read);
+                }
+            }
+            if (process.waitFor() != 0) throw new IllegalStateException("Windows identity lookup failed");
+            String actor = new String(output.toByteArray(), StandardCharsets.UTF_8).trim();
+            if (actor.length() == 0 || actor.length() > 200 || actor.indexOf('\\') < 1)
+                throw new IllegalStateException("Windows returned an invalid authenticated principal");
+            return actor;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Could not obtain the authenticated Windows principal", ex);
+        }
     }
 }

@@ -312,9 +312,11 @@ function Scan({ state, run, refresh, setToast }) {
   const [preview, setPreview] = useState(null)
   const [metadata, setMetadata] = useState({ name: '', manufacturer: '', category: '' })
   const [lookingUp, setLookingUp] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const quantityRef = useRef(null)
   const barcodeRef = useRef(null)
   const autoSubmitted = useRef(false)
+  const submissionInFlight = useRef(false)
   useUnsavedGuard(!!raw.trim() || !!supplemental.trim() || !!preview)
 
   const inspect = async () => {
@@ -345,10 +347,13 @@ function Scan({ state, run, refresh, setToast }) {
   }
 
   const submit = async () => {
+    if (submissionInFlight.current) return
     if (!preview) {
       await inspect()
       return
     }
+    submissionInFlight.current = true
+    setSubmitting(true)
     try {
       if (!preview.registered) {
         if (!metadata.name.trim()) throw new Error('Choose or enter a product name before receiving.')
@@ -376,6 +381,7 @@ function Scan({ state, run, refresh, setToast }) {
       if (scanner.scannerAutoFocus) window.setTimeout(() => barcodeRef.current?.focus(), 0)
       await refresh()
     } catch (e) { setToast(e.message) }
+    finally { submissionInFlight.current = false; setSubmitting(false) }
   }
 
   const gudid = preview?.gudid || {}
@@ -401,7 +407,7 @@ function Scan({ state, run, refresh, setToast }) {
         <TextField inputRef={barcodeRef} autoFocus={scanner.scannerAutoFocus !== false} fullWidth size="small" label="GTIN / primary barcode" value={raw}
           onChange={e => { setRaw(e.target.value); setPreview(null) }}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); inspect() } }} />
-        <Button variant="outlined" disabled={!raw.trim() || lookingUp} onClick={inspect}
+        <Button variant="outlined" disabled={!raw.trim() || lookingUp || submitting} onClick={inspect}
           sx={{ minWidth: 110 }}>{lookingUp ? 'Looking up…' : 'Review scan'}</Button>
       </Stack>
       <TextField fullWidth size="small" sx={{ mt: 1 }} label="Optional second scan — lot / expiration"
@@ -438,6 +444,7 @@ function Scan({ state, run, refresh, setToast }) {
             <TextField label="Generic name / category" value={metadata.category} disabled={preview.registered}
               onChange={e => setMetadata(m => ({ ...m, category: e.target.value }))} />
             <TextField inputRef={quantityRef} label="Quantity received" type="number" value={qty}
+              disabled={submitting}
               inputProps={{ min: 1 }} onChange={e => setQty(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submit() } }} />
           </Box>
@@ -464,8 +471,8 @@ function Scan({ state, run, refresh, setToast }) {
         </Box>}
 
         <Stack direction="row" justifyContent="flex-end">
-          <Button variant="contained" size="large" disabled={!qty || Number(qty) <= 0 || !metadata.name.trim()}
-            onClick={submit}>Receive stock</Button>
+          <Button variant="contained" size="large" disabled={submitting || !qty || Number(qty) <= 0 || !metadata.name.trim()}
+            onClick={submit}>{submitting ? 'Receiving…' : 'Receive stock'}</Button>
         </Stack>
       </Stack>}
     </CardContent></Card>
