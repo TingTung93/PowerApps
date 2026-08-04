@@ -9,6 +9,7 @@ public final class JsonTest {
         parsesGudidShapedResponse();
         writesWholeNumbersWithoutDecimal();
         escapesStrings();
+        rejectsExcessiveNesting();
         System.out.println("JsonTest: PASS");
     }
 
@@ -46,6 +47,15 @@ public final class JsonTest {
         String written = Json.write(m);
         check(written.equals("{\"s\":\"a\\\"b\\\\c\\n\"}"), "escape: " + written);
         check("a\"b\\c\n".equals(Json.str(Json.asMap(Json.parse(written)), "s")), "escape roundtrip");
+    }
+
+    private static void rejectsExcessiveNesting() {
+        StringBuilder value = new StringBuilder();
+        for (int i = 0; i < 102; i++) value.append('[');
+        for (int i = 0; i < 102; i++) value.append(']');
+        boolean rejected = false;
+        try { Json.parse(value.toString()); } catch (IllegalArgumentException ex) { rejected = true; }
+        check(rejected, "depth cap");
     }
 
     private static void check(boolean cond, String label) {

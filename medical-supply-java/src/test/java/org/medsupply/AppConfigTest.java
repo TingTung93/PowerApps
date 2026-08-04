@@ -17,12 +17,15 @@ public final class AppConfigTest {
         config.sharedRoot = base.resolve("shared");
         config.reorderWindowDays = 45;
         config.gudidEnabled = false;
+        config.actor = "forged-user";
         config.save();
 
         AppConfig reloaded = AppConfig.load();
         check(base.resolve("shared").equals(reloaded.sharedRoot), "shared persisted");
         check(reloaded.reorderWindowDays == 45, "window persisted");
         check(!reloaded.gudidEnabled, "gudid persisted");
+        check(!"forged-user".equals(reloaded.actor), "actor is OS-derived, not persisted");
+        check(!Files.exists(base.resolve("MedicalSupply/config/client.json.tmp")), "no config temp left");
         System.out.println("AppConfigTest: PASS");
     }
 
