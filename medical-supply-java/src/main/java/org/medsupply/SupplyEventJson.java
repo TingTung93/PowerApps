@@ -33,7 +33,6 @@ public final class SupplyEventJson {
         e.eventType = Json.str(root, "eventType");
         e.occurredUtc = Json.str(root, "occurredUtc");
         e.recordedUtc = Json.str(root, "recordedUtc");
-        if (e.recordedUtc.length() == 0) e.recordedUtc = e.occurredUtc;
         e.deviceId = Json.str(root, "deviceId");
         e.sessionId = Json.str(root, "sessionId");
         e.actor = Json.str(root, "actor");

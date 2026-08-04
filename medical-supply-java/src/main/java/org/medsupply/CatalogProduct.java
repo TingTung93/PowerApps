@@ -9,6 +9,7 @@ public final class CatalogProduct {
     public String source = "";
     public double unitPrice;
     public int par = -1;
+    public boolean active = true;
 
     public boolean hasPar() {
         return par >= 0;

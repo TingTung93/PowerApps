@@ -35,6 +35,15 @@ public final class BrowserServerTest {
             Map<String, Object> state = get(origin, "/api/state", server.token());
             check(Json.asList(state.get("stock")).size() == 1, "one stock line via api");
 
+            Files.write(selected.resolve("events").resolve("late-corrupt.json"),
+                    "not-json".getBytes(StandardCharsets.UTF_8));
+            Map<String, Object> incomplete = get(origin, "/api/state", server.token());
+            check(Boolean.FALSE.equals(incomplete.get("trailComplete")),
+                    "poll discovers late corrupt event");
+            Map<String, Object> blockedReport = post(origin, "/api/report", server.token(), "{}");
+            check(Json.str(blockedReport, "message").contains("Report blocked"),
+                    "report reload blocks stale incomplete trail");
+
             // Missing token is rejected.
             int status = statusOf(origin, "/api/state", null);
             check(status == 400 || status == 403, "missing token rejected: " + status);

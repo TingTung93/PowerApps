@@ -32,3 +32,30 @@ Disable lookups in per-user settings for air-gapped sites.
 ## Data
 Shared events under the selected root; per-user settings and pending files under
 `%LOCALAPPDATA%\MedicalSupply`. The shared store contains no credentials.
+
+Events are append-only; archive, restore, catalog retirement, and distribution-list changes create
+new audit events. The signed-in Windows account supplies immutable operator attribution. Deployments
+that require individual attribution must provision a distinct Windows login for every operator.
+
+If any discovered event cannot be validated, or a local write remains pending, the application shows
+an incomplete-trail warning and refuses report export. Resolve the Diagnostics errors before relying
+on inventory totals or reports.
+
+The application reloads shared events before inventory mutations and rejects a removal above the
+latest visible on-hand balance. OneDrive does not provide distributed transactions: if separate
+workstations make truly simultaneous offline removals, replay can still discover a negative balance.
+That condition is treated as an incomplete trail, blocks later writes and reports, and must be resolved
+under the facility's audit-remediation procedure after reviewing both source events.
+
+## Deployment, backup, and retention
+
+Install the workstation kit under a user-writable local directory and point it at a locally synced,
+always-available OneDrive/SharePoint folder. Enable “Always keep on this device” for the shared event
+root so online-only placeholders cannot make replay incomplete. Do not run two active operators under
+one shared Windows account.
+
+Back up the complete shared root, including `events`, `configuration`, `reports`, and `diagnostics`.
+Do not delete or rewrite individual event files. Retention periods are controlled by the facility’s
+records policy; restoring a backup must restore the entire event set, not selected months. Per-user
+pending writes live under `%LOCALAPPDATA%\MedicalSupply\pending` and should be included in workstation
+recovery procedures until their count returns to zero.

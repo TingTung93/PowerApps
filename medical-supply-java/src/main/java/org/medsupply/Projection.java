@@ -38,6 +38,11 @@ public final class Projection {
             if (product.gtin.length() > 0) catalog.put(product.gtin, product);
             return;
         }
+        if (SupplyEvents.PRODUCT_RETIRED.equals(type)) {
+            CatalogProduct product = catalog.get(e.payload(SupplyEvents.K_GTIN));
+            if (product != null) product.active = false;
+            return;
+        }
         String key = e.payload(SupplyEvents.K_ITEM_KEY);
         if (key.length() == 0) return;
         StockLine line = stock.get(key);
@@ -58,11 +63,14 @@ public final class Projection {
             line.active = true;
         } else if (SupplyEvents.STOCK_PICKED.equals(type)) {
             line.quantity -= qty;
+            if ("true".equals(e.payload(SupplyEvents.K_AUTO_ARCHIVE))) line.active = false;
         } else if (SupplyEvents.STOCK_ADJUSTED.equals(type)) {
             line.quantity = qty;
             line.active = true;
         } else if (SupplyEvents.STOCK_ARCHIVED.equals(type) || SupplyEvents.STOCK_VOIDED.equals(type)) {
             line.active = false;
+        } else if (SupplyEvents.STOCK_RESTORED.equals(type)) {
+            line.active = true;
         }
     }
 

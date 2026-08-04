@@ -38,6 +38,11 @@ public final class SwingApp extends JFrame {
         setLocationRelativeTo(null);
         build();
         if (service.configured()) refresh();
+        javax.swing.Timer refreshTimer = new javax.swing.Timer(15000, event -> {
+            if (service.configured()) refresh();
+        });
+        refreshTimer.setRepeats(true);
+        refreshTimer.start();
     }
 
     public static void launch(AppService service) {
@@ -125,8 +130,7 @@ public final class SwingApp extends JFrame {
         if (!service.configured()) { status.setText("Choose a folder first."); return; }
         try {
             Instant now = Instant.now();
-            ManagementReport.Result r = ManagementReport.write(service.store().getSharedRoot().resolve("reports"),
-                    service.dashboard(now), service.reorder(now), service.stock(), now);
+            ManagementReport.Result r = service.writeManagementReport(now);
             status.setText("Report written: " + r.html.getFileName());
         } catch (Exception ex) {
             status.setText("Report error: " + ex.getMessage());
@@ -134,6 +138,7 @@ public final class SwingApp extends JFrame {
     }
 
     private void refresh() {
+        service.reload();
         model.setRowCount(0);
         for (StockLine line : service.stock()) if (line.active) model.addRow(stockRow(line));
         DashboardMetrics m = service.dashboard(Instant.now());

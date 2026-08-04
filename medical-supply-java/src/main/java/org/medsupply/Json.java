@@ -7,13 +7,14 @@ import java.util.List;
 import java.util.Map;
 
 public final class Json {
+    private static final int MAX_DEPTH = 100;
     private Json() {}
 
     public static Object parse(String text) {
         if (text == null) throw new IllegalArgumentException("null JSON");
         Parser p = new Parser(text);
         p.skipWs();
-        Object value = p.readValue();
+        Object value = p.readValue(0);
         p.skipWs();
         if (!p.atEnd()) throw new IllegalArgumentException("Trailing JSON content at " + p.pos);
         return value;
@@ -110,13 +111,14 @@ public final class Json {
             while (pos < s.length() && Character.isWhitespace(s.charAt(pos))) pos++;
         }
 
-        Object readValue() {
+        Object readValue(int depth) {
+            if (depth > MAX_DEPTH) throw new IllegalArgumentException("JSON nesting exceeds " + MAX_DEPTH);
             skipWs();
             if (atEnd()) throw new IllegalArgumentException("Unexpected end of JSON");
             char c = s.charAt(pos);
             switch (c) {
-                case '{': return readObject();
-                case '[': return readArray();
+                case '{': return readObject(depth + 1);
+                case '[': return readArray(depth + 1);
                 case '"': return readString();
                 case 't': case 'f': return readBoolean();
                 case 'n': expect("null"); return null;
@@ -124,7 +126,7 @@ public final class Json {
             }
         }
 
-        private Map<String, Object> readObject() {
+        private Map<String, Object> readObject(int depth) {
             Map<String, Object> map = new LinkedHashMap<String, Object>();
             pos++; // {
             skipWs();
@@ -136,7 +138,7 @@ public final class Json {
                 skipWs();
                 if (peek() != ':') throw new IllegalArgumentException("Expected ':' at " + pos);
                 pos++;
-                map.put(key, readValue());
+                map.put(key, readValue(depth));
                 skipWs();
                 char n = peek();
                 if (n == ',') { pos++; continue; }
@@ -146,13 +148,13 @@ public final class Json {
             return map;
         }
 
-        private List<Object> readArray() {
+        private List<Object> readArray(int depth) {
             List<Object> list = new ArrayList<Object>();
             pos++; // [
             skipWs();
             if (peek() == ']') { pos++; return list; }
             while (true) {
-                list.add(readValue());
+                list.add(readValue(depth));
                 skipWs();
                 char n = peek();
                 if (n == ',') { pos++; continue; }
