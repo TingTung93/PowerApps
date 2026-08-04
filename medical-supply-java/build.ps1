@@ -1,4 +1,8 @@
-param([switch]$SkipTests, [string]$OutputDirectory = "dist")
+param(
+    [switch]$SkipTests,
+    [switch]$SkipFrontend,
+    [string]$OutputDirectory = "dist"
+)
 $ErrorActionPreference = "Stop"
 $projectRoot = $PSScriptRoot
 $buildRoot = Join-Path $projectRoot "build"
@@ -10,6 +14,25 @@ if (Test-Path $dist) { Remove-Item -LiteralPath $dist -Recurse -Force }
 New-Item -ItemType Directory -Path $classes | Out-Null
 New-Item -ItemType Directory -Path $testClasses | Out-Null
 New-Item -ItemType Directory -Path $dist | Out-Null
+if (-not $SkipFrontend) {
+    $frontendRoot = Join-Path $projectRoot "frontend"
+    if (-not (Test-Path (Join-Path $frontendRoot "node_modules"))) {
+        Push-Location $frontendRoot
+        try {
+            & npm install
+            if ($LASTEXITCODE -ne 0) { throw "npm install failed." }
+        } finally {
+            Pop-Location
+        }
+    }
+    Push-Location $frontendRoot
+    try {
+        & npm run build
+        if ($LASTEXITCODE -ne 0) { throw "Frontend build failed." }
+    } finally {
+        Pop-Location
+    }
+}
 $mainSources = Get-ChildItem -Path (Join-Path $projectRoot "src\main\java") -Recurse -Filter *.java | ForEach-Object { $_.FullName }
 & javac --release 8 -encoding UTF-8 -d $classes $mainSources
 if ($LASTEXITCODE -ne 0) { throw "Main compilation failed." }
@@ -40,4 +63,10 @@ if ($null -ne $jarCommand) { $jarTool = $jarCommand.Source } else {
 & $jarTool cfm $jar $manifest -C $classes .
 if ($LASTEXITCODE -ne 0) { throw "JAR packaging failed." }
 Copy-Item -LiteralPath (Join-Path $projectRoot "run-medical-supply.cmd") -Destination $dist
+foreach ($doc in @("README.md", "TESTING.md", "RELEASE_NOTES.md")) {
+    $p = Join-Path $projectRoot $doc
+    if (Test-Path $p) { Copy-Item -LiteralPath $p -Destination $dist }
+}
+$qual = Join-Path $projectRoot "qualification"
+if (Test-Path $qual) { Copy-Item -LiteralPath $qual -Destination $dist -Recurse }
 Write-Host "Built: $jar"
