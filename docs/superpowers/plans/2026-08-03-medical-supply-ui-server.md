@@ -626,7 +626,7 @@ public final class ManagementReportTest {
         List<ReorderSuggestion> reorder = new ArrayList<ReorderSuggestion>();
         ReorderSuggestion s = new ReorderSuggestion();
         s.gtin = "00380740000010";
-        s.name = "Gauze <sterile>";
+        s.name = "Gauze, <sterile>";
         s.onHand = 4;
         s.par = 10;
         s.parProvided = true;
@@ -645,13 +645,13 @@ public final class ManagementReportTest {
 
         Instant now = Instant.parse("2026-08-03T00:00:00Z");
         String html = ManagementReport.renderHtml(m, reorder, stock, now);
-        check(html.contains("Gauze &lt;sterile&gt;"), "escaped name");
+        check(html.contains("Gauze, &lt;sterile&gt;"), "escaped name");
         check(html.contains("123.5") || html.contains("123.50"), "value shown");
         check(html.contains("Reorder"), "reorder section");
 
         String csv = ManagementReport.renderReorderCsv(reorder);
         check(csv.startsWith("gtin,name,onHand,par,suggestedOrderQty,estimatedCost"), "csv header");
-        check(csv.contains("\"Gauze <sterile>\""), "csv quoted name");
+        check(csv.contains("\"Gauze, <sterile>\""), "csv quoted name");
 
         Path dir = Files.createTempDirectory("medsupply-report");
         ManagementReport.Result r = ManagementReport.write(dir, m, reorder, stock, now);
