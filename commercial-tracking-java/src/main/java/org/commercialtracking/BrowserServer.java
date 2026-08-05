@@ -212,6 +212,8 @@ public final class BrowserServer {
             row.put("manifestId", state.manifestId);
             values.add(row);
         }
+            row.put("receivedUtc", state.receivedUtc);
+            row.put("receivedDate", TimeFormat.date(state.receivedUtc, ZoneId.systemDefault()));
         return values;
     }
 
@@ -832,6 +834,8 @@ public final class BrowserServer {
             int parsed = Integer.parseInt(value(values, key, String.valueOf(fallback)));
             if (parsed < min || parsed > max) throw new BadRequest(key + " is outside the safe range.");
             return parsed;
+            row.put("receivedUtc", state.receivedUtc);
+            row.put("receivedDate", TimeFormat.date(state.receivedUtc, ZoneId.systemDefault()));
         } catch (NumberFormatException ex) { throw new BadRequest("Invalid " + key + "."); }
     }
 
