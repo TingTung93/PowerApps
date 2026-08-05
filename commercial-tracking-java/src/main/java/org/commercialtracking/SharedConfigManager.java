@@ -89,8 +89,8 @@ public final class SharedConfigManager {
         if (!"1".equals(value(values, "schemaVersion", "1"))) throw new IllegalArgumentException("Unsupported settings schema.");
         String locations = value(values, "locations", "");
         if (locations.length() == 0 || locations.length() > 500) throw new IllegalArgumentException("At least one valid location is required.");
-        String zone = value(values, "operationalTimeZone", "");
-        try { java.time.ZoneId.of(zone); } catch (Exception ex) { throw new IllegalArgumentException("Invalid operational time zone."); }
+        String timeFormat = value(values, "timeFormat", "12h");
+        if (!"12h".equals(timeFormat) && !"24h".equals(timeFormat)) throw new IllegalArgumentException("Time format must be 12h or 24h.");
         int pending = integer(values, "pendingAttentionMinutes", 5);
         if (pending < 1 || pending > 1440) throw new IllegalArgumentException("Pending attention threshold is outside the safe range.");
         String retain = value(values, "retainRawBarcode", "false");
@@ -103,7 +103,7 @@ public final class SharedConfigManager {
         Map<String, String> values = new LinkedHashMap<String, String>();
         values.put("schemaVersion", "1");
         values.put("locations", "Main Receiving|Loading Dock|Mailroom|Warehouse");
-        values.put("operationalTimeZone", java.time.ZoneId.systemDefault().getId());
+        values.put("timeFormat", "12h");
         values.put("pendingAttentionMinutes", "5");
         values.put("retainRawBarcode", "false");
         return values;
