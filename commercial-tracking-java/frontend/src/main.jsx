@@ -31,7 +31,8 @@ import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
 import { api } from './api'
 import { theme } from './theme'
-import { formatDate } from './format'
+import { formatDate, configureTimeFormat } from './format'
+import { parseLocations, serializeLocations, addLocation } from './locations'
 import { ScanStatus } from './ScanStatus'
 import { ScannerCapture, recommendScannerSettings } from './scannerCapture'
 
@@ -97,7 +98,9 @@ function App() {
   const refresh = useCallback(async (quiet = false) => {
     try {
       if (!quiet) setBusy(true)
-      setState(await api.state())
+      const next = await api.state()
+      configureTimeFormat(next?.sharedSettings?.timeFormat)
+      setState(next)
     } catch (error) {
       setResult({ state: 'error', heading: 'Package was not saved', message: error.message })
     } finally {
@@ -573,9 +576,23 @@ function SettingsWorkspace({ state, onConfigure, onSaveScanner, onSaveShared, on
   const [scanner, setScanner] = useState({ ...state.scannerSettings, deviceId: state.deviceId })
   const [shared, setShared] = useState(state.sharedSettings)
   const [reviewing, setReviewing] = useState(false)
+  const [locationDraft, setLocationDraft] = useState('')
+  const [locationError, setLocationError] = useState('')
   useEffect(() => setScanner({ ...state.scannerSettings, deviceId: state.deviceId }), [state.scannerSettings, state.deviceId])
   useEffect(() => { setShared(state.sharedSettings); setReviewing(false) }, [state.sharedSettings])
   const update = (key, value) => setScanner(current => ({ ...current, [key]: value }))
+  const locationList = parseLocations(shared.locations)
+  const commitLocation = () => {
+    const result = addLocation(locationList, locationDraft)
+    if (!result.ok) { setLocationError(result.error); return }
+    setReviewing(false)
+    setShared(current => ({ ...current, locations: serializeLocations(result.list) }))
+    setLocationDraft(''); setLocationError('')
+  }
+  const removeLocation = value => {
+    setReviewing(false)
+    setShared(current => ({ ...current, locations: serializeLocations(locationList.filter(item => item !== value)) }))
+  }
   return <><PageHeader title="Settings" instruction="Configure this workstation without changing routine scanning." /><Card><CardContent><Typography variant="h6">Workstation</Typography><Divider sx={{ my: 2 }} /><TextField label="Device ID" value={scanner.deviceId} onChange={event => update('deviceId', event.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''))} sx={{ mb: 2 }} /><Detail label="Synchronized folder" value={state.sharedRoot || 'Not configured'} /><Button variant="outlined" sx={{ mt: 2 }} onClick={onConfigure}>Change folder</Button><Divider sx={{ my: 3 }} /><Typography variant="h6">Scanner</Typography><Typography color="text.secondary" sx={{ mb: 2 }}>These settings apply only to this workstation. Automatic mode accepts a scanner-speed burst after the configured quiet interval, and waits for multi-part 2D labels (FedEx and GS1) to finish before submitting.</Typography>
     <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} flexWrap="wrap">
       <FormControl sx={{ minWidth: 180 }}><InputLabel>Completion mode</InputLabel><Select label="Completion mode" value={scanner.completionMode} onChange={event => update('completionMode', event.target.value)}><MenuItem value="automatic">Automatic</MenuItem><MenuItem value="terminator">Terminator</MenuItem><MenuItem value="manual">Manual</MenuItem></Select></FormControl>
@@ -587,8 +604,22 @@ function SettingsWorkspace({ state, onConfigure, onSaveScanner, onSaveShared, on
     </Stack><Button variant="contained" sx={{ mt: 2 }} onClick={() => onSaveScanner(scanner)}>Save scanner settings</Button>
     <ScannerCalibration onRecommendation={values => setScanner(current => ({ ...current, ...values }))} />
     <Divider sx={{ my: 3 }} /><Typography variant="h6">Shared operational settings</Typography><Alert severity="warning" sx={{ my: 2 }}>Applies to all workstations after synchronization.</Alert>{state.sharedSettingsError && <Alert severity="error" sx={{ mb: 2 }}>{state.sharedSettingsError}</Alert>}
-    <Stack spacing={2}><TextField label="Locations (separate with |)" value={shared.locations || ''} onChange={event => { setReviewing(false); setShared(current => ({ ...current, locations: event.target.value })) }} /><TextField label="Operational time zone" value={shared.operationalTimeZone || ''} onChange={event => { setReviewing(false); setShared(current => ({ ...current, operationalTimeZone: event.target.value })) }} /><TextField type="number" label="Pending attention threshold (minutes)" value={shared.pendingAttentionMinutes || 5} onChange={event => { setReviewing(false); setShared(current => ({ ...current, pendingAttentionMinutes: event.target.value })) }} /><FormControl><InputLabel>Retain raw barcode in events</InputLabel><Select label="Retain raw barcode in events" value={shared.retainRawBarcode || 'false'} onChange={event => { setReviewing(false); setShared(current => ({ ...current, retainRawBarcode: event.target.value })) }}><MenuItem value="false">No</MenuItem><MenuItem value="true">Yes</MenuItem></Select></FormControl></Stack>
-    {reviewing && <Alert severity="info" sx={{ mt: 2 }}>Review: locations, operational time zone, pending threshold, and barcode-retention policy will replace the effective shared values. The prior valid version will be retained and an audit event will be written.</Alert>}
+    <Stack spacing={2}>
+      <Box>
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>Receiving locations</Typography>
+        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 1 }}>
+          {locationList.length ? locationList.map(value => <Chip key={value} label={value} onDelete={() => removeLocation(value)} />) : <Typography variant="body2" color="text.secondary">Add at least one receiving location.</Typography>}
+        </Stack>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+          <TextField fullWidth label="Add location" value={locationDraft} error={!!locationError} helperText={locationError || 'Press Enter or Add to append a location.'} onChange={event => { setLocationDraft(event.target.value); setLocationError('') }} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); commitLocation() } }} />
+          <Button variant="outlined" onClick={commitLocation}>Add</Button>
+        </Stack>
+      </Box>
+      <FormControl sx={{ maxWidth: 240 }}><InputLabel>Time display</InputLabel><Select label="Time display" value={shared.timeFormat || '12h'} onChange={event => { setReviewing(false); setShared(current => ({ ...current, timeFormat: event.target.value })) }}><MenuItem value="12h">12-hour (1:30 PM)</MenuItem><MenuItem value="24h">24-hour (13:30)</MenuItem></Select></FormControl>
+      <TextField type="number" label="Pending attention threshold (minutes)" value={shared.pendingAttentionMinutes || 5} onChange={event => { setReviewing(false); setShared(current => ({ ...current, pendingAttentionMinutes: event.target.value })) }} />
+      <FormControl><InputLabel>Retain raw barcode in events</InputLabel><Select label="Retain raw barcode in events" value={shared.retainRawBarcode || 'false'} onChange={event => { setReviewing(false); setShared(current => ({ ...current, retainRawBarcode: event.target.value })) }}><MenuItem value="false">No</MenuItem><MenuItem value="true">Yes</MenuItem></Select></FormControl>
+    </Stack>
+    {reviewing && <Alert severity="info" sx={{ mt: 2 }}>Review: locations, time display, pending threshold, and barcode-retention policy will replace the effective shared values. The prior valid version will be retained and an audit event will be written.</Alert>}
     <Stack direction="row" spacing={1} sx={{ mt: 2 }}><Button variant="contained" onClick={() => reviewing ? onSaveShared(shared) : setReviewing(true)}>{reviewing ? 'Confirm shared changes' : 'Review shared changes'}</Button><Button onClick={onRollbackShared}>Rollback prior version</Button></Stack>
   </CardContent></Card></>
 }
@@ -677,3 +708,4 @@ function ActionDialog({ dialog, state, locations, busy, onClose, onConfigure, on
 }
 
 createRoot(document.getElementById('root')).render(<ThemeProvider theme={theme}><App /></ThemeProvider>)
+
