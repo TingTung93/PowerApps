@@ -667,7 +667,7 @@ public final class BrowserServer {
         Map<String, String> proposed = new LinkedHashMap<String, String>();
         proposed.put("schemaVersion", "1");
         proposed.put("locations", required(request, "locations"));
-        proposed.put("operationalTimeZone", required(request, "operationalTimeZone"));
+        proposed.put("timeFormat", value(request, "timeFormat", "12h"));
         proposed.put("pendingAttentionMinutes", required(request, "pendingAttentionMinutes"));
         proposed.put("retainRawBarcode", required(request, "retainRawBarcode"));
         sharedConfig.save(proposed);
