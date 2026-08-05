@@ -296,4 +296,22 @@ public final class QrCode {
         }
         m[n - 8][8] = true; // dark module (re-assert)
     }
+
+    public byte[] toPng(int scale, int quietModules) throws java.io.IOException {
+        int dim = (size + quietModules * 2) * scale;
+        java.awt.image.BufferedImage img =
+                new java.awt.image.BufferedImage(dim, dim, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        java.awt.Graphics2D g = img.createGraphics();
+        g.setColor(java.awt.Color.WHITE);
+        g.fillRect(0, 0, dim, dim);
+        g.setColor(java.awt.Color.BLACK);
+        for (int r = 0; r < size; r++)
+            for (int c = 0; c < size; c++)
+                if (modules[r][c])
+                    g.fillRect((c + quietModules) * scale, (r + quietModules) * scale, scale, scale);
+        g.dispose();
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(img, "png", out);
+        return out.toByteArray();
+    }
 }

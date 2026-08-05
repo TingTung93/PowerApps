@@ -23,6 +23,14 @@ public final class QrCodeTest {
         boolean threw = false;
         try { QrCode.encode(repeat("X", 60)); } catch (IllegalArgumentException ex) { threw = true; }
         check(threw, "over-length payload rejected");
+
+        byte[] png = QrCode.encode("TRACKING-0001").toPng(4, 2);
+        check(png.length > 8 && (png[0] & 0xFF) == 0x89 && png[1] == 'P' && png[2] == 'N' && png[3] == 'G',
+                "PNG magic header");
+        java.awt.image.BufferedImage img =
+                javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(png));
+        check(img.getWidth() == (21 + 2 * 2) * 4, "png width = " + img.getWidth());
+        check(img.getHeight() == img.getWidth(), "png square");
         System.out.println("QrCodeTest: PASS");
     }
 
