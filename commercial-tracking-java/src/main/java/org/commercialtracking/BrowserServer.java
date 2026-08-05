@@ -130,6 +130,8 @@ public final class BrowserServer {
         value.put("sharedRoot", config.sharedRoot == null ? "" : config.sharedRoot.toString());
         value.put("deviceId", config.deviceId);
         value.put("actor", config.actor);
+        value.put("actorDisplayName", config.actorDisplayName);
+        value.put("identityRegistered", config.actorDisplayName.length() > 0);
         value.put("eventCount", events.size());
         value.put("refreshedUtc", lastRescanUtc);
         value.put("pendingCount", store == null ? 0 : store.pendingCount());
@@ -172,7 +174,8 @@ public final class BrowserServer {
                 item = new LinkedHashMap<String, Object>();
                 item.put("manifestId", event.manifestId);
                 item.put("type", "custody".equals(event.parserSource) ? "Recipient custody" : "Inbound receiving");
-                item.put("location", "custody".equals(event.parserSource) ? event.addressee : event.location);
+                item.put("location", event.addressee != null && event.addressee.length() > 0
+                        ? event.addressee : event.location);
                 item.put("preparedUtc", event.occurredUtc);
                 item.put("count", 0);
                 item.put("checksum", "");
@@ -223,6 +226,8 @@ public final class BrowserServer {
         String mode = value(request, "mode", "Inbound");
         String location = value(request, "location", "");
         String recipient = value(request, "recipient", "");
+        boolean recipientBatchRelease = "Outbound".equals(mode)
+                && "true".equalsIgnoreCase(value(request, "recipientBatchRelease", "false"));
         boolean confirmed = "true".equalsIgnoreCase(value(request, "confirmed", "false"));
         String duplicateAction = value(request, "duplicateAction", "");
         if ("Inbound".equals(mode) && location.length() == 0) throw new BadRequest("Select a receiving location.");
@@ -248,17 +253,23 @@ public final class BrowserServer {
         String kind;
         String message;
         if ("Outbound".equals(mode)) {
-            if (!confirmed) throw new BadRequest("Release requires package verification and explicit confirmation.");
+            if (!confirmed && !recipientBatchRelease) throw new BadRequest("Release requires an explicit recipient batch or package confirmation.");
             if (current == null || !"READY_FOR_PICKUP".equals(current.status)) {
                 throw new BadRequest("No active package awaiting pickup was found in the synchronized event view.");
             }
-            int observed = boundedInteger(request, "observedRevision", -1, -1, Integer.MAX_VALUE);
-            if (observed != current.revision)
-                throw new BadRequest("Package changed after verification. Scan it again and review the latest state.");
+            if (recipientBatchRelease) {
+                if (recipient.length() == 0) throw new BadRequest("Set a recipient before starting a release batch.");
+            } else {
+                int observed = boundedInteger(request, "observedRevision", -1, -1, Integer.MAX_VALUE);
+                if (observed != current.revision)
+                    throw new BadRequest("Package changed after verification. Scan it again and review the latest state.");
+            }
             event.eventType = "PACKAGE_RELEASED";
             event.status = "PICKED_UP";
             event.location = current.location;
             if (event.recipient.length() == 0) event.recipient = current.recipient;
+            if (event.recipient.length() == 0) throw new BadRequest("Set a recipient before release.");
+            saveAddressBook(request, event.recipient);
             event.notes = "Outbound release";
             kind = "SUCCESS";
             message = "Package released: " + event.trackingNumber;
@@ -315,16 +326,18 @@ public final class BrowserServer {
         if (!parsed.isSuccess()) throw new BadRequest("No supported tracking number was found.");
         PackageState current = projection.find(parsed.getTrackingNumber());
         if (current == null) throw new BadRequest("Package was not found.");
+        String selectedRecipient = value(request, "recipient", "");
         Map<String, Object> response = new LinkedHashMap<String, Object>();
         response.put("trackingNumber", current.trackingNumber);
         response.put("carrier", current.carrier);
         response.put("location", current.location);
-        response.put("recipient", current.recipient);
+        response.put("currentRecipient", current.recipient);
+        response.put("recipient", selectedRecipient.length() > 0 ? selectedRecipient : current.recipient);
         response.put("status", current.status);
         response.put("receivedUtc", current.lastEventUtc);
         response.put("revision", current.revision);
-        response.put("canRelease", "READY_FOR_PICKUP".equals(current.status) && current.recipient.length() > 0);
-        if (current.recipient.length() == 0) response.put("blockReason", "Assign a recipient before release.");
+        response.put("canRelease", "READY_FOR_PICKUP".equals(current.status) && (selectedRecipient.length() > 0 || current.recipient.length() > 0));
+        if (selectedRecipient.length() == 0 && current.recipient.length() == 0) response.put("blockReason", "Set a recipient before release.");
         else if (!"READY_FOR_PICKUP".equals(current.status)) response.put("blockReason", "This package is not awaiting pickup.");
         return response;
     }
@@ -334,6 +347,7 @@ public final class BrowserServer {
         event.deviceId = config.deviceId;
         event.sessionId = sessionId;
         event.actor = config.actor;
+        event.actorDisplayName = config.actorDisplayName;
         event.trackingNumber = parsed.getTrackingNumber();
         event.carrier = parsed.getCarrier();
         event.location = location;
@@ -464,42 +478,52 @@ public final class BrowserServer {
         requireConfigured();
         String type = value(request, "type", "inbound").toLowerCase();
         if (!"inbound".equals(type) && !"custody".equals(type)) throw new BadRequest("Invalid manifest type.");
+        String date = value(request, "date", java.time.LocalDate.now(ZoneId.systemDefault()).toString());
+        try { java.time.LocalDate.parse(date); }
+        catch (RuntimeException ex) { throw new BadRequest("Manifest date must be a valid yyyy-MM-dd value."); }
+        String requestedLocation = value(request, "location", "");
+        String requestedRecipient = value(request, "recipient", "");
         String requested = value(request, "trackingNumbers", "");
         List<PackageState> targets = new ArrayList<PackageState>();
         if (requested.length() > 0) {
             for (String tracking : requested.split("\\|")) {
                 PackageState state = projection.find(tracking);
                 if (state == null) throw new BadRequest("Package not found: " + tracking);
+                if ("VOIDED".equals(state.status))
+                    throw new BadRequest(state.trackingNumber + " is voided and cannot be added to a manifest.");
                 targets.add(state);
             }
         } else {
-            for (Map<String, Object> row : sessionPackageMaps()) {
-                PackageState state = projection.find(String.valueOf(row.get("trackingNumber")));
-                if (state != null && state.manifestId.length() == 0) targets.add(state);
+            for (PackageState state : projection.all()) {
+                if ("VOIDED".equals(state.status)) continue;
+                if (!date.equals(hostReceivedDate(state))) continue;
+                if (onManifestOfType(state.trackingNumber, type)) continue;
+                if ("inbound".equals(type)) {
+                    if (requestedLocation.length() > 0 && !requestedLocation.equals(state.location)) continue;
+                } else {
+                    if (!"READY_FOR_PICKUP".equals(state.status) && !"PICKED_UP".equals(state.status)) continue;
+                    if (requestedRecipient.length() > 0 && !requestedRecipient.equals(state.recipient)) continue;
+                }
+                targets.add(state);
             }
         }
         if (targets.isEmpty()) throw new BadRequest("No eligible packages were selected.");
         if (targets.size() > 100) throw new BadRequest("An audited manifest is limited to 100 packages. Split the selection into smaller batches.");
         for (PackageState state : targets) {
-            for (TrackingEvent event : events) {
-                if ("MANIFEST_PREPARED".equals(event.eventType)
-                        && state.trackingNumber.equalsIgnoreCase(event.trackingNumber)
-                        && type.equals(event.parserSource))
-                    throw new BadRequest(state.trackingNumber + " is already assigned to an audited " + type + " manifest.");
-            }
+            if (onManifestOfType(state.trackingNumber, type))
+                throw new BadRequest(state.trackingNumber + " is already assigned to an audited " + type + " manifest.");
         }
-        String scope = "custody".equals(type) ? targets.get(0).recipient : targets.get(0).location;
-        if ("inbound".equals(type)) {
+        String scope;
+        if ("custody".equals(type)) {
+            for (PackageState state : targets)
+                if (!"READY_FOR_PICKUP".equals(state.status) && !"PICKED_UP".equals(state.status))
+                    throw new BadRequest(state.trackingNumber + " is not eligible for a custody manifest (status " + state.status + ").");
+            scope = requestedRecipient.length() > 0 ? requestedRecipient : "All recipients";
+        } else {
+            scope = targets.get(0).location;
             for (PackageState state : targets)
                 if (!scope.equals(state.location))
                     throw new BadRequest("Inbound manifests cannot combine locations in this release. Filter the selection to one location.");
-        }
-        if ("custody".equals(type)) {
-            if (scope.length() == 0) throw new BadRequest("Custody manifests require an assigned recipient.");
-            for (PackageState state : targets) {
-                if (!scope.equals(state.recipient) || !"READY_FOR_PICKUP".equals(state.status))
-                    throw new BadRequest("Every custody-manifest package must be active and assigned to the same recipient.");
-            }
         }
         String manifestId = value(request, "manifestId", "");
         if (manifestId.length() == 0) manifestId = "MNF-"
@@ -508,29 +532,40 @@ public final class BrowserServer {
         if (!manifestId.matches("MNF-[0-9]{14}-[A-Z0-9]{6}")) throw new BadRequest("Invalid proposed manifest ID.");
         for (TrackingEvent event : events)
             if (manifestId.equals(event.manifestId)) throw new BadRequest("The proposed manifest ID is already finalized.");
+        String scopeLabel = date + " · " + scope;
         List<TrackingEvent> membership = new ArrayList<TrackingEvent>();
         for (PackageState current : targets) {
             TrackingEvent source = findEvent(current.lastEventId);
             if (source == null) throw new BadRequest("Package history is incomplete for " + current.trackingNumber);
-            membership.add(source);
+            TrackingEvent row = new TrackingEvent();
+            row.trackingNumber = current.trackingNumber;
+            row.carrier = current.carrier;
+            row.location = current.location;
+            row.recipient = current.recipient;
+            row.occurredUtc = current.lastEventUtc;
+            row.deviceId = current.lastDevice;
+            membership.add(row);
             TrackingEvent prepared = manualEvent("MANIFEST_PREPARED", current, current.recipient,
                     "Included package event " + current.lastEventId);
             prepared.manifestId = manifestId;
             prepared.referenceEventId = current.lastEventId;
             prepared.parserSource = type;
-            prepared.addressee = scope;
+            prepared.addressee = scopeLabel;
             store.append(prepared);
         }
-        String manifestZone = sharedConfig == null ? ZoneId.systemDefault().getId()
-                : sharedConfig.reload().values.get("operationalTimeZone");
+        String timeFormat = "12h";
+        if (sharedConfig != null) {
+            String configured = sharedConfig.reload().values.get("timeFormat");
+            if (configured != null && configured.length() > 0) timeFormat = configured;
+        }
         ManifestWriter.Result output = new ManifestWriter().write(store.getSharedRoot(), manifestId,
-                type, scope, manifestZone, membership);
+                type, scope, date, timeFormat, membership);
         PackageState first = targets.get(0);
         TrackingEvent printed = manualEvent("MANIFEST_PRINTED", first, first.recipient, output.checksum);
         printed.manifestId = manifestId;
         printed.referenceEventId = first.lastEventId;
         printed.parserSource = type;
-        printed.addressee = scope;
+        printed.addressee = scopeLabel;
         printed.address = store.getSharedRoot().relativize(output.path).toString();
         store.append(printed);
         reload();
@@ -539,6 +574,25 @@ public final class BrowserServer {
         response.put("fileName", output.path.getFileName().toString());
         response.put("checksum", output.checksum);
         return response;
+    }
+
+    private boolean onManifestOfType(String tracking, String type) {
+        for (TrackingEvent event : events) {
+            if ("MANIFEST_PREPARED".equals(event.eventType)
+                    && tracking.equalsIgnoreCase(event.trackingNumber)
+                    && type.equals(event.parserSource)) return true;
+        }
+        return false;
+    }
+
+    private static String hostReceivedDate(PackageState state) {
+        if (state.receivedUtc == null || state.receivedUtc.length() == 0) return "";
+        try {
+            return java.time.Instant.parse(state.receivedUtc)
+                    .atZone(ZoneId.systemDefault()).toLocalDate().toString();
+        } catch (RuntimeException ex) {
+            return "";
+        }
     }
 
     private TrackingEvent findEvent(String eventId) {
@@ -660,6 +714,17 @@ public final class BrowserServer {
         return message("Workstation scanner settings saved.");
     }
 
+    private synchronized Map<String, Object> registerIdentity(Map<String, String> request) throws IOException {
+        String displayName = required(request, "displayName");
+        if (displayName.length() > 120) throw new BadRequest("Display name must be 120 characters or fewer.");
+        config.actorDisplayName = displayName;
+        config.save();
+        Map<String, Object> response = message("Windows account registered.");
+        response.put("windowsAccount", config.actor);
+        response.put("displayName", config.actorDisplayName);
+        return response;
+    }
+
     private synchronized Map<String, Object> saveSharedSettings(Map<String, String> request) throws IOException {
         requireConfigured();
         if (!"true".equalsIgnoreCase(value(request, "confirmed", "false")))
@@ -691,6 +756,7 @@ public final class BrowserServer {
         event.sessionId = sessionId;
         event.streamId = "CONFIGURATION";
         event.actor = config.actor;
+        event.actorDisplayName = config.actorDisplayName;
         event.notes = notes;
         return event;
     }
@@ -725,6 +791,7 @@ public final class BrowserServer {
         lines.add("Generated UTC: " + Instant.now());
         lines.add("Device: " + config.deviceId);
         lines.add("Actor: " + config.actor);
+        lines.add("Registered display name: " + config.actorDisplayName);
         lines.add("Shared root: " + (config.sharedRoot == null ? "Not configured" : config.sharedRoot));
         lines.add("Events: " + events.size());
         lines.add("Packages: " + projection.all().size());
@@ -764,6 +831,7 @@ public final class BrowserServer {
         event.deviceId = config.deviceId;
         event.sessionId = sessionId;
         event.actor = config.actor;
+        event.actorDisplayName = config.actorDisplayName;
         event.trackingNumber = current.trackingNumber;
         event.carrier = current.carrier;
         event.location = current.location;
@@ -887,6 +955,8 @@ public final class BrowserServer {
                     response = reportRange(body(exchange));
                 } else if ("/api/preferences".equals(path) && "POST".equals(method)) {
                     response = preferences(body(exchange));
+                } else if ("/api/identity/register".equals(path) && "POST".equals(method)) {
+                    response = registerIdentity(body(exchange));
                 } else if ("/api/settings/shared".equals(path) && "POST".equals(method)) {
                     response = saveSharedSettings(body(exchange));
                 } else if ("/api/settings/shared/rollback".equals(path) && "POST".equals(method)) {
