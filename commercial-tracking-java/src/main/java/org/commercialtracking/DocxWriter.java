@@ -10,6 +10,53 @@ import java.util.zip.ZipOutputStream;
 
 public final class DocxWriter {
     private final StringBuilder body = new StringBuilder();
+    private final java.util.List<byte[]> media = new java.util.ArrayList<byte[]>();
+
+    public static final class Cell {
+        final String text; final byte[] png; final int w, h;
+        private Cell(String text, byte[] png, int w, int h) { this.text = text; this.png = png; this.w = w; this.h = h; }
+        public static Cell text(String t) { return new Cell(t, null, 0, 0); }
+        public static Cell image(byte[] png, int widthPx, int heightPx) { return new Cell(null, png, widthPx, heightPx); }
+    }
+
+    public DocxWriter table(java.util.List<java.util.List<Cell>> rows) {
+        body.append("<w:tbl><w:tblPr><w:tblBorders>")
+            .append("<w:top w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"999999\"/>")
+            .append("<w:left w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"999999\"/>")
+            .append("<w:bottom w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"999999\"/>")
+            .append("<w:right w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"999999\"/>")
+            .append("<w:insideH w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"999999\"/>")
+            .append("<w:insideV w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"999999\"/>")
+            .append("</w:tblBorders></w:tblPr>");
+        for (java.util.List<Cell> row : rows) {
+            body.append("<w:tr>");
+            for (Cell cell : row) {
+                body.append("<w:tc><w:tcPr><w:tcW w:w=\"0\" w:type=\"auto\"/></w:tcPr>");
+                if (cell.png != null) body.append(imageParagraph(cell));
+                else body.append("<w:p>").append(run(cell.text == null ? "" : cell.text)).append("</w:p>");
+                body.append("</w:tc>");
+            }
+            body.append("</w:tr>");
+        }
+        body.append("</w:tbl>");
+        return this;
+    }
+
+    private String imageParagraph(Cell cell) {
+        media.add(cell.png);
+        int id = media.size();
+        long cx = cell.w * 9525L, cy = cell.h * 9525L; // EMU per pixel at 96 DPI
+        String rid = "rIdImg" + id;
+        return "<w:p><w:r><w:drawing><wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\">"
+            + "<wp:extent cx=\"" + cx + "\" cy=\"" + cy + "\"/>"
+            + "<wp:docPr id=\"" + id + "\" name=\"img" + id + "\"/>"
+            + "<a:graphic><a:graphicData uri=\"http://schemas.openxmlformats.org/drawingml/2006/picture\">"
+            + "<pic:pic><pic:nvPicPr><pic:cNvPr id=\"" + id + "\" name=\"img" + id + "\"/><pic:cNvPicPr/></pic:nvPicPr>"
+            + "<pic:blipFill><a:blip r:embed=\"" + rid + "\"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>"
+            + "<pic:spPr><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"" + cx + "\" cy=\"" + cy + "\"/></a:xfrm>"
+            + "<a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom></pic:spPr></pic:pic>"
+            + "</a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>";
+    }
 
     public DocxWriter heading(String text) {
         body.append("<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/></w:pPr>")
@@ -56,9 +103,19 @@ public final class DocxWriter {
         }
     }
 
-    // Replaced in Task 5 with image-aware bodies; empty here so Task 4 compiles and runs on its own.
-    String relationships() { return ""; }
-    void writeMedia(ZipOutputStream zip) throws IOException { }
+    String relationships() {
+        StringBuilder r = new StringBuilder();
+        for (int i = 1; i <= media.size(); i++)
+            r.append("<Relationship Id=\"rIdImg").append(i)
+             .append("\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image\" Target=\"media/image")
+             .append(i).append(".png\"/>");
+        return r.toString();
+    }
+
+    void writeMedia(ZipOutputStream zip) throws IOException {
+        for (int i = 0; i < media.size(); i++)
+            writeBytes(zip, "word/media/image" + (i + 1) + ".png", media.get(i));
+    }
 
     private String document() {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"

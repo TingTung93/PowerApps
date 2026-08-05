@@ -22,6 +22,23 @@ public final class DocxWriterTest {
             check(xml.contains("Inbound Receiving Manifest"), "heading text present");
             check(xml.contains("MNF-20260804-ABCDEF &amp; &lt;ok&gt;"), "paragraph text XML-escaped");
         }
+
+        Path withImage = Files.createTempFile("commercial-docx-img-", ".docx");
+        byte[] png = QrCode.encode("1Z999AA10123456784").toPng(4, 2);
+        java.util.List<DocxWriter.Cell> row = new java.util.ArrayList<DocxWriter.Cell>();
+        row.add(DocxWriter.Cell.text("1Z999AA10123456784"));
+        row.add(DocxWriter.Cell.image(png, 96, 96));
+        java.util.List<java.util.List<DocxWriter.Cell>> rows = new java.util.ArrayList<java.util.List<DocxWriter.Cell>>();
+        rows.add(row);
+        new DocxWriter().heading("Grid").table(rows).save(withImage);
+        try (ZipFile zip = new ZipFile(withImage.toFile())) {
+            check(zip.getEntry("word/media/image1.png") != null, "image media part");
+            String rels = new String(readAll(zip, zip.getEntry("word/_rels/document.xml.rels")), StandardCharsets.UTF_8);
+            check(rels.contains("media/image1.png"), "image relationship");
+            String xml = new String(readAll(zip, zip.getEntry("word/document.xml")), StandardCharsets.UTF_8);
+            check(xml.contains("<w:tbl>"), "table element");
+            check(xml.contains("<w:drawing>"), "inline drawing");
+        }
         System.out.println("DocxWriterTest: PASS");
     }
 
