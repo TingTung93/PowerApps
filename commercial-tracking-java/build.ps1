@@ -77,6 +77,8 @@ if (-not $SkipTests) {
     if ($LASTEXITCODE -ne 0) { throw "Shared settings tests failed." }
     & java -cp "$classes;$testClasses" org.commercialtracking.ProjectionTest
     if ($LASTEXITCODE -ne 0) { throw "Projection tests failed." }
+    & java -cp "$classes;$testClasses" org.commercialtracking.TimeFormatTest
+    if ($LASTEXITCODE -ne 0) { throw "Time format tests failed." }
     & java -cp "$classes;$testClasses" org.commercialtracking.AddressBookStoreTest
     if ($LASTEXITCODE -ne 0) { throw "Address book tests failed." }
     & java -cp "$classes;$testClasses" org.commercialtracking.AppConfigTest
