@@ -285,6 +285,7 @@ public final class CommercialTrackingApp extends JFrame {
         event.deviceId = config.deviceId;
         event.sessionId = sessionId;
         event.actor = config.actor;
+        event.actorDisplayName = config.actorDisplayName;
         event.trackingNumber = parsed.getTrackingNumber();
         event.carrier = parsed.getCarrier();
         event.parserSource = parsed.getSource();
@@ -415,6 +416,7 @@ public final class CommercialTrackingApp extends JFrame {
         event.deviceId = config.deviceId;
         event.sessionId = sessionId;
         event.actor = config.actor;
+        event.actorDisplayName = config.actorDisplayName;
         event.trackingNumber = current.trackingNumber;
         event.carrier = current.carrier;
         event.location = current.location;

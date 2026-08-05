@@ -15,6 +15,7 @@ public final class TrackingEvent {
     public String sessionId = "";
     public String streamId = "";
     public String actor = "";
+    public String actorDisplayName = "";
     public String trackingNumber = "";
     public String carrier = "";
     public String location = "";
@@ -44,6 +45,7 @@ public final class TrackingEvent {
         fields.put("sessionId", sessionId);
         fields.put("streamId", streamId);
         fields.put("actor", actor);
+        fields.put("actorDisplayName", actorDisplayName);
         fields.put("trackingNumber", trackingNumber);
         fields.put("carrier", carrier);
         fields.put("location", location);
@@ -76,6 +78,7 @@ public final class TrackingEvent {
         e.sessionId = value(fields, "sessionId");
         e.streamId = value(fields, "streamId");
         e.actor = value(fields, "actor");
+        e.actorDisplayName = value(fields, "actorDisplayName");
         e.trackingNumber = value(fields, "trackingNumber");
         e.carrier = value(fields, "carrier");
         e.location = value(fields, "location");

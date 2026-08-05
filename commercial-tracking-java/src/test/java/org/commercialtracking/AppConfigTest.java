@@ -13,6 +13,7 @@ public final class AppConfigTest {
         config.sharedRoot = base.resolve("shared");
         config.deviceId = "WS-TEST";
         config.defaultLocation = "Mailroom";
+        config.actorDisplayName = "Jordan Smith";
         config.save();
         Path file = base.resolve("CommercialTracking/config/client.json");
         check(Files.isRegularFile(file), "JSON settings location");
@@ -21,6 +22,7 @@ public final class AppConfigTest {
         AppConfig loaded = AppConfig.load();
         check("WS-TEST".equals(loaded.deviceId), "settings reload");
         check("Mailroom".equals(loaded.defaultLocation), "default location reload");
+        check("Jordan Smith".equals(loaded.actorDisplayName), "display name remains tied to current Windows account");
         System.clearProperty("commercialtracking.localBase");
         System.out.println("AppConfigTest: PASS");
     }

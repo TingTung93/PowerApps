@@ -18,7 +18,7 @@ public final class EventJson {
         root.put("streamId", event.streamId);
         Map<String, Object> actor = new LinkedHashMap<String, Object>();
         actor.put("windowsAccount", event.actor);
-        actor.put("displayName", "");
+        actor.put("displayName", event.actorDisplayName);
         root.put("actor", actor);
         root.put("packageKey", event.trackingNumber.length() == 0 ? "" : "TRACKING:" + event.trackingNumber);
         root.put("observedRevision", Integer.valueOf(event.observedRevision));
@@ -38,14 +38,14 @@ public final class EventJson {
         Map<String, String> fields = new LinkedHashMap<String, String>();
         String[] keys = {
                 "schemaVersion", "eventId", "eventType", "occurredUtc", "recordedUtc", "deviceId",
-                "sessionId", "streamId", "windowsAccount", "observedRevision", "trackingNumber",
+                "sessionId", "streamId", "windowsAccount", "displayName", "observedRevision", "trackingNumber",
                 "carrier", "location", "recipient", "status", "parserSource", "parserConfidence",
                 "weight", "packageCount", "addressee", "address", "notes", "referenceEventId",
                 "manifestId", "rawBarcodeHash", "rawBarcode"
         };
         for (String key : keys) {
             String value = findValue(json, key);
-            if (value != null) fields.put("windowsAccount".equals(key) ? "actor" : key, value);
+            if (value != null) fields.put("windowsAccount".equals(key) ? "actor" : "displayName".equals(key) ? "actorDisplayName" : key, value);
         }
         return TrackingEvent.from(fields);
     }
@@ -54,6 +54,7 @@ public final class EventJson {
         return "schemaVersion".equals(key) || "eventId".equals(key) || "eventType".equals(key)
                 || "occurredUtc".equals(key) || "recordedUtc".equals(key) || "deviceId".equals(key)
                 || "sessionId".equals(key) || "streamId".equals(key) || "actor".equals(key)
+                || "actorDisplayName".equals(key)
                 || "observedRevision".equals(key);
     }
 

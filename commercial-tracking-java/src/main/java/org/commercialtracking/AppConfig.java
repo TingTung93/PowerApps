@@ -14,6 +14,7 @@ public final class AppConfig {
     public final Path localRoot;
     public String deviceId;
     public String actor;
+    public String actorDisplayName = "";
     public String scannerMode = "automatic";
     public String scannerTerminator = "Enter";
     public int scannerIdleMs = 120;
@@ -49,7 +50,10 @@ public final class AppConfig {
         String root = props.getProperty("sharedRoot", "");
         config.sharedRoot = root.length() == 0 ? null : Paths.get(root);
         config.deviceId = props.getProperty("deviceId", defaultDevice());
-        config.actor = props.getProperty("actor", defaultActor());
+        config.actor = defaultActor();
+        String registeredActor = props.getProperty("registeredActor", "");
+        config.actorDisplayName = registeredActor.equalsIgnoreCase(config.actor)
+                ? props.getProperty("actorDisplayName", "").trim() : "";
         config.scannerMode = props.getProperty("scannerMode", "automatic");
         config.scannerTerminator = props.getProperty("scannerTerminator", "Enter");
         config.scannerIdleMs = integer(props, "scannerIdleMs", 120, 80, 2000);
@@ -68,6 +72,8 @@ public final class AppConfig {
         props.setProperty("sharedRoot", sharedRoot == null ? "" : sharedRoot.toString());
         props.setProperty("deviceId", deviceId);
         props.setProperty("actor", actor);
+        props.setProperty("registeredActor", actor);
+        props.setProperty("actorDisplayName", actorDisplayName);
         props.setProperty("scannerMode", scannerMode);
         props.setProperty("scannerTerminator", scannerTerminator);
         props.setProperty("scannerIdleMs", String.valueOf(scannerIdleMs));

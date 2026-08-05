@@ -31,6 +31,7 @@ export const api = {
   report: payload => request('/api/report', { method: 'POST', body: JSON.stringify(payload) }),
   reportRange: payload => request('/api/report/range', { method: 'POST', body: JSON.stringify(payload) }),
   preferences: payload => request('/api/preferences', { method: 'POST', body: JSON.stringify(payload) }),
+  registerIdentity: payload => request('/api/identity/register', { method: 'POST', body: JSON.stringify(payload) }),
   saveSharedSettings: payload => request('/api/settings/shared', { method: 'POST', body: JSON.stringify(payload) }),
   rollbackSharedSettings: () => request('/api/settings/shared/rollback', { method: 'POST', body: '{}' }),
   retryPending: () => request('/api/recovery/retry', { method: 'POST', body: '{}' }),

@@ -8,10 +8,13 @@ public final class EventStoreTest {
         Path base = Files.createTempDirectory("commercial-tracking-test-");
         EventStore store = new EventStore(base.resolve("shared"), base.resolve("local"));
         TrackingEvent receive = event("PACKAGE_RECEIVED", "1Z999AA10123456784", "WS-A");
+        receive.actor = "DOMAIN\\jsmith";
+        receive.actorDisplayName = "Jordan Smith";
         store.append(receive);
         String stored = new String(Files.readAllBytes(findJson(base.resolve("shared"))), "UTF-8");
         check(stored.contains("\"payload\""), "versioned payload envelope expected");
         check(stored.contains("\"windowsAccount\""), "actor envelope expected");
+        check(stored.contains("\"displayName\":\"Jordan Smith\""), "registered display name expected");
         TrackingEvent enveloped = EventJson.read(stored.substring(0, stored.length() - 1)
                 .replaceFirst("\\}$", ",\"futureField\":\"ignored\"}"));
         check(receive.eventId.equals(enveloped.eventId), "unknown envelope fields ignored");
