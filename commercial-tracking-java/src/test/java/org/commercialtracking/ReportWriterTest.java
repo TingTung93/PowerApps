@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipFile;
 
 public final class ReportWriterTest {
     public static void main(String[] args) throws Exception {
@@ -27,8 +28,11 @@ public final class ReportWriterTest {
         String html = new String(Files.readAllBytes(receiving.html), StandardCharsets.UTF_8);
         check(html.contains("Reporting Extract — not an audited manifest."), "extract label");
         check(html.contains("America/Los_Angeles"), "operational time zone");
-        check(new String(Files.readAllBytes(receiving.pdf), 0, 8, StandardCharsets.ISO_8859_1)
-                .startsWith("%PDF-1.4"), "report PDF");
+        check(Files.exists(receiving.docx), "report DOCX exists");
+        try (ZipFile zip = new ZipFile(receiving.docx.toFile())) {
+            check(zip.getEntry("[Content_Types].xml") != null, "docx content-types part");
+            check(zip.getEntry("word/document.xml") != null, "docx document part");
+        }
         ReportWriter.Result outbound = new ReportWriter().write(root, "Outbound/Custody Activity", "custom",
                 "UTC", Instant.parse("2026-03-08T00:00:00Z"), Instant.parse("2026-03-09T00:00:00Z"),
                 events, projection);

@@ -26,14 +26,14 @@ public final class ReportWriter {
     }
 
     public Result write(Path root, String type, String period, String timeZone, Instant from, Instant to,
-                        List<TrackingEvent> events, Projection projection, boolean openPdf) throws IOException {
-        return write(root, type, period, timeZone, from, to, events, projection, openPdf,
+                        List<TrackingEvent> events, Projection projection, boolean openDoc) throws IOException {
+        return write(root, type, period, timeZone, from, to, events, projection, openDoc,
                 "time|tracking|carrier|recipient|location|status|manifest|actor|device",
                 "location", "occurred-asc", true);
     }
 
     public Result write(Path root, String type, String period, String timeZone, Instant from, Instant to,
-                        List<TrackingEvent> events, Projection projection, boolean openPdf, String columns,
+                        List<TrackingEvent> events, Projection projection, boolean openDoc, String columns,
                         String groupBy, String sortOrder, boolean includeSummary) throws IOException {
         boolean outbound = type.toLowerCase().startsWith("outbound");
         List<Row> rows = new ArrayList<Row>();
@@ -63,28 +63,29 @@ public final class ReportWriter {
         String stamp = NAME.format(Instant.now());
         Path csv = dir.resolve("Commercial-Tracking-" + stamp + ".csv");
         Path html = dir.resolve("Commercial-Tracking-" + stamp + ".html");
-        Path pdf = dir.resolve("Commercial-Tracking-" + stamp + ".pdf");
+        Path docx = dir.resolve("Commercial-Tracking-" + stamp + ".docx");
         Files.write(csv, csv(rows, selectedColumns).getBytes(StandardCharsets.UTF_8));
         Files.write(html, html(type, timeZone, from, to, rows, selectedColumns, includeSummary).getBytes(StandardCharsets.UTF_8));
-        List<String> pdfLines = new ArrayList<String>();
-        pdfLines.add("Reporting Extract - not an audited manifest");
-        pdfLines.add("Operational time zone: " + timeZone);
-        pdfLines.add("Inclusive start UTC: " + from);
-        pdfLines.add("Exclusive end UTC: " + to);
-        pdfLines.add("Rows: " + rows.size());
-        pdfLines.add("");
+        DocxWriter document = new DocxWriter();
+        document.heading("Reporting Extract - not an audited manifest");
+        document.paragraph("Operational time zone: " + timeZone);
+        document.paragraph("Inclusive start UTC: " + from);
+        document.paragraph("Exclusive end UTC: " + to);
+        document.paragraph("Rows: " + rows.size());
+        List<List<DocxWriter.Cell>> tableRows = new ArrayList<List<DocxWriter.Cell>>();
+        List<DocxWriter.Cell> header = new ArrayList<DocxWriter.Cell>();
+        for (String column : selectedColumns) header.add(DocxWriter.Cell.text(label(column)));
+        tableRows.add(header);
         for (Row row : rows) {
-            StringBuilder line = new StringBuilder();
-            for (String column : selectedColumns) {
-                if (line.length() > 0) line.append(" | ");
-                line.append(cell(row, column));
-            }
-            pdfLines.add(line.toString());
+            List<DocxWriter.Cell> cells = new ArrayList<DocxWriter.Cell>();
+            for (String column : selectedColumns) cells.add(DocxWriter.Cell.text(cell(row, column)));
+            tableRows.add(cells);
         }
-        PortablePdf.write(pdf, type, pdfLines);
-        if (openPdf && !Boolean.getBoolean("commercialtracking.noDesktop") && Desktop.isDesktopSupported())
-            Desktop.getDesktop().browse(pdf.toUri());
-        return new Result(pdf, html, csv, rows.size());
+        document.table(tableRows);
+        document.save(docx);
+        if (openDoc && !Boolean.getBoolean("commercialtracking.noDesktop") && Desktop.isDesktopSupported())
+            Desktop.getDesktop().browse(docx.toUri());
+        return new Result(docx, html, csv, rows.size());
     }
 
     private static String csv(List<Row> rows, List<String> columns) {
@@ -138,7 +139,7 @@ public final class ReportWriter {
         if ("location".equals(key)) return "Location";
         if ("status".equals(key)) return "Current Status";
         if ("manifest".equals(key)) return "Manifest ID";
-        if ("actor".equals(key)) return "Windows Account";
+        if ("actor".equals(key)) return "Operator (Windows account)";
         if ("device".equals(key)) return "Workstation";
         return null;
     }
@@ -151,7 +152,8 @@ public final class ReportWriter {
         if ("location".equals(key)) return row.event.location;
         if ("status".equals(key)) return row.status;
         if ("manifest".equals(key)) return row.manifestId;
-        if ("actor".equals(key)) return row.event.actor;
+        if ("actor".equals(key)) return row.event.actorDisplayName.length() == 0 ? row.event.actor
+                : row.event.actorDisplayName + " (" + row.event.actor + ")";
         if ("device".equals(key)) return row.event.deviceId;
         return "";
     }
@@ -188,10 +190,10 @@ public final class ReportWriter {
     }
 
     public static final class Result {
-        public final Path pdf;
+        public final Path docx;
         public final Path html;
         public final Path csv;
         public final int count;
-        Result(Path pdf, Path html, Path csv, int count) { this.pdf = pdf; this.html = html; this.csv = csv; this.count = count; }
+        Result(Path docx, Path html, Path csv, int count) { this.docx = docx; this.html = html; this.csv = csv; this.count = count; }
     }
 }
