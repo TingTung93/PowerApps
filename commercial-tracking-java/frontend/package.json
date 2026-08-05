@@ -6,7 +6,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "test": "node test/scannerCapture.test.js && node test/format.test.js && node test/locations.test.js"
+    "test": "node test/scannerCapture.test.js && node test/format.test.js && node test/locations.test.js && node test/manifestEligibility.test.js"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
