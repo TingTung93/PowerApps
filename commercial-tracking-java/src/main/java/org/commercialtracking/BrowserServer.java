@@ -623,7 +623,7 @@ public final class BrowserServer {
     private synchronized Map<String, Object> report(Map<String, String> request) throws IOException {
         requireConfigured();
         String period = value(request, "period", "custom").toLowerCase();
-        String timeZone = value(request, "timeZone", "UTC");
+        String timeZone = value(request, "timeZone", java.time.ZoneId.systemDefault().getId());
         Instant[] bounds = reportBounds(request);
         Instant from = bounds[0];
         Instant to = bounds[1];
@@ -639,7 +639,7 @@ public final class BrowserServer {
                 "true".equalsIgnoreCase(value(request, "includeSummary", "true")));
         Map<String, Object> response = message("Reporting extract created. No package records were changed.");
         response.put("htmlFile", output.html.getFileName().toString());
-        response.put("pdfFile", output.pdf.getFileName().toString());
+        response.put("docxFile", output.docx.getFileName().toString());
         response.put("csvFile", output.csv.getFileName().toString());
         response.put("count", output.count);
         response.put("savedCopy", saveCopy);
