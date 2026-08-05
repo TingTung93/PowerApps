@@ -50,6 +50,7 @@ public final class Projection {
                 conflicts.add("Duplicate active receive: " + event.trackingNumber + " (" + state.lastDevice
                         + " and " + event.deviceId + ")");
             }
+            if (state.receivedUtc.length() == 0) state.receivedUtc = event.occurredUtc;
             state.status = "READY_FOR_PICKUP";
         } else if ("PACKAGE_LOCATION_CHANGED".equals(event.eventType)) {
             if (state.status.length() == 0) state.status = "READY_FOR_PICKUP";
