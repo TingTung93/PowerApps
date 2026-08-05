@@ -26,6 +26,7 @@ import MenuRounded from '@mui/icons-material/MenuRounded'
 import LogoutRounded from '@mui/icons-material/LogoutRounded'
 import EditRounded from '@mui/icons-material/EditRounded'
 import FolderSharedRounded from '@mui/icons-material/FolderSharedRounded'
+import { inboundEligible, custodyEligible, groupByRecipient } from './manifestEligibility.js'
 import '@fontsource/roboto/400.css'
 import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
@@ -90,10 +91,12 @@ function App() {
   const [result, setResult] = useState({ state: 'ready', heading: 'Ready to scan', message: 'Scanner input is focused.' })
   const [selected, setSelected] = useState(null)
   const [releaseCandidate, setReleaseCandidate] = useState(null)
+  const [releaseRecipient, setReleaseRecipient] = useState({ name: '', department: '', contactInfo: '', notes: '' })
   const [dialog, setDialog] = useState(null)
   const [toast, setToast] = useState('')
   const scanRef = useRef(null)
   const setupPrompted = useRef(false)
+  const identityPrompted = useRef(false)
 
   const refresh = useCallback(async (quiet = false) => {
     try {
@@ -124,6 +127,13 @@ function App() {
       setDialog({ type: 'setup' })
     }
   }, [state?.configured])
+
+  useEffect(() => {
+    if (state?.configured && !state.identityRegistered && !identityPrompted.current && !dialog) {
+      identityPrompted.current = true
+      setDialog({ type: 'identity' })
+    }
+  }, [state?.configured, state?.identityRegistered, dialog])
 
   useEffect(() => {
     if (!state?.scannerSettings?.soundEnabled || !['success', 'error', 'review'].includes(result.state)) return
@@ -159,7 +169,8 @@ function App() {
     setBusy(true)
     setResult({ state: 'saving', heading: mode === 'Inbound' ? 'Saving package…' : 'Saving release…', message: 'Writing the accountability record.' })
     try {
-      const response = await api.scan({ raw: scan, mode, location, recipient: '', confirmed: String(confirmed), duplicateAction, observedRevision: releaseCandidate?.revision ?? -1 })
+      const outboundContact = mode === 'Outbound' ? releaseRecipient : { name: '', department: '', contactInfo: '', notes: '' }
+      const response = await api.scan({ raw: scan, mode, location, recipient: outboundContact.name, department: outboundContact.department, contactInfo: outboundContact.contactInfo, notes: outboundContact.notes, recipientBatchRelease: String(mode === 'Outbound' && !!outboundContact.name), confirmed: String(confirmed), duplicateAction, observedRevision: releaseCandidate?.revision ?? -1 })
       if (response.confirmationRequired) {
         setDialog({ type: response.confirmationType === 'duplicate' ? 'duplicate' : 'ambiguous', response, mode })
         setResult({ state: 'review', heading: 'Check this package', message: response.confirmationType === 'duplicate' ? 'This tracking number is already active.' : 'Confirm the proposed tracking number before it is saved.' })
@@ -189,7 +200,7 @@ function App() {
     setBusy(true)
     setResult({ state: 'saving', heading: 'Finding package…', message: 'Checking the current accountability record.' })
     try {
-      const candidate = await api.lookup({ raw: scan })
+      const candidate = await api.lookup({ raw: scan, recipient: releaseRecipient.name })
       setReleaseCandidate(candidate)
       setResult({ state: candidate.canRelease ? 'ready' : 'review', heading: candidate.canRelease ? 'Verify this package' : 'Check this package', message: candidate.canRelease ? 'Confirm the recipient and package before recording custody transfer.' : candidate.blockReason })
     } catch (error) {
@@ -293,18 +304,18 @@ function App() {
     <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)} sx={{ display: { md: 'none' }, '& .MuiDrawer-paper': { width: DRAWER } }}>{drawer}</Drawer>
     <Box component="main" sx={{ flexGrow: 1, minWidth: 0, mt: '64px', p: { xs: 2, lg: 3 } }}>
       {page === 'receive' && <ScanWorkspace mode="Inbound" state={state} scannerSettings={state.scannerSettings} locations={availableLocations} location={location} setLocation={value => { setLocation(value); api.preferences({ ...state.scannerSettings, deviceId: state.deviceId, defaultLocation: value }).then(() => refresh(true)).catch(error => setToast(error.message)) }} scan={scan} setScan={updateScanInput} result={result} busy={busy} scanRef={scanRef} submit={() => submitScan('Inbound')} recent={session} onAssign={item => setDialog({ type: 'recipient', package: item })} />}
-      {page === 'release' && <ScanWorkspace mode="Outbound" state={state} scannerSettings={state.scannerSettings} location={location} scan={scan} setScan={value => { updateScanInput(value); setReleaseCandidate(null) }} result={result} busy={busy} scanRef={scanRef} submit={lookupRelease} candidate={releaseCandidate} onConfirmRelease={() => submitScan('Outbound', true)} recent={packages.filter(item => item.status === 'PICKED_UP')} />}
+      {page === 'release' && <ScanWorkspace mode="Outbound" state={state} scannerSettings={state.scannerSettings} location={location} scan={scan} setScan={value => { updateScanInput(value); setReleaseCandidate(null) }} result={result} busy={busy} scanRef={scanRef} submit={() => submitScan('Outbound')} recent={packages.filter(item => item.status === 'PICKED_UP')} releaseRecipient={releaseRecipient} setReleaseRecipient={value => { setReleaseRecipient(value); setReleaseCandidate(null); setTimeout(() => scanRef.current?.focus(), 0) }} />}
       {page === 'session' && <SessionWorkspace rows={session} activity={state.sessionActivity || []} selected={selected} setSelected={item => setSelected(item ? { ...item, activity: activity.filter(event => event.trackingNumber === item.trackingNumber) } : null)} onFinish={() => finishSession(false)} />}
       {page === 'history' && <HistoryWorkspace rows={packages} activity={activity} selected={selected} setSelected={setSelected} />}
       {page === 'recipients' && <RecipientWorkspace rows={unassigned} entries={state.addressBook || []} onAssign={targets => setDialog({ type: 'bulkRecipient', packages: targets })} onEdit={entry => setDialog({ type: 'addressBook', entry })} />}
       {page === 'manifests' && <ManifestWorkspace manifests={state.manifests || []} session={session} packages={packages} location={location} onFinalize={async payload => { try { const response = await api.manifest(payload); setToast(`Manifest finalized: ${response.manifestId}`); await refresh(true) } catch (error) { setToast(error.message) } }} onReprint={async manifestId => { try { const response = await api.reprintManifest({ manifestId }); setToast(response.message) } catch (error) { setToast(error.message) } }} />}
       {page === 'reports' && <ReportsWorkspace operationalZone={state.sharedSettings?.operationalTimeZone} events={activity} packages={packages} onCreate={async payload => { try { const response = await api.report(payload); setToast(`${response.count} rows exported to ${response.csvFile}`) } catch (error) { setToast(error.message) } }} />}
       {page === 'attention' && <AttentionWorkspace conflicts={state.conflicts} errors={state.errors} notices={[...(state.attention || []), ...(state.warnings || [])]} packages={packages} onResolve={item => setDialog({ type: 'conflict', package: item })} onRetry={async () => { const response = await api.retryPending(); setToast(response.message); await refresh(true) }} />}
-      {page === 'settings' && <SettingsWorkspace state={state} onConfigure={() => setDialog({ type: 'setup' })} onSaveScanner={async values => { try { await api.preferences(values); setToast('Scanner settings saved'); await refresh(true) } catch (error) { setToast(error.message) } }} onSaveShared={async values => { try { const response = await api.saveSharedSettings({ ...values, confirmed: 'true' }); setToast(response.message); await refresh(true) } catch (error) { setToast(error.message) } }} onRollbackShared={async () => { try { const response = await api.rollbackSharedSettings(); setToast(response.message); await refresh(true) } catch (error) { setToast(error.message) } }} />}
+      {page === 'settings' && <SettingsWorkspace state={state} onConfigure={() => setDialog({ type: 'setup' })} onRegisterIdentity={async displayName => { try { await api.registerIdentity({ displayName }); setToast('Windows account registration saved'); await refresh(true) } catch (error) { setToast(error.message) } }} onSaveScanner={async values => { try { await api.preferences(values); setToast('Scanner settings saved'); await refresh(true) } catch (error) { setToast(error.message) } }} onSaveShared={async values => { try { const response = await api.saveSharedSettings({ ...values, confirmed: 'true' }); setToast(response.message); await refresh(true) } catch (error) { setToast(error.message) } }} onRollbackShared={async () => { try { const response = await api.rollbackSharedSettings(); setToast(response.message); await refresh(true) } catch (error) { setToast(error.message) } }} />}
       {page === 'diagnostics' && <Diagnostics state={state} onRebuild={async () => { const response = await api.rebuildProjection(); setToast(response.message); await refresh(true) }} onExport={async () => { const response = await api.exportDiagnostics(); setToast(`${response.message} ${response.file}`) }} />}
     </Box>
     {selected && <DetailPanel item={selected} onClose={() => setSelected(null)} onAssign={() => setDialog({ type: 'recipient' })} onCorrect={() => setDialog({ type: 'correction', package: selected })} onVoid={() => setDialog({ type: 'void' })} />}
-    <ActionDialog dialog={dialog} state={state} locations={availableLocations} busy={busy} onClose={() => setDialog(null)} onConfigure={configure} onConfirm={() => { setDialog(null); submitScan(dialog.mode, true) }} onDuplicate={action => { setDialog(null); submitScan('Inbound', false, action) }} onAssign={assign} onBulkAssign={bulkAssign} onSaveAddressBook={async entry => { try { await api.saveAddressBook(entry); setDialog(null); setToast('Address book entry saved'); await refresh(true) } catch (error) { setToast(error.message) } }} onCorrect={correctPackage} onResolve={resolveConflict} onVoid={voidPackage} onNavigate={choosePage} onFinishWithout={() => finishSession(true)} />
+    <ActionDialog dialog={dialog} state={state} locations={availableLocations} busy={busy} onClose={() => setDialog(null)} onRegisterIdentity={async displayName => { try { await api.registerIdentity({ displayName }); setDialog(null); setToast('Windows account registered'); await refresh(true) } catch (error) { setToast(error.message) } }} onConfigure={configure} onConfirm={() => { setDialog(null); submitScan(dialog.mode, true) }} onDuplicate={action => { setDialog(null); submitScan('Inbound', false, action) }} onAssign={assign} onBulkAssign={bulkAssign} onSaveAddressBook={async entry => { try { await api.saveAddressBook(entry); setDialog(null); setToast('Address book entry saved'); await refresh(true) } catch (error) { setToast(error.message) } }} onCorrect={correctPackage} onResolve={resolveConflict} onVoid={voidPackage} onNavigate={choosePage} onFinishWithout={() => finishSession(true)} />
     <Snackbar open={!!toast} autoHideDuration={4000} onClose={() => setToast('')} message={toast} />
   </Box>
 }
@@ -327,7 +338,7 @@ function PageHeader({ title, instruction, action }) {
   </Stack>
 }
 
-function ScanWorkspace({ mode, state, scannerSettings, locations, location, setLocation, scan, setScan, result, busy, scanRef, submit, recent, onAssign, candidate, onConfirmRelease }) {
+function ScanWorkspace({ mode, state, scannerSettings, locations, location, setLocation, scan, setScan, result, busy, scanRef, submit, recent, onAssign, candidate, onConfirmRelease, releaseRecipient, setReleaseRecipient }) {
   const inbound = mode === 'Inbound'
   const [focused, setFocused] = useState(false)
   const armed = focused && !busy && state.configured
@@ -363,13 +374,14 @@ function ScanWorkspace({ mode, state, scannerSettings, locations, location, setL
     capture.current.character(performance.now(), scan.length)
   }
   return <Box sx={{ maxWidth: 1080, mx: 'auto' }}>
-    <PageHeader title={inbound ? 'Receive Packages' : 'Release Packages'} instruction={inbound ? 'Confirm the location, then scan each package.' : 'Find the package, verify its details, then confirm custody transfer.'} />
+    <PageHeader title={inbound ? 'Receive Packages' : 'Release Packages'} instruction={inbound ? 'Confirm the location, then scan each package.' : 'Set the recipient once, then scan each package to assign and release it.'} />
     {!state.configured && <Alert severity="warning" sx={{ mb: 2 }}>Complete workstation setup in Settings before scanning.</Alert>}
     <Card sx={{ mb: 2 }}>
       <CardContent sx={{ p: { xs: 2, md: 3 } }}>
         {inbound && <FormControl size="small" sx={{ minWidth: 240, mb: 2 }}><InputLabel id="location-label">Receiving location</InputLabel><Select labelId="location-label" label="Receiving location" value={location} onChange={event => setLocation(event.target.value)}>{locations.map(value => <MenuItem key={value} value={value}>{value}</MenuItem>)}</Select></FormControl>}
+        {!inbound && <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'flex-start' }} sx={{ mb: 2 }}><Autocomplete freeSolo fullWidth options={state.addressBook || []} getOptionLabel={option => typeof option === 'string' ? option : option.name} value={releaseRecipient?.name ? releaseRecipient : null} inputValue={releaseRecipient?.name || ''} onChange={(_, selected) => setReleaseRecipient(selected ? { name: selected.name || '', department: selected.department || '', contactInfo: selected.contactInfo || '', notes: selected.notes || '' } : { name: '', department: '', contactInfo: '', notes: '' })} onInputChange={(_, name, reason) => reason !== 'reset' && setReleaseRecipient({ name, department: '', contactInfo: '', notes: '' })} renderInput={params => <TextField {...params} required label="Recipient or department" helperText="This selection remains active for each package in this release batch." />} /><Button sx={{ mt: { sm: .75 }, whiteSpace: 'nowrap' }} disabled={!releaseRecipient?.name} onClick={() => setReleaseRecipient({ name: '', department: '', contactInfo: '', notes: '' })}>Clear recipient</Button></Stack>}
         <Box component="form" onSubmit={event => { event.preventDefault(); submit() }}>
-          <TextField inputRef={scanRef} fullWidth autoComplete="off" disabled={busy || !state.configured} value={scan}
+          <TextField inputRef={scanRef} fullWidth autoComplete="off" disabled={busy || !state.configured || (!inbound && !releaseRecipient?.name?.trim())} value={scan}
             onKeyDown={captureKey} onPaste={event => { pasted.current = capture.current.paste(performance.now(), event.clipboardData.getData('text')) }}
             onChange={event => { if (event.target.value.length <= scan.length) capture.current.edit(); setScan(event.target.value) }}
             onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
@@ -381,7 +393,7 @@ function ScanWorkspace({ mode, state, scannerSettings, locations, location, setL
               {armed && <Box aria-hidden sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: 'success.main', animation: 'ctPulse 1.6s ease-in-out infinite' }} />}
               <Typography id="scan-help" variant="caption" color="text.secondary">{armed ? 'Listening for scanner — or type a tracking number and press Enter.' : 'Scan a barcode, or type and press Enter. Focus returns here after each action.'}</Typography>
             </Stack>
-            <Button type="submit" variant="contained" disabled={!scan.trim() || busy}>Process</Button>
+            <Button type="submit" variant="contained" disabled={!scan.trim() || busy || (!inbound && !releaseRecipient?.name?.trim())}>Process</Button>
           </Stack>
         </Box>
       </CardContent>
@@ -390,8 +402,8 @@ function ScanWorkspace({ mode, state, scannerSettings, locations, location, setL
     {!inbound && candidate && <Card sx={{ mb: 2, borderColor: candidate.canRelease ? 'primary.main' : 'warning.main' }}><CardContent>
       <Typography variant="overline" color="text.secondary">Package verification</Typography>
       <Typography variant="h5" className="ct-mono" sx={{ mb: 2 }}>{candidate.trackingNumber}</Typography>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={4}><Detail label="Recipient" value={<Typography variant="h6">{candidate.recipient || 'Unassigned'}</Typography>} /><Detail label="Carrier" value={candidate.carrier} /><Detail label="Received location" value={candidate.location} /><Detail label="Status" value={<StatusChip status={candidate.status} />} /></Stack>
-      <Button variant="contained" size="large" sx={{ mt: 3 }} disabled={!candidate.canRelease || busy} onClick={onConfirmRelease}>Confirm release</Button>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={4}><Detail label="Assign and release to" value={<Typography variant="h6">{candidate.recipient || 'Unassigned'}</Typography>} />{candidate.currentRecipient && candidate.currentRecipient !== candidate.recipient && <Detail label="Previously assigned" value={candidate.currentRecipient} />}<Detail label="Carrier" value={candidate.carrier} /><Detail label="Received location" value={candidate.location} /><Detail label="Status" value={<StatusChip status={candidate.status} />} /></Stack>
+      <Button variant="contained" size="large" sx={{ mt: 3 }} disabled={!candidate.canRelease || busy} onClick={onConfirmRelease}>Confirm assignment & release</Button>
     </CardContent></Card>}
     <Card variant="outlined"><CardContent>
       <Stack direction="row" justifyContent="space-between" alignItems="center"><Typography variant="h6">{inbound ? 'Current session' : 'Recently released'} · {recent.length} packages</Typography></Stack>
@@ -467,7 +479,7 @@ function ActivityTable({ rows }) {
   const labels = { PACKAGE_RECEIVED: 'Received', RECIPIENT_ASSIGNED: 'Recipient assigned', PACKAGE_LOCATION_CHANGED: 'Location changed', PACKAGE_RELEASED: 'Released', PACKAGE_VOIDED: 'Voided' }
   if (!rows.length) return <EmptyState />
   return <TableContainer><Table><TableHead><TableRow><TableCell>Recorded</TableCell><TableCell>Activity</TableCell><TableCell>Tracking number</TableCell><TableCell>Operator</TableCell><TableCell>Workstation</TableCell></TableRow></TableHead><TableBody>
-    {rows.map(row => <TableRow key={row.eventId}><TableCell title={row.occurredUtc}>{formatDate(row.occurredUtc)}</TableCell><TableCell>{labels[row.eventType] || row.eventType}</TableCell><TableCell className="ct-mono">{row.trackingNumber}</TableCell><TableCell>{row.actor}</TableCell><TableCell>{row.deviceId}</TableCell></TableRow>)}
+    {rows.map(row => <TableRow key={row.eventId}><TableCell title={row.occurredUtc}>{formatDate(row.occurredUtc)}</TableCell><TableCell>{labels[row.eventType] || row.eventType}</TableCell><TableCell className="ct-mono">{row.trackingNumber}</TableCell><TableCell>{row.actorDisplayName ? `${row.actorDisplayName} (${row.actor})` : row.actor}</TableCell><TableCell>{row.deviceId}</TableCell></TableRow>)}
   </TableBody></Table></TableContainer>
 }
 
@@ -481,7 +493,7 @@ function DetailPanel({ item, onClose, onAssign, onCorrect, onVoid }) {
   return <Drawer anchor="right" open onClose={onClose} sx={{ '& .MuiDrawer-paper': { width: { xs: '100%', sm: 430 }, p: 3 } }}>
     <Typography variant="overline" color="text.secondary">Package detail</Typography><Typography variant="h5" className="ct-mono" sx={{ overflowWrap: 'anywhere' }}>{item.trackingNumber}</Typography>
     <Divider sx={{ my: 2 }} /><Stack spacing={2}><Detail label="Carrier" value={item.carrier} /><Detail label="Recipient" value={item.recipient || 'Unassigned'} /><Detail label="Location" value={item.location} /><Detail label="Status" value={<StatusChip status={item.status} />} /><Detail label="Last activity" value={formatDate(item.lastEventUtc || item.occurredUtc)} /></Stack>
-    {!!item.activity?.length && <Box sx={{ mt: 3 }}><Typography variant="h6">Activity timeline</Typography><Stack sx={{ mt: 1 }} divider={<Divider />}>{item.activity.map(event => <Box key={event.eventId} sx={{ py: 1.25 }}><Typography fontWeight={500}>{(event.eventType || '').replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, char => char.toUpperCase())}</Typography><Typography variant="body2" color="text.secondary">{formatDate(event.occurredUtc)} · {event.actor} · {event.deviceId}</Typography><Typography variant="caption" color="text.secondary" title={event.eventId}>Revision observed: {event.observedRevision} · UTC: {event.occurredUtc}</Typography></Box>)}</Stack></Box>}
+    {!!item.activity?.length && <Box sx={{ mt: 3 }}><Typography variant="h6">Activity timeline</Typography><Stack sx={{ mt: 1 }} divider={<Divider />}>{item.activity.map(event => <Box key={event.eventId} sx={{ py: 1.25 }}><Typography fontWeight={500}>{(event.eventType || '').replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, char => char.toUpperCase())}</Typography><Typography variant="body2" color="text.secondary">{formatDate(event.occurredUtc)} · {event.actorDisplayName ? `${event.actorDisplayName} (${event.actor})` : event.actor} · {event.deviceId}</Typography><Typography variant="caption" color="text.secondary" title={event.eventId}>Revision observed: {event.observedRevision} · UTC: {event.occurredUtc}</Typography></Box>)}</Stack></Box>}
     <Divider sx={{ my: 3 }} /><Stack direction="row" spacing={1}><Button startIcon={<PersonAddAltRounded />} onClick={onAssign}>Assign recipient</Button><Button startIcon={<EditRounded />} onClick={onCorrect}>Correct package…</Button></Stack>
     <Box sx={{ mt: 'auto', pt: 4 }}><Divider sx={{ mb: 2 }} /><Typography variant="subtitle2" color="error" sx={{ mb: 1 }}>Danger area</Typography><Button color="error" variant="outlined" startIcon={<BlockRounded />} onClick={onVoid}>Void package…</Button></Box>
   </Drawer>
@@ -495,17 +507,35 @@ function InfoWorkspace({ title, instruction, icon, action, text }) {
   return <><PageHeader title={title} instruction={instruction} action={action} /><Card><CardContent sx={{ py: 7, textAlign: 'center' }}><Box sx={{ color: 'primary.main', '& svg': { fontSize: 48 } }}>{icon}</Box><Typography color="text.secondary" sx={{ mt: 1 }}>{text}</Typography></CardContent></Card></>
 }
 
-function ManifestWorkspace({ manifests, session, packages, location, onFinalize, onReprint }) {
+function localDateToday() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+}
+
+function ManifestWorkspace({ manifests, packages, location, onFinalize, onReprint }) {
   const [tab, setTab] = useState(0)
   const [type, setType] = useState('inbound')
-  const [manifestLocation, setManifestLocation] = useState(location)
-  const sessionLocations = [...new Set(session.map(item => item.location).filter(Boolean))]
-  const eligible = type === 'inbound' ? session.filter(item => !item.manifestId && item.location === manifestLocation) : packages.filter(item => item.status === 'READY_FOR_PICKUP' && item.recipient)
-  const [chosen, setChosen] = useState([])
-  useEffect(() => setChosen(type === 'inbound' ? eligible : []), [type, manifestLocation, session.length, manifests.length])
-  const toggle = item => setChosen(current => current.some(value => value.trackingNumber === item.trackingNumber) ? current.filter(value => value.trackingNumber !== item.trackingNumber) : [...current, item])
-  const custodyRecipients = [...new Set(packages.filter(item => item.status === 'READY_FOR_PICKUP' && item.recipient).map(item => item.recipient))]
+  const [date, setDate] = useState(localDateToday)
+  const [manifestLocation, setManifestLocation] = useState(location || '')
   const [custodyRecipient, setCustodyRecipient] = useState('')
+  const locations = useMemo(() => [...new Set(packages.map(item => item.location).filter(Boolean))], [packages])
+  const custodyRecipients = useMemo(
+    () => [...new Set(custodyEligible(packages, { date, recipient: '' }).map(item => item.recipient).filter(Boolean))].sort(),
+    [packages, date])
+  const eligible = useMemo(
+    () => type === 'inbound'
+      ? inboundEligible(packages, { date, location: manifestLocation })
+      : custodyEligible(packages, { date, recipient: custodyRecipient }),
+    [type, packages, date, manifestLocation, custodyRecipient])
+  const groups = useMemo(
+    () => type === 'custody' ? groupByRecipient(eligible) : [{ recipient: '', items: eligible }],
+    [type, eligible])
+  const [chosen, setChosen] = useState([])
+  useEffect(() => setChosen(eligible), [type, date, manifestLocation, custodyRecipient, packages.length])
+  const toggle = item => setChosen(current => current.some(value => value.trackingNumber === item.trackingNumber)
+    ? current.filter(value => value.trackingNumber !== item.trackingNumber)
+    : [...current, item])
+  const included = item => chosen.some(value => value.trackingNumber === item.trackingNumber)
   const proposeId = () => {
     const stamp = new Date().toISOString().replace(/\D/g, '').slice(0, 14)
     const suffix = crypto.randomUUID().replaceAll('-', '').slice(0, 6).toUpperCase()
@@ -513,15 +543,35 @@ function ManifestWorkspace({ manifests, session, packages, location, onFinalize,
   }
   const [manifestId, setManifestId] = useState(proposeId)
   useEffect(() => setManifestId(proposeId()), [manifests.length])
-  useEffect(() => {
-    if (type === 'custody' && custodyRecipient) setChosen(eligible.filter(item => item.recipient === custodyRecipient))
-  }, [custodyRecipient, type])
+  const finalize = () => onFinalize({
+    type,
+    date,
+    location: type === 'inbound' ? manifestLocation : '',
+    recipient: type === 'custody' ? custodyRecipient : '',
+    manifestId,
+    trackingNumbers: chosen.map(item => item.trackingNumber).join('|')
+  })
   return <><PageHeader title="Manifests" instruction="Prepare audited package lists and review finalized manifests." />
     <Card><Tabs value={tab} onChange={(_, value) => setTab(value)} sx={{ px: 2 }}><Tab label="Prepare manifest" /><Tab label={`Manifest register (${manifests.length})`} /></Tabs><Divider />
-      {tab === 0 ? <CardContent><Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}><FormControl sx={{ minWidth: 220 }}><InputLabel>Purpose</InputLabel><Select label="Purpose" value={type} onChange={event => setType(event.target.value)}><MenuItem value="inbound">Inbound receiving</MenuItem><MenuItem value="custody">Recipient custody</MenuItem></Select></FormControl>{type === 'inbound' && <FormControl sx={{ minWidth: 220 }}><InputLabel>Location</InputLabel><Select label="Location" value={manifestLocation} onChange={event => setManifestLocation(event.target.value)}>{sessionLocations.map(value => <MenuItem key={value} value={value}>{value}</MenuItem>)}</Select></FormControl>}{type === 'custody' && <FormControl sx={{ minWidth: 240 }}><InputLabel>Recipient</InputLabel><Select label="Recipient" value={custodyRecipient} onChange={event => setCustodyRecipient(event.target.value)}>{custodyRecipients.map(value => <MenuItem key={value} value={value}>{value}</MenuItem>)}</Select></FormControl>}</Stack><Typography color="text.secondary" sx={{ my: 2 }}>Review exact membership before finalization. Finalization writes immutable audit events even if printing is canceled.</Typography>
-        <TableContainer sx={{ maxHeight: 330 }}><Table size="small"><TableHead><TableRow><TableCell padding="checkbox"></TableCell><TableCell>Tracking</TableCell><TableCell>Carrier</TableCell><TableCell>Location</TableCell><TableCell>Recipient</TableCell></TableRow></TableHead><TableBody>{eligible.filter(item => type === 'inbound' || !custodyRecipient || item.recipient === custodyRecipient).map(item => <TableRow key={item.trackingNumber}><TableCell padding="checkbox"><Checkbox checked={chosen.some(value => value.trackingNumber === item.trackingNumber)} onChange={() => toggle(item)} /></TableCell><TableCell className="ct-mono">{item.trackingNumber}</TableCell><TableCell>{item.carrier}</TableCell><TableCell>{item.location}</TableCell><TableCell>{item.recipient || 'Unassigned'}</TableCell></TableRow>)}</TableBody></Table></TableContainer>
-        <Typography sx={{ my: 1 }}>{chosen.length} included · {Math.max(0, eligible.length - chosen.length)} excluded</Typography><Typography variant="body2">Proposed manifest ID: <b>{manifestId}</b> · Prepared: {formatDate(new Date().toISOString())}</Typography>{chosen.length > 100 && <Alert severity="warning" sx={{ my: 2 }}>Audited manifests are limited to 100 packages. Split this selection.</Alert>}<Button variant="contained" startIcon={<PrintRounded />} disabled={!chosen.length || chosen.length > 100} onClick={() => onFinalize({ type, location: manifestLocation, manifestId, trackingNumbers: chosen.map(item => item.trackingNumber).join('|') })}>Finalize and open print view</Button></CardContent>
-        : manifests.length ? <TableContainer><Table><TableHead><TableRow><TableCell>Manifest ID</TableCell><TableCell>Type</TableCell><TableCell>Location/recipient</TableCell><TableCell>Prepared</TableCell><TableCell>Packages</TableCell><TableCell>Checksum</TableCell><TableCell></TableCell></TableRow></TableHead><TableBody>{manifests.map(item => <TableRow key={item.manifestId}><TableCell className="ct-mono" sx={{ fontWeight: 700 }}>{item.manifestId}</TableCell><TableCell>{item.type}</TableCell><TableCell>{item.location}</TableCell><TableCell>{formatDate(item.preparedUtc)}</TableCell><TableCell>{item.count}</TableCell><TableCell sx={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.checksum}>{item.checksum || 'Pending'}</TableCell><TableCell><Button size="small" onClick={() => onReprint(item.manifestId)}>Reprint</Button></TableCell></TableRow>)}</TableBody></Table></TableContainer> : <EmptyState />}
+      {tab === 0 ? <CardContent>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+          <FormControl sx={{ minWidth: 220 }}><InputLabel>Purpose</InputLabel><Select label="Purpose" value={type} onChange={event => setType(event.target.value)}><MenuItem value="inbound">Inbound receiving</MenuItem><MenuItem value="custody">Recipient custody</MenuItem></Select></FormControl>
+          <TextField type="date" label="Received date" value={date} onChange={event => setDate(event.target.value)} InputLabelProps={{ shrink: true }} sx={{ minWidth: 200 }} />
+          {type === 'inbound' && <FormControl sx={{ minWidth: 220 }}><InputLabel>Location</InputLabel><Select label="Location" value={manifestLocation} onChange={event => setManifestLocation(event.target.value)}><MenuItem value="">All locations</MenuItem>{locations.map(value => <MenuItem key={value} value={value}>{value}</MenuItem>)}</Select></FormControl>}
+          {type === 'custody' && <FormControl sx={{ minWidth: 240 }}><InputLabel>Recipient</InputLabel><Select label="Recipient" value={custodyRecipient} onChange={event => setCustodyRecipient(event.target.value)}><MenuItem value="">All recipients</MenuItem>{custodyRecipients.map(value => <MenuItem key={value} value={value}>{value}</MenuItem>)}</Select></FormControl>}
+        </Stack>
+        <Typography color="text.secondary" sx={{ my: 2 }}>Review exact membership before finalization. Finalization writes immutable audit events even if printing is canceled.</Typography>
+        <TableContainer sx={{ maxHeight: 360 }}><Table size="small" stickyHeader><TableHead><TableRow><TableCell padding="checkbox"></TableCell><TableCell>Tracking</TableCell><TableCell>Carrier</TableCell><TableCell>Location</TableCell><TableCell>Recipient</TableCell></TableRow></TableHead>
+          <TableBody>{groups.map(group => <React.Fragment key={group.recipient || 'all'}>
+            {type === 'custody' && <TableRow><TableCell colSpan={5} sx={{ bgcolor: 'action.hover', fontWeight: 700 }}>{group.recipient} · {group.items.length}</TableCell></TableRow>}
+            {group.items.map(item => <TableRow key={item.trackingNumber}><TableCell padding="checkbox"><Checkbox checked={included(item)} onChange={() => toggle(item)} /></TableCell><TableCell className="ct-mono">{item.trackingNumber}</TableCell><TableCell>{item.carrier}</TableCell><TableCell>{item.location}</TableCell><TableCell>{item.recipient || 'Unassigned'}</TableCell></TableRow>)}
+          </React.Fragment>)}</TableBody></Table></TableContainer>
+        <Typography sx={{ my: 1 }}>{chosen.length} included · {Math.max(0, eligible.length - chosen.length)} excluded</Typography>
+        <Typography variant="body2">Proposed manifest ID: <b>{manifestId}</b> · Prepared: {formatDate(new Date().toISOString())}</Typography>
+        {chosen.length > 100 && <Alert severity="warning" sx={{ my: 2 }}>Audited manifests are limited to 100 packages. Split this selection.</Alert>}
+        <Button variant="contained" startIcon={<PrintRounded />} disabled={!chosen.length || chosen.length > 100} onClick={finalize} sx={{ mt: 1 }}>Finalize and open print view</Button>
+      </CardContent>
+      : manifests.length ? <TableContainer><Table><TableHead><TableRow><TableCell>Manifest ID</TableCell><TableCell>Type</TableCell><TableCell>Location/recipient</TableCell><TableCell>Prepared</TableCell><TableCell>Packages</TableCell><TableCell>Checksum</TableCell><TableCell></TableCell></TableRow></TableHead><TableBody>{manifests.map(item => <TableRow key={item.manifestId}><TableCell className="ct-mono" sx={{ fontWeight: 700 }}>{item.manifestId}</TableCell><TableCell>{item.type}</TableCell><TableCell>{item.location}</TableCell><TableCell>{formatDate(item.preparedUtc)}</TableCell><TableCell>{item.count}</TableCell><TableCell sx={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.checksum}>{item.checksum || 'Pending'}</TableCell><TableCell><Button size="small" onClick={() => onReprint(item.manifestId)}>Reprint</Button></TableCell></TableRow>)}</TableBody></Table></TableContainer> : <EmptyState />}
     </Card></>
 }
 
@@ -534,7 +584,7 @@ function ReportsWorkspace({ onCreate, operationalZone, events, packages }) {
   const zone = operationalZone || Intl.DateTimeFormat().resolvedOptions().timeZone
   const [bounds, setBounds] = useState(reportRange(range, customFrom, customTo))
   const [filters, setFilters] = useState({ location: '', carrier: '', status: '', recipient: '' })
-  const reportColumns = [['time', 'Occurred time'], ['tracking', 'Tracking number'], ['carrier', 'Carrier'], ['recipient', 'Recipient'], ['location', 'Location'], ['status', 'Status'], ['manifest', 'Manifest ID'], ['actor', 'Windows account'], ['device', 'Workstation']]
+  const reportColumns = [['time', 'Occurred time'], ['tracking', 'Tracking number'], ['carrier', 'Carrier'], ['recipient', 'Recipient'], ['location', 'Location'], ['status', 'Status'], ['manifest', 'Manifest ID'], ['actor', 'Operator (Windows account)'], ['device', 'Workstation']]
   const [columns, setColumns] = useState(reportColumns.map(item => item[0]))
   const [groupBy, setGroupBy] = useState('location')
   const [sortOrder, setSortOrder] = useState('occurred-asc')
@@ -572,14 +622,16 @@ function AttentionWorkspace({ conflicts = [], errors = [], notices = [], package
   return <><PageHeader title="Attention" instruction="Review issues that may require operator or supervisor action." />{items.length ? <Stack spacing={1.5}>{items.map(([title, value], index) => { const target = title === 'Package conflict' ? conflictPackage(value) : null; const retry = value.includes('locally durable'); return <Alert key={index} severity="warning" action={target ? <Button onClick={() => onResolve(target)}>Resolve…</Button> : retry ? <Button onClick={onRetry}>Retry safely</Button> : null}><Typography fontWeight={700}>{title}</Typography>{value}</Alert> })}</Stack> : <Alert severity="success">No work currently requires attention.</Alert>}</>
 }
 
-function SettingsWorkspace({ state, onConfigure, onSaveScanner, onSaveShared, onRollbackShared }) {
+function SettingsWorkspace({ state, onConfigure, onRegisterIdentity, onSaveScanner, onSaveShared, onRollbackShared }) {
   const [scanner, setScanner] = useState({ ...state.scannerSettings, deviceId: state.deviceId })
   const [shared, setShared] = useState(state.sharedSettings)
+  const [displayName, setDisplayName] = useState(state.actorDisplayName || '')
   const [reviewing, setReviewing] = useState(false)
   const [locationDraft, setLocationDraft] = useState('')
   const [locationError, setLocationError] = useState('')
   useEffect(() => setScanner({ ...state.scannerSettings, deviceId: state.deviceId }), [state.scannerSettings, state.deviceId])
   useEffect(() => { setShared(state.sharedSettings); setReviewing(false) }, [state.sharedSettings])
+  useEffect(() => setDisplayName(state.actorDisplayName || ''), [state.actorDisplayName])
   const update = (key, value) => setScanner(current => ({ ...current, [key]: value }))
   const locationList = parseLocations(shared.locations)
   const commitLocation = () => {
@@ -593,7 +645,7 @@ function SettingsWorkspace({ state, onConfigure, onSaveScanner, onSaveShared, on
     setReviewing(false)
     setShared(current => ({ ...current, locations: serializeLocations(locationList.filter(item => item !== value)) }))
   }
-  return <><PageHeader title="Settings" instruction="Configure this workstation without changing routine scanning." /><Card><CardContent><Typography variant="h6">Workstation</Typography><Divider sx={{ my: 2 }} /><TextField label="Device ID" value={scanner.deviceId} onChange={event => update('deviceId', event.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''))} sx={{ mb: 2 }} /><Detail label="Synchronized folder" value={state.sharedRoot || 'Not configured'} /><Button variant="outlined" sx={{ mt: 2 }} onClick={onConfigure}>Change folder</Button><Divider sx={{ my: 3 }} /><Typography variant="h6">Scanner</Typography><Typography color="text.secondary" sx={{ mb: 2 }}>These settings apply only to this workstation. Automatic mode accepts a scanner-speed burst after the configured quiet interval, and waits for multi-part 2D labels (FedEx and GS1) to finish before submitting.</Typography>
+  return <><PageHeader title="Settings" instruction="Configure this workstation without changing routine scanning." /><Card><CardContent><Typography variant="h6">Signed-in operator</Typography><Typography color="text.secondary" sx={{ mb: 2 }}>The Windows account is detected at every startup. Register a readable name that will be written alongside the account in new audit events.</Typography><Detail label="Windows account" value={state.actor} /><Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 2 }}><TextField fullWidth label="Display name" value={displayName} onChange={event => setDisplayName(event.target.value)} /><Button variant="contained" disabled={!displayName.trim()} onClick={() => onRegisterIdentity(displayName)}>Register name</Button></Stack><Divider sx={{ my: 3 }} /><Typography variant="h6">Workstation</Typography><Divider sx={{ my: 2 }} /><TextField label="Device ID" value={scanner.deviceId} onChange={event => update('deviceId', event.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''))} sx={{ mb: 2 }} /><Detail label="Synchronized folder" value={state.sharedRoot || 'Not configured'} /><Button variant="outlined" sx={{ mt: 2 }} onClick={onConfigure}>Change folder</Button><Divider sx={{ my: 3 }} /><Typography variant="h6">Scanner</Typography><Typography color="text.secondary" sx={{ mb: 2 }}>These settings apply only to this workstation. Automatic mode accepts a scanner-speed burst after the configured quiet interval, and waits for multi-part 2D labels (FedEx and GS1) to finish before submitting.</Typography>
     <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} flexWrap="wrap">
       <FormControl sx={{ minWidth: 180 }}><InputLabel>Completion mode</InputLabel><Select label="Completion mode" value={scanner.completionMode} onChange={event => update('completionMode', event.target.value)}><MenuItem value="automatic">Automatic</MenuItem><MenuItem value="terminator">Terminator</MenuItem><MenuItem value="manual">Manual</MenuItem></Select></FormControl>
       <FormControl sx={{ minWidth: 150 }}><InputLabel>Terminator</InputLabel><Select label="Terminator" value={scanner.terminator} onChange={event => update('terminator', event.target.value)}><MenuItem value="Enter">Enter / CR</MenuItem><MenuItem value="Tab">Tab</MenuItem></Select></FormControl>
@@ -658,7 +710,7 @@ function ScannerCalibration({ onRecommendation }) {
 }
 
 function Diagnostics({ state, onRebuild, onExport }) {
-  return <><PageHeader title="Diagnostics" instruction="Technical workstation and shared-folder details for support." /><Card><CardContent><Stack spacing={2}><Detail label="Workstation" value={state.deviceId} /><Detail label="Windows account" value={state.actor} /><Detail label="Shared root" value={state.sharedRoot || 'Not configured'} /><Detail label="Shared events discovered" value={state.eventCount} /><Detail label="Session activity events" value={state.sessionEventCount} /><Detail label="Locally pending events" value={state.pendingCount} /><Detail label="Last rescan" value={formatDate(state.refreshedUtc)} /><Detail label="Malformed records" value={state.errors?.length || 0} /></Stack><Divider sx={{ my: 3 }} /><Typography variant="h6">Effective settings and source</Typography><TableContainer><Table size="small"><TableHead><TableRow><TableCell>Setting</TableCell><TableCell>Effective value</TableCell><TableCell>Source</TableCell></TableRow></TableHead><TableBody>{Object.entries(state.sharedSettings || {}).map(([key, value]) => <TableRow key={key}><TableCell>{key}</TableCell><TableCell>{value}</TableCell><TableCell>Shared operational configuration</TableCell></TableRow>)}{Object.entries(state.scannerSettings || {}).map(([key, value]) => <TableRow key={`scanner-${key}`}><TableCell>scanner.{key}</TableCell><TableCell>{String(value)}</TableCell><TableCell>Workstation preference</TableCell></TableRow>)}</TableBody></Table></TableContainer><Stack direction="row" spacing={1} sx={{ mt: 3 }}><Button variant="outlined" onClick={onRebuild}>Rebuild local projection</Button><Button variant="outlined" onClick={onExport}>Export redacted diagnostics</Button></Stack></CardContent></Card></>
+  return <><PageHeader title="Diagnostics" instruction="Technical workstation and shared-folder details for support." /><Card><CardContent><Stack spacing={2}><Detail label="Workstation" value={state.deviceId} /><Detail label="Registered operator" value={state.actorDisplayName || 'Not registered'} /><Detail label="Windows account" value={state.actor} /><Detail label="Shared root" value={state.sharedRoot || 'Not configured'} /><Detail label="Shared events discovered" value={state.eventCount} /><Detail label="Session activity events" value={state.sessionEventCount} /><Detail label="Locally pending events" value={state.pendingCount} /><Detail label="Last rescan" value={formatDate(state.refreshedUtc)} /><Detail label="Malformed records" value={state.errors?.length || 0} /></Stack><Divider sx={{ my: 3 }} /><Typography variant="h6">Effective settings and source</Typography><TableContainer><Table size="small"><TableHead><TableRow><TableCell>Setting</TableCell><TableCell>Effective value</TableCell><TableCell>Source</TableCell></TableRow></TableHead><TableBody>{Object.entries(state.sharedSettings || {}).map(([key, value]) => <TableRow key={key}><TableCell>{key}</TableCell><TableCell>{value}</TableCell><TableCell>Shared operational configuration</TableCell></TableRow>)}{Object.entries(state.scannerSettings || {}).map(([key, value]) => <TableRow key={`scanner-${key}`}><TableCell>scanner.{key}</TableCell><TableCell>{String(value)}</TableCell><TableCell>Workstation preference</TableCell></TableRow>)}</TableBody></Table></TableContainer><Stack direction="row" spacing={1} sx={{ mt: 3 }}><Button variant="outlined" onClick={onRebuild}>Rebuild local projection</Button><Button variant="outlined" onClick={onExport}>Export redacted diagnostics</Button></Stack></CardContent></Card></>
 }
 
 function EmptyState({ message = 'No packages to display.' }) {
@@ -668,19 +720,20 @@ function EmptyState({ message = 'No packages to display.' }) {
   </Box>
 }
 
-function ActionDialog({ dialog, state, locations, busy, onClose, onConfigure, onConfirm, onDuplicate, onAssign, onBulkAssign, onSaveAddressBook, onCorrect, onResolve, onVoid, onNavigate, onFinishWithout }) {
+function ActionDialog({ dialog, state, locations, busy, onClose, onRegisterIdentity, onConfigure, onConfirm, onDuplicate, onAssign, onBulkAssign, onSaveAddressBook, onCorrect, onResolve, onVoid, onNavigate, onFinishWithout }) {
   const [value, setValue] = useState('')
   const [destructiveReview, setDestructiveReview] = useState(false)
   const [correction, setCorrection] = useState({ location: '', recipient: '' })
   const [contact, setContact] = useState({ name: '', department: '', contactInfo: '', notes: '' })
   useEffect(() => {
-    setValue(dialog?.type === 'setup' ? state.sharedRoot || '' : '')
+    setValue(dialog?.type === 'setup' ? state.sharedRoot || '' : dialog?.type === 'identity' ? state.actorDisplayName || '' : '')
     setDestructiveReview(false)
     setCorrection({ location: dialog?.package?.location || '', recipient: dialog?.package?.recipient || '' })
     setContact(dialog?.entry ? { name: dialog.entry.name || '', department: dialog.entry.department || '', contactInfo: dialog.entry.contactInfo || '', notes: dialog.entry.notes || '' } : { name: '', department: '', contactInfo: '', notes: '' })
   }, [dialog])
   if (!dialog) return null
   if (dialog.type === 'menu') return <Dialog open onClose={onClose} maxWidth="xs" fullWidth><DialogTitle>Commercial Tracking</DialogTitle><DialogContent><List><ListItemButton onClick={() => { onNavigate('diagnostics'); onClose() }}><ListItemIcon><TroubleshootRounded /></ListItemIcon><ListItemText primary="Diagnostics" /></ListItemButton><ListItemButton onClick={() => api.shutdown().finally(() => window.close())}><ListItemIcon><LogoutRounded /></ListItemIcon><ListItemText primary="Exit application" /></ListItemButton></List></DialogContent></Dialog>
+  if (dialog.type === 'identity') return <Dialog open maxWidth="sm" fullWidth><DialogTitle>Register signed-in operator</DialogTitle><DialogContent><Alert severity="info" sx={{ mb: 2 }}>Windows account <b>{state.actor}</b> was detected for this session. Enter the human-readable name that should accompany it in future audit records.</Alert><TextField autoFocus required fullWidth label="Your display name" value={value} onChange={event => setValue(event.target.value)} helperText="The Windows account remains the durable identity; this name makes reports and history readable." /></DialogContent><DialogActions><Button variant="contained" disabled={!value.trim() || busy} onClick={() => onRegisterIdentity(value)}>Register and continue</Button></DialogActions></Dialog>
   const data = {
     setup: ['Configure synchronized folder', 'Full folder path', 'Save workstation settings'],
     recipient: ['Assign recipient', 'Recipient name', 'Assign recipient'],
@@ -708,4 +761,3 @@ function ActionDialog({ dialog, state, locations, busy, onClose, onConfigure, on
 }
 
 createRoot(document.getElementById('root')).render(<ThemeProvider theme={theme}><App /></ThemeProvider>)
-
