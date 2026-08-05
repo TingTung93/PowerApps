@@ -83,6 +83,8 @@ if (-not $SkipTests) {
     if ($LASTEXITCODE -ne 0) { throw "Portable PDF tests failed." }
     & java -cp "$classes;$testClasses" org.commercialtracking.QrCodeTest
     if ($LASTEXITCODE -ne 0) { throw "QR code tests failed." }
+    & java -cp "$classes;$testClasses" org.commercialtracking.DocxWriterTest
+    if ($LASTEXITCODE -ne 0) { throw "DOCX writer tests failed." }
     & java -cp "$classes;$testClasses" org.commercialtracking.PerformanceSmokeTest
     if ($LASTEXITCODE -ne 0) { throw "Performance smoke tests failed." }
 }
