@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Implement spec §0 (capture the package received date) and §6 (settings & time display) for `commercial-tracking-java`: capture a never-overwritten `receivedUtc` in the projection, expose a host-zone `receivedDate` on the package maps, add a shared `timeFormat` (`12h`/`24h`) setting while retiring the `operationalTimeZone` requirement, provide deterministic date/time formatting helpers on both the Java and JS sides, and replace the pipe-delimited locations text field with a chip editor plus a 12/24-hour toggle in the settings UI.
+**Goal:** Implement spec §0 (capture the package received date) and §6 (settings & time display) for `apps/commercial-tracking-java`: capture a never-overwritten `receivedUtc` in the projection, expose a host-zone `receivedDate` on the package maps, add a shared `timeFormat` (`12h`/`24h`) setting while retiring the `operationalTimeZone` requirement, provide deterministic date/time formatting helpers on both the Java and JS sides, and replace the pipe-delimited locations text field with a chip editor plus a 12/24-hour toggle in the settings UI.
 
 **Architecture:** One new pure Java util class (`TimeFormat`) and one new additive projection field (`PackageState.receivedUtc`) feed a `receivedDate` string into the existing `BrowserServer` package maps. `SharedConfigManager` swaps its `operationalTimeZone` gate for a `timeFormat` gate (accepting but ignoring any legacy zone), and `saveSharedSettings` persists `timeFormat`. On the frontend, `format.js` gains a mutable 12/24-hour preference configured at state-load time, a new pure `locations.js` module powers a MUI chip editor, and `SettingsWorkspace` drops the operational-time-zone field. Backend logic is covered by `main()`-style test classes wired into `build.ps1`; frontend pure logic is covered by Node test scripts run through `npm test`; the React UI is verified via `npm run build` plus manual check.
 
@@ -12,9 +12,9 @@
 
 - Pure JDK only — no third-party libraries may be added. Build is `javac --release 8 -encoding UTF-8`.
 - New backend test classes are `public final class XxxTest { public static void main(String[] args) throws Exception { ... System.out.println("XxxTest: PASS"); } }` and must be added to `build.ps1` in the test-run block.
-- Package is `org.commercialtracking`; source under `commercial-tracking-java/src/main/java/org/commercialtracking/`, tests under `commercial-tracking-java/src/test/java/org/commercialtracking/`.
-- Backend build/test command (run from `commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`.
-- Frontend test/build commands (run from `commercial-tracking-java/frontend/`): `npm test` and `npm run build`.
+- Package is `org.commercialtracking`; source under `apps/commercial-tracking-java/src/main/java/org/commercialtracking/`, tests under `apps/commercial-tracking-java/src/test/java/org/commercialtracking/`.
+- Backend build/test command (run from `apps/commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`.
+- Frontend test/build commands (run from `apps/commercial-tracking-java/frontend/`): `npm test` and `npm run build`.
 - All paths below are relative to the repo root `F:\PowerApps`.
 - **Scope guard:** Do NOT modify `BrowserServer.manifest()` (~line 471/536), `BrowserServer.report()` (~line 580), `ManifestWorkspace` (~line 506), or `ReportsWorkspace` (~line 536 in `main.jsx`). Those `operationalTimeZone` reads belong to Plans 2 and 3. Do NOT change the persisted `locations` pipe-delimited format or the event-log schema (the `receivedUtc` projection field is additive and derived, not persisted to events).
 
@@ -32,10 +32,10 @@
 ### Task 1: `PackageState.receivedUtc` + `Projection` sets it on first receive
 
 **Files:**
-- Modify: `commercial-tracking-java/src/main/java/org/commercialtracking/PackageState.java`
-- Modify: `commercial-tracking-java/src/main/java/org/commercialtracking/Projection.java`
-- Create: `commercial-tracking-java/src/test/java/org/commercialtracking/ProjectionTest.java`
-- Modify: `commercial-tracking-java/build.ps1`
+- Modify: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/PackageState.java`
+- Modify: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/Projection.java`
+- Create: `apps/commercial-tracking-java/src/test/java/org/commercialtracking/ProjectionTest.java`
+- Modify: `apps/commercial-tracking-java/build.ps1`
 
 **Interfaces:**
 - Produces: `PackageState.receivedUtc` (`String`, default `""`, copied in `copy()`); `Projection.apply` sets `receivedUtc` on the first `PACKAGE_RECEIVED` for a package only when empty (never overwritten).
@@ -43,7 +43,7 @@
 
 - [ ] **Step 1: Write the failing test**
 
-Create `commercial-tracking-java/src/test/java/org/commercialtracking/ProjectionTest.java`:
+Create `apps/commercial-tracking-java/src/test/java/org/commercialtracking/ProjectionTest.java`:
 
 ```java
 package org.commercialtracking;
@@ -111,13 +111,13 @@ public final class ProjectionTest {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Add the `ProjectionTest` run line to `build.ps1` first (Step 4 shows exactly where), then run from `commercial-tracking-java/`:
+Add the `ProjectionTest` run line to `build.ps1` first (Step 4 shows exactly where), then run from `apps/commercial-tracking-java/`:
 `powershell -File build.ps1 -SkipFrontend`
 Expected: compilation of the test fails — `PackageState` has no `receivedUtc` field.
 
 - [ ] **Step 3: Write minimal implementation**
 
-In `commercial-tracking-java/src/main/java/org/commercialtracking/PackageState.java`, add the field after `manifestId` and carry it in `copy()`.
+In `apps/commercial-tracking-java/src/main/java/org/commercialtracking/PackageState.java`, add the field after `manifestId` and carry it in `copy()`.
 
 Add the field declaration (after line 13 `public String manifestId = "";`):
 
@@ -140,7 +140,7 @@ with:
         return p;
 ```
 
-In `commercial-tracking-java/src/main/java/org/commercialtracking/Projection.java`, set `receivedUtc` on the first receive. Replace the `PACKAGE_RECEIVED` branch:
+In `apps/commercial-tracking-java/src/main/java/org/commercialtracking/Projection.java`, set `receivedUtc` on the first receive. Replace the `PACKAGE_RECEIVED` branch:
 
 ```java
         if ("PACKAGE_RECEIVED".equals(event.eventType)) {
@@ -167,7 +167,7 @@ with:
 
 - [ ] **Step 4: Wire the test into build.ps1**
 
-In `commercial-tracking-java/build.ps1`, add the `ProjectionTest` run line immediately after the `SharedConfigManagerTest` block. Replace:
+In `apps/commercial-tracking-java/build.ps1`, add the `ProjectionTest` run line immediately after the `SharedConfigManagerTest` block. Replace:
 
 ```powershell
     & java -cp "$classes;$testClasses" org.commercialtracking.SharedConfigManagerTest
@@ -187,16 +187,16 @@ with:
 
 - [ ] **Step 5: Run to verify it passes**
 
-Run from `commercial-tracking-java/`: `powershell -File build.ps1 -SkipFrontend`
+Run from `apps/commercial-tracking-java/`: `powershell -File build.ps1 -SkipFrontend`
 Expected: output includes `ProjectionTest: PASS`; build succeeds.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add commercial-tracking-java/src/main/java/org/commercialtracking/PackageState.java \
-        commercial-tracking-java/src/main/java/org/commercialtracking/Projection.java \
-        commercial-tracking-java/src/test/java/org/commercialtracking/ProjectionTest.java \
-        commercial-tracking-java/build.ps1
+git add apps/commercial-tracking-java/src/main/java/org/commercialtracking/PackageState.java \
+        apps/commercial-tracking-java/src/main/java/org/commercialtracking/Projection.java \
+        apps/commercial-tracking-java/src/test/java/org/commercialtracking/ProjectionTest.java \
+        apps/commercial-tracking-java/build.ps1
 git commit -m "feat(projection): capture never-overwritten receivedUtc on first receive"
 ```
 
@@ -205,9 +205,9 @@ git commit -m "feat(projection): capture never-overwritten receivedUtc on first 
 ### Task 2: `TimeFormat` util + `TimeFormatTest`
 
 **Files:**
-- Create: `commercial-tracking-java/src/main/java/org/commercialtracking/TimeFormat.java`
-- Create: `commercial-tracking-java/src/test/java/org/commercialtracking/TimeFormatTest.java`
-- Modify: `commercial-tracking-java/build.ps1`
+- Create: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/TimeFormat.java`
+- Create: `apps/commercial-tracking-java/src/test/java/org/commercialtracking/TimeFormatTest.java`
+- Modify: `apps/commercial-tracking-java/build.ps1`
 
 **Interfaces:**
 - Produces:
@@ -218,7 +218,7 @@ git commit -m "feat(projection): capture never-overwritten receivedUtc on first 
 
 - [ ] **Step 1: Write the failing test**
 
-Create `commercial-tracking-java/src/test/java/org/commercialtracking/TimeFormatTest.java`:
+Create `apps/commercial-tracking-java/src/test/java/org/commercialtracking/TimeFormatTest.java`:
 
 ```java
 package org.commercialtracking;
@@ -262,13 +262,13 @@ public final class TimeFormatTest {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Add the `TimeFormatTest` run line to `build.ps1` first (Step 4), then run from `commercial-tracking-java/`:
+Add the `TimeFormatTest` run line to `build.ps1` first (Step 4), then run from `apps/commercial-tracking-java/`:
 `powershell -File build.ps1 -SkipFrontend`
 Expected: compilation fails — `TimeFormat` does not exist yet.
 
 - [ ] **Step 3: Write minimal implementation**
 
-Create `commercial-tracking-java/src/main/java/org/commercialtracking/TimeFormat.java`:
+Create `apps/commercial-tracking-java/src/main/java/org/commercialtracking/TimeFormat.java`:
 
 ```java
 package org.commercialtracking;
@@ -314,7 +314,7 @@ Note: `LocalDate.toString()` renders as `yyyy-MM-dd` (ISO-8601), satisfying the 
 
 - [ ] **Step 4: Wire the test into build.ps1**
 
-In `commercial-tracking-java/build.ps1`, add the `TimeFormatTest` run line immediately after the `ProjectionTest` block added in Task 1. Replace:
+In `apps/commercial-tracking-java/build.ps1`, add the `TimeFormatTest` run line immediately after the `ProjectionTest` block added in Task 1. Replace:
 
 ```powershell
     & java -cp "$classes;$testClasses" org.commercialtracking.ProjectionTest
@@ -334,15 +334,15 @@ with:
 
 - [ ] **Step 5: Run to verify it passes**
 
-Run from `commercial-tracking-java/`: `powershell -File build.ps1 -SkipFrontend`
+Run from `apps/commercial-tracking-java/`: `powershell -File build.ps1 -SkipFrontend`
 Expected: output includes `TimeFormatTest: PASS`; build succeeds.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add commercial-tracking-java/src/main/java/org/commercialtracking/TimeFormat.java \
-        commercial-tracking-java/src/test/java/org/commercialtracking/TimeFormatTest.java \
-        commercial-tracking-java/build.ps1
+git add apps/commercial-tracking-java/src/main/java/org/commercialtracking/TimeFormat.java \
+        apps/commercial-tracking-java/src/test/java/org/commercialtracking/TimeFormatTest.java \
+        apps/commercial-tracking-java/build.ps1
 git commit -m "feat(time): add deterministic host-zone TimeFormat util (date/prepared/utcMinute)"
 ```
 
@@ -351,7 +351,7 @@ git commit -m "feat(time): add deterministic host-zone TimeFormat util (date/pre
 ### Task 3: `BrowserServer` package maps expose `receivedUtc` + `receivedDate`
 
 **Files:**
-- Modify: `commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java`
+- Modify: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java`
 
 **Interfaces:**
 - Consumes: `PackageState.receivedUtc` (Task 1), `TimeFormat.date` (Task 2).
@@ -361,7 +361,7 @@ There is no unit harness for these private maps; correctness is verified by comp
 
 - [ ] **Step 1: Add fields to `sessionPackageMaps()`**
 
-In `commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java`, in `sessionPackageMaps()`, replace:
+In `apps/commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java`, in `sessionPackageMaps()`, replace:
 
 ```java
             row.put("lastEventId", state.lastEventId);
@@ -421,7 +421,7 @@ with:
 
 - [ ] **Step 3: Run to verify it compiles and all Java tests pass**
 
-Run from `commercial-tracking-java/`: `powershell -File build.ps1 -SkipFrontend`
+Run from `apps/commercial-tracking-java/`: `powershell -File build.ps1 -SkipFrontend`
 Expected: build succeeds; `ProjectionTest: PASS`, `TimeFormatTest: PASS`, and all pre-existing test lines still pass. (`TimeFormat.date` returns `""` for empty `receivedUtc`, so rows for never-received packages carry empty strings, never null.)
 
 - [ ] **Step 4: Manual/integration check (note only — no automated harness)**
@@ -431,7 +431,7 @@ After the frontend tasks land, launch the app, receive a package, and confirm th
 - [ ] **Step 5: Commit**
 
 ```bash
-git add commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java
+git add apps/commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java
 git commit -m "feat(server): expose receivedUtc and host-zone receivedDate on package maps"
 ```
 
@@ -440,8 +440,8 @@ git commit -m "feat(server): expose receivedUtc and host-zone receivedDate on pa
 ### Task 4: `SharedConfigManager` — add `timeFormat`, drop `operationalTimeZone` requirement
 
 **Files:**
-- Modify: `commercial-tracking-java/src/main/java/org/commercialtracking/SharedConfigManager.java`
-- Modify: `commercial-tracking-java/src/test/java/org/commercialtracking/SharedConfigManagerTest.java`
+- Modify: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/SharedConfigManager.java`
+- Modify: `apps/commercial-tracking-java/src/test/java/org/commercialtracking/SharedConfigManagerTest.java`
 
 **Interfaces:**
 - Produces: `validate` accepts only `12h`/`24h` for `timeFormat` (default `12h`), no longer requires or validates `operationalTimeZone` (a legacy value is ignored, not rejected); `defaults()` includes `timeFormat=12h` and omits `operationalTimeZone`.
@@ -449,7 +449,7 @@ git commit -m "feat(server): expose receivedUtc and host-zone receivedDate on pa
 
 - [ ] **Step 1: Update the test (failing)**
 
-Replace the entire body of `commercial-tracking-java/src/test/java/org/commercialtracking/SharedConfigManagerTest.java` with:
+Replace the entire body of `apps/commercial-tracking-java/src/test/java/org/commercialtracking/SharedConfigManagerTest.java` with:
 
 ```java
 package org.commercialtracking;
@@ -518,12 +518,12 @@ public final class SharedConfigManagerTest {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run from `commercial-tracking-java/`: `powershell -File build.ps1 -SkipFrontend`
+Run from `apps/commercial-tracking-java/`: `powershell -File build.ps1 -SkipFrontend`
 Expected: `SharedConfigManagerTest` fails — the current `validate` still rejects the empty/invalid `operationalTimeZone` (`java.time.ZoneId.of("")`) inside `settings("Dock", "12h", ...)` and does not gate `timeFormat`, so the `36h` case is not rejected.
 
 - [ ] **Step 3: Write minimal implementation**
 
-In `commercial-tracking-java/src/main/java/org/commercialtracking/SharedConfigManager.java`, replace the `validate` method's zone block. Replace:
+In `apps/commercial-tracking-java/src/main/java/org/commercialtracking/SharedConfigManager.java`, replace the `validate` method's zone block. Replace:
 
 ```java
         String locations = value(values, "locations", "");
@@ -563,14 +563,14 @@ with:
 
 - [ ] **Step 4: Run to verify it passes**
 
-Run from `commercial-tracking-java/`: `powershell -File build.ps1 -SkipFrontend`
+Run from `apps/commercial-tracking-java/`: `powershell -File build.ps1 -SkipFrontend`
 Expected: `SharedConfigManagerTest: PASS`; build succeeds.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add commercial-tracking-java/src/main/java/org/commercialtracking/SharedConfigManager.java \
-        commercial-tracking-java/src/test/java/org/commercialtracking/SharedConfigManagerTest.java
+git add apps/commercial-tracking-java/src/main/java/org/commercialtracking/SharedConfigManager.java \
+        apps/commercial-tracking-java/src/test/java/org/commercialtracking/SharedConfigManagerTest.java
 git commit -m "feat(config): add timeFormat setting and drop operationalTimeZone requirement"
 ```
 
@@ -579,7 +579,7 @@ git commit -m "feat(config): add timeFormat setting and drop operationalTimeZone
 ### Task 5: `BrowserServer.saveSharedSettings` — persist `timeFormat`, stop requiring `operationalTimeZone`
 
 **Files:**
-- Modify: `commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java`
+- Modify: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java`
 
 **Interfaces:**
 - Consumes: `value(request, key, fallback)` helper (trims), `required(request, key)` helper.
@@ -587,7 +587,7 @@ git commit -m "feat(config): add timeFormat setting and drop operationalTimeZone
 
 - [ ] **Step 1: Write minimal implementation**
 
-In `commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java`, in `saveSharedSettings`, replace:
+In `apps/commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java`, in `saveSharedSettings`, replace:
 
 ```java
         Map<String, String> proposed = new LinkedHashMap<String, String>();
@@ -611,13 +611,13 @@ with:
 
 - [ ] **Step 2: Run to verify it compiles and all Java tests pass**
 
-Run from `commercial-tracking-java/`: `powershell -File build.ps1 -SkipFrontend`
+Run from `apps/commercial-tracking-java/`: `powershell -File build.ps1 -SkipFrontend`
 Expected: build succeeds; all Java test lines pass. (The saved map now round-trips through `SharedConfigManager.save` → `validate`, which accepts the `12h` default from Task 4.)
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java
+git add apps/commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java
 git commit -m "feat(server): persist timeFormat and drop operationalTimeZone in saveSharedSettings"
 ```
 
@@ -626,16 +626,16 @@ git commit -m "feat(server): persist timeFormat and drop operationalTimeZone in 
 ### Task 6: Frontend `format.js` 12/24 support + `configureTimeFormat` + Node test
 
 **Files:**
-- Modify: `commercial-tracking-java/frontend/src/format.js`
-- Create: `commercial-tracking-java/frontend/test/format.test.js`
-- Modify: `commercial-tracking-java/frontend/package.json`
+- Modify: `apps/commercial-tracking-java/frontend/src/format.js`
+- Create: `apps/commercial-tracking-java/frontend/test/format.test.js`
+- Modify: `apps/commercial-tracking-java/frontend/package.json`
 
 **Interfaces:**
 - Produces: `configureTimeFormat(pref)` — sets `hour12` (`pref === '24h'` → `false`, else `true`) and rebuilds the `Intl.DateTimeFormat` formatters; `formatDate(value, compact)` stays the single entry point (default `12h` until configured). Host zone and no-seconds behavior are preserved.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `commercial-tracking-java/frontend/test/format.test.js`:
+Create `apps/commercial-tracking-java/frontend/test/format.test.js`:
 
 ```js
 import assert from 'node:assert/strict'
@@ -678,7 +678,7 @@ console.log('FormatTest: PASS')
 
 - [ ] **Step 2: Wire the test into the npm test chain**
 
-In `commercial-tracking-java/frontend/package.json`, replace:
+In `apps/commercial-tracking-java/frontend/package.json`, replace:
 
 ```json
     "test": "node test/scannerCapture.test.js"
@@ -692,12 +692,12 @@ with:
 
 - [ ] **Step 3: Run to verify it fails**
 
-Run from `commercial-tracking-java/frontend/`: `npm test`
+Run from `apps/commercial-tracking-java/frontend/`: `npm test`
 Expected: fails — `format.js` has no `configureTimeFormat` export, so the import throws `SyntaxError: does not provide an export named 'configureTimeFormat'`.
 
 - [ ] **Step 4: Write minimal implementation**
 
-Replace the entire contents of `commercial-tracking-java/frontend/src/format.js` with:
+Replace the entire contents of `apps/commercial-tracking-java/frontend/src/format.js` with:
 
 ```js
 // Shared date formatting for records and timestamps, using the operator's locale and host zone.
@@ -732,15 +732,15 @@ export function formatDate(value, compact = false) {
 
 - [ ] **Step 5: Run to verify it passes**
 
-Run from `commercial-tracking-java/frontend/`: `npm test`
+Run from `apps/commercial-tracking-java/frontend/`: `npm test`
 Expected: `ScannerCaptureTest: PASS` then `FormatTest: PASS`.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add commercial-tracking-java/frontend/src/format.js \
-        commercial-tracking-java/frontend/test/format.test.js \
-        commercial-tracking-java/frontend/package.json
+git add apps/commercial-tracking-java/frontend/src/format.js \
+        apps/commercial-tracking-java/frontend/test/format.test.js \
+        apps/commercial-tracking-java/frontend/package.json
 git commit -m "feat(ui): honor 12h/24h time format with configureTimeFormat and drop seconds"
 ```
 
@@ -749,9 +749,9 @@ git commit -m "feat(ui): honor 12h/24h time format with configureTimeFormat and 
 ### Task 7: Frontend `locations.js` pure helper + Node test
 
 **Files:**
-- Create: `commercial-tracking-java/frontend/src/locations.js`
-- Create: `commercial-tracking-java/frontend/test/locations.test.js`
-- Modify: `commercial-tracking-java/frontend/package.json`
+- Create: `apps/commercial-tracking-java/frontend/src/locations.js`
+- Create: `apps/commercial-tracking-java/frontend/test/locations.test.js`
+- Modify: `apps/commercial-tracking-java/frontend/package.json`
 
 **Interfaces:**
 - Produces:
@@ -762,7 +762,7 @@ git commit -m "feat(ui): honor 12h/24h time format with configureTimeFormat and 
 
 - [ ] **Step 1: Write the failing test**
 
-Create `commercial-tracking-java/frontend/test/locations.test.js`:
+Create `apps/commercial-tracking-java/frontend/test/locations.test.js`:
 
 ```js
 import assert from 'node:assert/strict'
@@ -822,7 +822,7 @@ console.log('LocationsTest: PASS')
 
 - [ ] **Step 2: Wire the test into the npm test chain**
 
-In `commercial-tracking-java/frontend/package.json`, replace:
+In `apps/commercial-tracking-java/frontend/package.json`, replace:
 
 ```json
     "test": "node test/scannerCapture.test.js && node test/format.test.js"
@@ -836,12 +836,12 @@ with:
 
 - [ ] **Step 3: Run to verify it fails**
 
-Run from `commercial-tracking-java/frontend/`: `npm test`
+Run from `apps/commercial-tracking-java/frontend/`: `npm test`
 Expected: fails — `../src/locations.js` does not exist (module resolution error).
 
 - [ ] **Step 4: Write minimal implementation**
 
-Create `commercial-tracking-java/frontend/src/locations.js`:
+Create `apps/commercial-tracking-java/frontend/src/locations.js`:
 
 ```js
 // Pure parse/serialize/validation for the receiving-locations chip editor.
@@ -875,15 +875,15 @@ export function addLocation(array, candidate) {
 
 - [ ] **Step 5: Run to verify it passes**
 
-Run from `commercial-tracking-java/frontend/`: `npm test`
+Run from `apps/commercial-tracking-java/frontend/`: `npm test`
 Expected: `ScannerCaptureTest: PASS`, `FormatTest: PASS`, then `LocationsTest: PASS`.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add commercial-tracking-java/frontend/src/locations.js \
-        commercial-tracking-java/frontend/test/locations.test.js \
-        commercial-tracking-java/frontend/package.json
+git add apps/commercial-tracking-java/frontend/src/locations.js \
+        apps/commercial-tracking-java/frontend/test/locations.test.js \
+        apps/commercial-tracking-java/frontend/package.json
 git commit -m "feat(ui): add pure locations parse/serialize/add helper with validation"
 ```
 
@@ -892,7 +892,7 @@ git commit -m "feat(ui): add pure locations parse/serialize/add helper with vali
 ### Task 8: `SettingsWorkspace` chip editor + 12/24 toggle; configure time format on load
 
 **Files:**
-- Modify: `commercial-tracking-java/frontend/src/main.jsx`
+- Modify: `apps/commercial-tracking-java/frontend/src/main.jsx`
 
 **Interfaces:**
 - Consumes: `parseLocations`, `serializeLocations`, `addLocation` from `./locations`; `configureTimeFormat` from `./format`. MUI `Chip`, `Select`, `MenuItem`, `FormControl`, `InputLabel`, `TextField`, `Button`, `Stack`, `Box`, `Typography`, `Alert` are already imported in `main.jsx`.
@@ -902,7 +902,7 @@ This React UI has no automated unit test (its pure logic is covered by Tasks 6�
 
 - [ ] **Step 1: Import the new helpers and call `configureTimeFormat` on load**
 
-In `commercial-tracking-java/frontend/src/main.jsx`, replace the format import:
+In `apps/commercial-tracking-java/frontend/src/main.jsx`, replace the format import:
 
 ```jsx
 import { formatDate } from './format'
@@ -1019,7 +1019,7 @@ The Save button already calls `onSaveShared(shared)`, and `shared` now carries `
 
 - [ ] **Step 5: Verify the frontend builds and tests pass**
 
-Run from `commercial-tracking-java/frontend/`:
+Run from `apps/commercial-tracking-java/frontend/`:
 `npm test` (expected: `ScannerCaptureTest: PASS`, `FormatTest: PASS`, `LocationsTest: PASS`)
 `npm run build` (expected: Vite build succeeds with no errors — confirms the JSX and imports are valid).
 
@@ -1030,7 +1030,7 @@ Launch the app, open Settings → Shared operational settings. Confirm: chips re
 - [ ] **Step 7: Commit**
 
 ```bash
-git add commercial-tracking-java/frontend/src/main.jsx
+git add apps/commercial-tracking-java/frontend/src/main.jsx
 git commit -m "feat(ui): locations chip editor and 12/24 time toggle in settings"
 ```
 

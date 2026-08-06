@@ -73,5 +73,5 @@ The specification leaves eight policy choices open. Conservative defaults are:
 All repository-controlled requirements are implemented; automated gates and the
 packaged receive/assign/verified-release browser smoke pass.
 Production specification compliance is not complete until the four qualification
-worksheets under `commercial-tracking-java/qualification/` contain passing,
+worksheets under `apps/commercial-tracking-java/qualification/` contain passing,
 reviewed evidence from the target environment.

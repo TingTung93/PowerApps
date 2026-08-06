@@ -14,7 +14,7 @@ operator sync a shared Teams/SharePoint folder to their workstation via OneDrive
 running the app locally pointed at that folder. Multiple operators run the app
 independently and concurrently from their own workstations.
 
-This app is the medical-supply counterpart to the existing `commercial-tracking-java`
+This app is the medical-supply counterpart to the existing `apps/commercial-tracking-java`
 project and reuses its portability blueprint and storage engine wherever possible.
 
 ### Goals
@@ -28,7 +28,7 @@ project and reuses its portability blueprint and storage engine wherever possibl
 - Run on Java 8 with no Maven/Gradle, distributed as a single JAR + launcher, using a
   OneDrive-synced folder as the shared store.
 
-### Non-goals (carried from commercial-tracking-java)
+### Non-goals (carried from apps/commercial-tracking-java)
 - No strong cross-device locking (the event-sourced model makes it unnecessary).
 - No direct SharePoint / Microsoft Graph / Dataverse API calls; filesystem only.
 - No verified Microsoft identity (actor is a configured display name).
@@ -81,7 +81,7 @@ Derived UI states from the PowerApp we must preserve:
 ## 3. Architecture: event-sourced store on OneDrive
 
 ### 3.1 Reused engine
-Port/reuse from `commercial-tracking-java` with minimal changes:
+Port/reuse from `apps/commercial-tracking-java` with minimal changes:
 `EventStore` (atomic append: local `pending/<id>.tmp` → `fsync` → shared
 `<file>.partial` → atomic move; dedup by `eventId` + content hash; malformed-event
 diagnostics), `LocalEventIndex` (rebuildable local cache), `AppConfig` +
@@ -257,9 +257,9 @@ Workspaces:
   run tests, package `MedicalSupply-RC.jar` with `run-medical-supply.cmd`, README,
   TESTING.md, RELEASE_NOTES.md, and a `qualification/` folder.
 - Produce `dist-review/qualification` browser-smoke evidence in the same form as
-  `commercial-tracking-java/dist-review/qualification/browser-smoke-evidence.md`.
+  `apps/commercial-tracking-java/dist-review/qualification/browser-smoke-evidence.md`.
 
-## 9. Reuse map (commercial-tracking-java → medical-supply-java)
+## 9. Reuse map (apps/commercial-tracking-java → apps/medical-supply-java)
 
 | Component | Disposition |
 |---|---|

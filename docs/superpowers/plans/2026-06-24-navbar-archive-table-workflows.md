@@ -17,7 +17,7 @@
 
 - [ ] **Step 1: Add validator checks**
 
-Create a Python script that parses every `Inventory_Tracker/*.pa.yaml` file and asserts expected source patterns:
+Create a Python script that parses every `apps/inventory-tracker-powerapps/*.pa.yaml` file and asserts expected source patterns:
 
 ```python
 from pathlib import Path
@@ -25,7 +25,7 @@ import sys
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-APP_DIR = ROOT / "Inventory_Tracker"
+APP_DIR = ROOT / "apps/inventory-tracker-powerapps"
 
 def read(name):
     return (APP_DIR / name).read_text(encoding="utf-8")
@@ -74,9 +74,9 @@ Expected: exits `1` and reports missing Archive restore and Table View preview p
 ### Task 2: Navbar Defaults
 
 **Files:**
-- Modify: `Inventory_Tracker/NavBarComponent.pa.yaml`
-- Modify: `Inventory_Tracker/Archive.pa.yaml`
-- Modify: `Inventory_Tracker/Table_View.pa.yaml`
+- Modify: `apps/inventory-tracker-powerapps/NavBarComponent.pa.yaml`
+- Modify: `apps/inventory-tracker-powerapps/Archive.pa.yaml`
+- Modify: `apps/inventory-tracker-powerapps/Table_View.pa.yaml`
 
 - [ ] **Step 1: Keep navbar default Items complete**
 
@@ -95,7 +95,7 @@ Expected: still fails only for Archive restore and Table View preview requiremen
 ### Task 3: Archive Restore Workflow
 
 **Files:**
-- Modify: `Inventory_Tracker/Archive.pa.yaml`
+- Modify: `apps/inventory-tracker-powerapps/Archive.pa.yaml`
 
 - [ ] **Step 1: Track selected archived item**
 
@@ -118,7 +118,7 @@ Expected: still fails only for Table View preview requirements.
 ### Task 4: Table View Preview
 
 **Files:**
-- Modify: `Inventory_Tracker/Table_View.pa.yaml`
+- Modify: `apps/inventory-tracker-powerapps/Table_View.pa.yaml`
 
 - [ ] **Step 1: Change table selection behavior**
 

@@ -12,9 +12,9 @@
 
 - Pure JDK only — no third-party libraries. Build is `javac --release 8 -encoding UTF-8` (driven by `build.ps1`).
 - Java test classes are `public final class XxxTest { public static void main(String[] args) throws Exception { ... System.out.println("XxxTest: PASS"); } }` and are wired into `build.ps1`. `ReportWriterTest` is **already** wired (do not re-add its run line).
-- Package is `org.commercialtracking`; source under `commercial-tracking-java/src/main/java/org/commercialtracking/`, tests under `commercial-tracking-java/src/test/java/org/commercialtracking/`.
-- Java build/test command (run from `commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`.
-- Frontend build/test commands (run from `commercial-tracking-java/frontend/`): `npm run build` and `npm test`.
+- Package is `org.commercialtracking`; source under `apps/commercial-tracking-java/src/main/java/org/commercialtracking/`, tests under `apps/commercial-tracking-java/src/test/java/org/commercialtracking/`.
+- Java build/test command (run from `apps/commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`.
+- Frontend build/test commands (run from `apps/commercial-tracking-java/frontend/`): `npm run build` and `npm test`.
 - All paths below are relative to the repo root `F:\PowerApps`.
 - **Consumes** the shared `DocxWriter` exactly as named by the Document Core plan: `heading(String)`, `paragraph(String)`, `table(java.util.List<java.util.List<DocxWriter.Cell>> rows)`, `save(Path)`, `DocxWriter.Cell.text(String)`, `DocxWriter.Cell.image(byte[],int,int)`. Do not redefine or alter `DocxWriter`.
 - **Report timestamp columns remain full UTC** — the `time` column (`Occurred UTC`) and any instant strings are emitted verbatim; no seconds-dropping, no host-zone reformatting in reports (that is a manifest/settings concern, not this plan).
@@ -28,8 +28,8 @@
 Replace the PortablePdf output with a `DocxWriter`-built `.docx`; keep CSV and HTML byte-for-byte identical in shape. Rename `Result.pdf` → `Result.docx`. Rename the `openPdf` flag to `openDoc` for clarity.
 
 **Files:**
-- Modify: `commercial-tracking-java/src/main/java/org/commercialtracking/ReportWriter.java`
-- Modify: `commercial-tracking-java/src/test/java/org/commercialtracking/ReportWriterTest.java`
+- Modify: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/ReportWriter.java`
+- Modify: `apps/commercial-tracking-java/src/test/java/org/commercialtracking/ReportWriterTest.java`
 
 **Interfaces:**
 - Consumes: `DocxWriter.heading/paragraph/table/save`, `DocxWriter.Cell.text` (from the Document Core plan); the existing private `label(String)`/`cell(Row,String)` helpers.
@@ -37,7 +37,7 @@ Replace the PortablePdf output with a `DocxWriter`-built `.docx`; keep CSV and H
 
 - [ ] **Step 1: Write the failing test (edit ReportWriterTest first)**
 
-In `commercial-tracking-java/src/test/java/org/commercialtracking/ReportWriterTest.java`, add a `ZipFile` import and replace the PDF assertion with a DOCX assertion. Keep `commercialtracking.noDesktop` set (line 12) and keep every other assertion unchanged.
+In `apps/commercial-tracking-java/src/test/java/org/commercialtracking/ReportWriterTest.java`, add a `ZipFile` import and replace the PDF assertion with a DOCX assertion. Keep `commercialtracking.noDesktop` set (line 12) and keep every other assertion unchanged.
 
 Add this import after the existing `import java.util.List;` line:
 
@@ -68,12 +68,12 @@ with:
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run (from `commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`
+Run (from `apps/commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`
 Expected: compile error — `receiving.docx` does not exist yet (`Result` still has `pdf`).
 
 - [ ] **Step 3: Rename the flag parameter to `openDoc` in ReportWriter**
 
-In `commercial-tracking-java/src/main/java/org/commercialtracking/ReportWriter.java`, rename the `openPdf` parameter to `openDoc` in the two overloads that declare it.
+In `apps/commercial-tracking-java/src/main/java/org/commercialtracking/ReportWriter.java`, rename the `openPdf` parameter to `openDoc` in the two overloads that declare it.
 
 Replace:
 
@@ -194,7 +194,7 @@ with:
 
 - [ ] **Step 6: Run to verify it passes**
 
-Run (from `commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`
+Run (from `apps/commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`
 Expected: build compiles and output includes `ReportWriterTest: PASS`.
 
 (At this point `BrowserServer.report()` still references `output.pdf` and will fail to compile. If `build.ps1` compiles `BrowserServer` before running `ReportWriterTest`, the compile error will surface here — that is expected; proceed to Task 2 in the same working tree and commit both together, OR make Task 2's edits before running the full build. To run just this test in isolation before Task 2, compile and run `ReportWriterTest` against a classpath that excludes `BrowserServer`; the simplest path is to complete Task 2 next and build once.)
@@ -202,8 +202,8 @@ Expected: build compiles and output includes `ReportWriterTest: PASS`.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add commercial-tracking-java/src/main/java/org/commercialtracking/ReportWriter.java \
-        commercial-tracking-java/src/test/java/org/commercialtracking/ReportWriterTest.java
+git add apps/commercial-tracking-java/src/main/java/org/commercialtracking/ReportWriter.java \
+        apps/commercial-tracking-java/src/test/java/org/commercialtracking/ReportWriterTest.java
 git commit -m "feat(reports): replace PortablePdf output with DocxWriter DOCX"
 ```
 
@@ -214,7 +214,7 @@ git commit -m "feat(reports): replace PortablePdf output with DocxWriter DOCX"
 Change the report response to advertise `docxFile` and default the request `timeZone` to the host machine zone. Only `report()` is edited.
 
 **Files:**
-- Modify: `commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java` (only the `report()` method, ~lines 580–604)
+- Modify: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java` (only the `report()` method, ~lines 580–604)
 
 **Interfaces:**
 - Consumes: `ReportWriter.Result.docx` (from Task 1).
@@ -254,13 +254,13 @@ Do NOT touch `htmlFile`, `csvFile`, `count`, or `savedCopy`. Do NOT change `repo
 
 - [ ] **Step 3: Run to verify it passes**
 
-Run (from `commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`
+Run (from `apps/commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`
 Expected: full build compiles; output includes `ReportWriterTest: PASS` and the build reaches its normal completion (jar/manifest steps).
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java
+git add apps/commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java
 git commit -m "feat(reports): report() returns docxFile and defaults to host time zone"
 ```
 
@@ -271,7 +271,7 @@ git commit -m "feat(reports): report() returns docxFile and defaults to host tim
 Relabel the primary button to "Create DOCX", drop the removed `operationalZone`/`operationalTimeZone` prop, and derive the zone from the browser.
 
 **Files:**
-- Modify: `commercial-tracking-java/frontend/src/main.jsx` (only `ReportsWorkspace` (~line 536) and its render site (~line 308))
+- Modify: `apps/commercial-tracking-java/frontend/src/main.jsx` (only `ReportsWorkspace` (~line 536) and its render site (~line 308))
 
 **Interfaces:**
 - Consumes: `api.report`/`api.reportRange` (unchanged signatures in `frontend/src/api.js`); `DescriptionRounded` icon (already imported at the top of `main.jsx`).
@@ -341,7 +341,7 @@ with:
 
 - [ ] **Step 5: Build the frontend to verify**
 
-Run (from `commercial-tracking-java/frontend/`): `npm run build`
+Run (from `apps/commercial-tracking-java/frontend/`): `npm run build`
 Expected: Vite build succeeds with no errors and emits a new `dist/assets/index-*.js`.
 
 Then run the existing frontend tests to confirm nothing regressed: `npm test`
@@ -354,7 +354,7 @@ Start the app, open the Reports page, and confirm: the primary button reads "Cre
 - [ ] **Step 7: Commit**
 
 ```bash
-git add commercial-tracking-java/frontend/src/main.jsx
+git add apps/commercial-tracking-java/frontend/src/main.jsx
 git commit -m "feat(reports): ReportsWorkspace Create DOCX button and host time zone"
 ```
 
@@ -367,9 +367,9 @@ Delete `PortablePdf.java`, `PortablePdfTest.java`, and the `PortablePdfTest` run
 **Ordering caveat (must be satisfied before executing this task):** `PortablePdf` is referenced by TWO producers — `ReportWriter` (removed in Task 1 of this plan) and `ManifestWriter` (`ManifestWriter.java:116`, `PortablePdf.write(output, ...)`), which is removed by the **Manifests plan** (spec §3, Plan 2). At the start of this repo state, `ManifestWriter` STILL calls `PortablePdf`. Therefore this task can only run after the Manifests plan has been merged. The grep in Step 1 is the gate: do not delete anything until it shows zero non-test references.
 
 **Files:**
-- Delete: `commercial-tracking-java/src/main/java/org/commercialtracking/PortablePdf.java`
-- Delete: `commercial-tracking-java/src/test/java/org/commercialtracking/PortablePdfTest.java`
-- Modify: `commercial-tracking-java/build.ps1` (remove the `PortablePdfTest` run block)
+- Delete: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/PortablePdf.java`
+- Delete: `apps/commercial-tracking-java/src/test/java/org/commercialtracking/PortablePdfTest.java`
+- Modify: `apps/commercial-tracking-java/build.ps1` (remove the `PortablePdfTest` run block)
 
 **Interfaces:**
 - Consumes: confirmation (via grep) that no production or test code references `PortablePdf`.
@@ -377,7 +377,7 @@ Delete `PortablePdf.java`, `PortablePdfTest.java`, and the `PortablePdfTest` run
 
 - [ ] **Step 1: Confirm no remaining references (the gate)**
 
-Run (from `commercial-tracking-java/`): `grep -rn PortablePdf src/`
+Run (from `apps/commercial-tracking-java/`): `grep -rn PortablePdf src/`
 Expected AFTER the Manifests plan is merged: the only hits are `PortablePdf.java` itself (the class definition) and `PortablePdfTest.java` (the test). There must be NO reference in `ReportWriter.java` (removed in Task 1) and NO reference in `ManifestWriter.java`.
 
 STOP if `ManifestWriter.java` still contains `PortablePdf.write(...)`: that means the Manifests plan (Plan 2) has not been merged. Do not proceed — coordinate to merge that plan first, then re-run this grep. Deleting `PortablePdf` while `ManifestWriter` still calls it would break the build.
@@ -385,13 +385,13 @@ STOP if `ManifestWriter.java` still contains `PortablePdf.write(...)`: that mean
 - [ ] **Step 2: Delete the two Java files**
 
 ```bash
-git rm commercial-tracking-java/src/main/java/org/commercialtracking/PortablePdf.java \
-       commercial-tracking-java/src/test/java/org/commercialtracking/PortablePdfTest.java
+git rm apps/commercial-tracking-java/src/main/java/org/commercialtracking/PortablePdf.java \
+       apps/commercial-tracking-java/src/test/java/org/commercialtracking/PortablePdfTest.java
 ```
 
 - [ ] **Step 3: Remove the PortablePdfTest run block from build.ps1**
 
-In `commercial-tracking-java/build.ps1`, delete these two lines (the `PortablePdfTest` invocation and its error guard):
+In `apps/commercial-tracking-java/build.ps1`, delete these two lines (the `PortablePdfTest` invocation and its error guard):
 
 ```powershell
     & java -cp "$classes;$testClasses" org.commercialtracking.PortablePdfTest
@@ -402,18 +402,18 @@ In `commercial-tracking-java/build.ps1`, delete these two lines (the `PortablePd
 
 - [ ] **Step 4: Confirm the deletion is complete**
 
-Run (from `commercial-tracking-java/`): `grep -rn PortablePdf src/ build.ps1`
+Run (from `apps/commercial-tracking-java/`): `grep -rn PortablePdf src/ build.ps1`
 Expected: no output (exit code 1 from grep — zero matches).
 
 - [ ] **Step 5: Run the full build to verify nothing regressed**
 
-Run (from `commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`
+Run (from `apps/commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`
 Expected: build compiles; the test sequence runs through `ReportWriterTest: PASS` (and the other suites) with no `PortablePdfTest` line and no failures.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add commercial-tracking-java/build.ps1
+git add apps/commercial-tracking-java/build.ps1
 git commit -m "chore(reports): retire PortablePdf now that reports and manifests emit DOCX"
 ```
 

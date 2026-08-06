@@ -1,0 +1,24 @@
+# Operating-system and editor artifacts
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.tmp
+*~
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+
+# Python tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Generated release scratch files
+*.log
+
+# A locked pre-reorganization build tree may remain locally at this old path.
+/medical-supply-java/

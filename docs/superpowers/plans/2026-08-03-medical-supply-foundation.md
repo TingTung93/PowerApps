@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Stand up the `medical-supply-java` project with a portable Java 8 build and a headless, self-testable event-sourced storage foundation (JSON library, event model, event store, local index, per-user config).
+**Goal:** Stand up the `apps/medical-supply-java` project with a portable Java 8 build and a headless, self-testable event-sourced storage foundation (JSON library, event model, event store, local index, per-user config).
 
-**Architecture:** A new sibling project `medical-supply-java/` reusing the `commercial-tracking-java` portability blueprint (no Maven/Gradle, `build.ps1`, `javac --release 8`, framework-free `main()` tests). This plan delivers only the headless core: a small recursive JSON reader/writer (objects/arrays/nesting, so it later serves the GUDID client), a generic `SupplyEvent` (envelope + string payload map), an atomic append/replay `EventStore` on a OneDrive-synced folder, a rebuildable `LocalEventIndex`, and `AppConfig`. No domain logic, no UI — those are Plans 2 and 3.
+**Architecture:** A new sibling project `apps/medical-supply-java/` reusing the `apps/commercial-tracking-java` portability blueprint (no Maven/Gradle, `build.ps1`, `javac --release 8`, framework-free `main()` tests). This plan delivers only the headless core: a small recursive JSON reader/writer (objects/arrays/nesting, so it later serves the GUDID client), a generic `SupplyEvent` (envelope + string payload map), an atomic append/replay `EventStore` on a OneDrive-synced folder, a rebuildable `LocalEventIndex`, and `AppConfig`. No domain logic, no UI — those are Plans 2 and 3.
 
 **Tech Stack:** Java 8 (compiled with `javac --release 8`), PowerShell build script, Java SE APIs only (`java.nio.file`, `java.security.MessageDigest`, `java.time`). No third-party libraries.
 
@@ -25,11 +25,11 @@
 ### Task 1: Project scaffold and Java 8 build
 
 **Files:**
-- Create: `medical-supply-java/.gitignore`
-- Create: `medical-supply-java/build.ps1`
-- Create: `medical-supply-java/run-medical-supply.cmd`
-- Create: `medical-supply-java/src/main/java/org/medsupply/MedicalSupplyApp.java`
-- Create: `medical-supply-java/src/main/java/org/medsupply/SelfTest.java`
+- Create: `apps/medical-supply-java/.gitignore`
+- Create: `apps/medical-supply-java/build.ps1`
+- Create: `apps/medical-supply-java/run-medical-supply.cmd`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/MedicalSupplyApp.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/SelfTest.java`
 
 **Interfaces:**
 - Consumes: nothing (first task).
@@ -47,7 +47,7 @@
 
 - [ ] **Step 2: Create the minimal entry point**
 
-`medical-supply-java/src/main/java/org/medsupply/MedicalSupplyApp.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/MedicalSupplyApp.java`:
 
 ```java
 package org.medsupply;
@@ -74,7 +74,7 @@ public final class MedicalSupplyApp {
 
 - [ ] **Step 3: Create the initially-trivial self test**
 
-`medical-supply-java/src/main/java/org/medsupply/SelfTest.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/SelfTest.java`:
 
 ```java
 package org.medsupply;
@@ -93,7 +93,7 @@ public final class SelfTest {
 
 - [ ] **Step 4: Create the schema-version constant referenced above**
 
-`medical-supply-java/src/main/java/org/medsupply/SupplyMeta.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/SupplyMeta.java`:
 
 ```java
 package org.medsupply;
@@ -108,7 +108,7 @@ public final class SupplyMeta {
 
 - [ ] **Step 5: Create the build script**
 
-`medical-supply-java/build.ps1`:
+`apps/medical-supply-java/build.ps1`:
 
 ```powershell
 param(
@@ -181,7 +181,7 @@ Write-Host "Built: $jar"
 
 - [ ] **Step 6: Create the launcher**
 
-`medical-supply-java/run-medical-supply.cmd`:
+`apps/medical-supply-java/run-medical-supply.cmd`:
 
 ```bat
 @echo off
@@ -196,15 +196,15 @@ endlocal
 
 Run:
 ```
-powershell -File medical-supply-java/build.ps1
-java -jar medical-supply-java/dist/MedicalSupply-RC.jar --self-test
+powershell -File apps/medical-supply-java/build.ps1
+java -jar apps/medical-supply-java/dist/MedicalSupply-RC.jar --self-test
 ```
 Expected: build prints `Built: ...MedicalSupply-RC.jar`; the run prints `MedicalSupply self-test: PASS`.
 
 - [ ] **Step 8: Commit**
 
 ```bash
-git add medical-supply-java/
+git add apps/medical-supply-java/
 git commit -m "feat(medsupply): project scaffold and Java 8 build"
 ```
 
@@ -213,8 +213,8 @@ git commit -m "feat(medsupply): project scaffold and Java 8 build"
 ### Task 2: Minimal recursive JSON library
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/Json.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/JsonTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/Json.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/JsonTest.java`
 
 **Interfaces:**
 - Consumes: nothing.
@@ -226,7 +226,7 @@ git commit -m "feat(medsupply): project scaffold and Java 8 build"
 
 - [ ] **Step 1: Write the failing test**
 
-`medical-supply-java/src/test/java/org/medsupply/JsonTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/JsonTest.java`:
 
 ```java
 package org.medsupply;
@@ -287,12 +287,12 @@ public final class JsonTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — test compilation fails with `cannot find symbol ... Json`.
 
 - [ ] **Step 3: Write the implementation**
 
-`medical-supply-java/src/main/java/org/medsupply/Json.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/Json.java`:
 
 ```java
 package org.medsupply;
@@ -520,13 +520,13 @@ public final class Json {
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `JsonTest: PASS` and `Built: ...`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/Json.java medical-supply-java/src/test/java/org/medsupply/JsonTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/Json.java apps/medical-supply-java/src/test/java/org/medsupply/JsonTest.java
 git commit -m "feat(medsupply): recursive JSON reader/writer"
 ```
 
@@ -535,9 +535,9 @@ git commit -m "feat(medsupply): recursive JSON reader/writer"
 ### Task 3: SupplyEvent model and JSON serialization
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/SupplyEvent.java`
-- Create: `medical-supply-java/src/main/java/org/medsupply/SupplyEventJson.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/SupplyEventJsonTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/SupplyEvent.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/SupplyEventJson.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/SupplyEventJsonTest.java`
 
 **Interfaces:**
 - Consumes: `Json` (Task 2), `SupplyMeta.SCHEMA_VERSION` (Task 1).
@@ -548,7 +548,7 @@ git commit -m "feat(medsupply): recursive JSON reader/writer"
 
 - [ ] **Step 1: Write the failing test**
 
-`medical-supply-java/src/test/java/org/medsupply/SupplyEventJsonTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/SupplyEventJsonTest.java`:
 
 ```java
 package org.medsupply;
@@ -598,12 +598,12 @@ public final class SupplyEventJsonTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... SupplyEvent`.
 
 - [ ] **Step 3: Write `SupplyEvent`**
 
-`medical-supply-java/src/main/java/org/medsupply/SupplyEvent.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/SupplyEvent.java`:
 
 ```java
 package org.medsupply;
@@ -633,7 +633,7 @@ public final class SupplyEvent {
 
 - [ ] **Step 4: Write `SupplyEventJson`**
 
-`medical-supply-java/src/main/java/org/medsupply/SupplyEventJson.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/SupplyEventJson.java`:
 
 ```java
 package org.medsupply;
@@ -689,13 +689,13 @@ public final class SupplyEventJson {
 
 - [ ] **Step 5: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `SupplyEventJsonTest: PASS`.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/SupplyEvent.java medical-supply-java/src/main/java/org/medsupply/SupplyEventJson.java medical-supply-java/src/test/java/org/medsupply/SupplyEventJsonTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/SupplyEvent.java apps/medical-supply-java/src/main/java/org/medsupply/SupplyEventJson.java apps/medical-supply-java/src/test/java/org/medsupply/SupplyEventJsonTest.java
 git commit -m "feat(medsupply): SupplyEvent model and JSON serialization"
 ```
 
@@ -704,8 +704,8 @@ git commit -m "feat(medsupply): SupplyEvent model and JSON serialization"
 ### Task 4: Rebuildable local event index
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/LocalEventIndex.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/LocalEventIndexTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/LocalEventIndex.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/LocalEventIndexTest.java`
 
 **Interfaces:**
 - Consumes: `Json` (Task 2).
@@ -718,7 +718,7 @@ git commit -m "feat(medsupply): SupplyEvent model and JSON serialization"
 
 - [ ] **Step 1: Write the failing test**
 
-`medical-supply-java/src/test/java/org/medsupply/LocalEventIndexTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/LocalEventIndexTest.java`:
 
 ```java
 package org.medsupply;
@@ -756,12 +756,12 @@ public final class LocalEventIndexTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... LocalEventIndex`.
 
 - [ ] **Step 3: Write the implementation**
 
-`medical-supply-java/src/main/java/org/medsupply/LocalEventIndex.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/LocalEventIndex.java`:
 
 ```java
 package org.medsupply;
@@ -860,13 +860,13 @@ public final class LocalEventIndex {
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `LocalEventIndexTest: PASS`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/LocalEventIndex.java medical-supply-java/src/test/java/org/medsupply/LocalEventIndexTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/LocalEventIndex.java apps/medical-supply-java/src/test/java/org/medsupply/LocalEventIndexTest.java
 git commit -m "feat(medsupply): rebuildable local event index"
 ```
 
@@ -875,8 +875,8 @@ git commit -m "feat(medsupply): rebuildable local event index"
 ### Task 5: Event store (atomic append, replay, dedup, pending retry)
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/EventStore.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/EventStoreTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/EventStore.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/EventStoreTest.java`
 
 **Interfaces:**
 - Consumes: `SupplyEvent`, `SupplyEventJson` (Task 3), `LocalEventIndex` (Task 4).
@@ -889,7 +889,7 @@ git commit -m "feat(medsupply): rebuildable local event index"
 
 - [ ] **Step 1: Write the failing test**
 
-`medical-supply-java/src/test/java/org/medsupply/EventStoreTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/EventStoreTest.java`:
 
 ```java
 package org.medsupply;
@@ -939,12 +939,12 @@ public final class EventStoreTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... EventStore`.
 
 - [ ] **Step 3: Write the implementation**
 
-`medical-supply-java/src/main/java/org/medsupply/EventStore.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/EventStore.java`:
 
 ```java
 package org.medsupply;
@@ -1148,13 +1148,13 @@ Note: `LinkedHashMap` is imported for parity with future edits; if `-Werror`-sty
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `EventStoreTest: PASS`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/EventStore.java medical-supply-java/src/test/java/org/medsupply/EventStoreTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/EventStore.java apps/medical-supply-java/src/test/java/org/medsupply/EventStoreTest.java
 git commit -m "feat(medsupply): atomic append/replay event store"
 ```
 
@@ -1163,8 +1163,8 @@ git commit -m "feat(medsupply): atomic append/replay event store"
 ### Task 6: Per-user application configuration
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/AppConfig.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/AppConfigTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/AppConfig.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/AppConfigTest.java`
 
 **Interfaces:**
 - Consumes: `Json` (Task 2).
@@ -1175,7 +1175,7 @@ git commit -m "feat(medsupply): atomic append/replay event store"
 
 - [ ] **Step 1: Write the failing test**
 
-`medical-supply-java/src/test/java/org/medsupply/AppConfigTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/AppConfigTest.java`:
 
 ```java
 package org.medsupply;
@@ -1214,12 +1214,12 @@ public final class AppConfigTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... AppConfig`.
 
 - [ ] **Step 3: Write the implementation**
 
-`medical-supply-java/src/main/java/org/medsupply/AppConfig.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/AppConfig.java`:
 
 ```java
 package org.medsupply;
@@ -1325,13 +1325,13 @@ public final class AppConfig {
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `AppConfigTest: PASS`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/AppConfig.java medical-supply-java/src/test/java/org/medsupply/AppConfigTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/AppConfig.java apps/medical-supply-java/src/test/java/org/medsupply/AppConfigTest.java
 git commit -m "feat(medsupply): per-user application configuration"
 ```
 
@@ -1340,7 +1340,7 @@ git commit -m "feat(medsupply): per-user application configuration"
 ### Task 7: Wire the headless self-test end to end
 
 **Files:**
-- Modify: `medical-supply-java/src/main/java/org/medsupply/SelfTest.java`
+- Modify: `apps/medical-supply-java/src/main/java/org/medsupply/SelfTest.java`
 
 **Interfaces:**
 - Consumes: `AppConfig`, `EventStore`, `SupplyEvent` (Tasks 3, 5, 6).
@@ -1348,7 +1348,7 @@ git commit -m "feat(medsupply): per-user application configuration"
 
 - [ ] **Step 1: Replace the trivial self test with an end-to-end smoke check**
 
-`medical-supply-java/src/main/java/org/medsupply/SelfTest.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/SelfTest.java`:
 
 ```java
 package org.medsupply;
@@ -1388,15 +1388,15 @@ public final class SelfTest {
 
 Run:
 ```
-powershell -File medical-supply-java/build.ps1
-java -jar medical-supply-java/dist/MedicalSupply-RC.jar --self-test
+powershell -File apps/medical-supply-java/build.ps1
+java -jar apps/medical-supply-java/dist/MedicalSupply-RC.jar --self-test
 ```
 Expected: all `*Test: PASS` lines during build, then `MedicalSupply self-test: PASS`.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/SelfTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/SelfTest.java
 git commit -m "test(medsupply): end-to-end headless self-test"
 ```
 

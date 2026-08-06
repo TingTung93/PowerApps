@@ -1,7 +1,7 @@
 # Medical Supply Java RC1 Implementation Plan
 
 **Source:** `docs/superpowers/specs/2026-08-04-medical-supply-rc1-scope-design.md`  
-**Target:** `medical-supply-java`  
+**Target:** `apps/medical-supply-java`
 **Release:** `0.2.0-rc1`
 
 ## Spec critique and resolved interpretation
@@ -74,7 +74,7 @@ The most important gaps are:
   the human qualification run.
 - Set `java-release-track.json` to `0.2.0-rc1`, candidate channel; add release notes.
 - Run `build.ps1 -Version 0.2.0-rc1`, all Java tests, `--self-test`, frontend production build, and
-  `git diff --check`. Do not commit unrelated `commercial-tracking-java` changes.
+  `git diff --check`. Do not commit unrelated `apps/commercial-tracking-java` changes.
 
 ## Acceptance criteria
 

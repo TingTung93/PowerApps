@@ -12,8 +12,8 @@
 
 - Pure JDK only — no third-party libraries may be added. Build is `javac --release 8 -encoding UTF-8`.
 - New test classes are `public final class XxxTest { public static void main(String[] args) throws Exception { ... System.out.println("XxxTest: PASS"); } }` and must be added to `build.ps1` in the test-run block.
-- Package is `org.commercialtracking`; source under `commercial-tracking-java/src/main/java/org/commercialtracking/`, tests under `commercial-tracking-java/src/test/java/org/commercialtracking/`.
-- Build/test command (run from `commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`.
+- Package is `org.commercialtracking`; source under `apps/commercial-tracking-java/src/main/java/org/commercialtracking/`, tests under `apps/commercial-tracking-java/src/test/java/org/commercialtracking/`.
+- Build/test command (run from `apps/commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`.
 - All paths below are relative to the repo root `F:\PowerApps`.
 
 ---
@@ -21,8 +21,8 @@
 ### Task 1: QrCode — Galois field + generator polynomial
 
 **Files:**
-- Create: `commercial-tracking-java/src/main/java/org/commercialtracking/QrCode.java`
-- Create: `commercial-tracking-java/src/test/java/org/commercialtracking/QrCodeTest.java`
+- Create: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/QrCode.java`
+- Create: `apps/commercial-tracking-java/src/test/java/org/commercialtracking/QrCodeTest.java`
 
 **Interfaces:**
 - Produces: `class QrCode` with `public final int size;`, `public final boolean[][] modules;` (indexed `[row][col]`, `true` = dark), `static int[] generatorPolynomial(int degree)` (package-private, returns α-exponent coefficients, length `degree+1`, leading term first). Later steps add `public static QrCode encode(String text)` and `public byte[] toPng(int scale, int quietModules)`.
@@ -55,7 +55,7 @@ public final class QrCodeTest {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `powershell -File build.ps1 -SkipFrontend` (from `commercial-tracking-java/`), after adding the `QrCodeTest` run line (Step 4).
+Run: `powershell -File build.ps1 -SkipFrontend` (from `apps/commercial-tracking-java/`), after adding the `QrCodeTest` run line (Step 4).
 Expected: compilation fails — `QrCode` does not exist yet.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -113,7 +113,7 @@ public final class QrCode {
 
 - [ ] **Step 4: Wire the test into build.ps1**
 
-In `commercial-tracking-java/build.ps1`, add after the `PortablePdfTest` block (around line 83), before the `PerformanceSmokeTest` block:
+In `apps/commercial-tracking-java/build.ps1`, add after the `PortablePdfTest` block (around line 83), before the `PerformanceSmokeTest` block:
 
 ```powershell
     & java -cp "$classes;$testClasses" org.commercialtracking.QrCodeTest
@@ -128,9 +128,9 @@ Expected: output includes `QrCodeTest: PASS`; build succeeds.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add commercial-tracking-java/src/main/java/org/commercialtracking/QrCode.java \
-        commercial-tracking-java/src/test/java/org/commercialtracking/QrCodeTest.java \
-        commercial-tracking-java/build.ps1
+git add apps/commercial-tracking-java/src/main/java/org/commercialtracking/QrCode.java \
+        apps/commercial-tracking-java/src/test/java/org/commercialtracking/QrCodeTest.java \
+        apps/commercial-tracking-java/build.ps1
 git commit -m "feat(qr): GF(256) field and Reed-Solomon generator polynomial"
 ```
 
@@ -139,8 +139,8 @@ git commit -m "feat(qr): GF(256) field and Reed-Solomon generator polynomial"
 ### Task 2: QrCode — full encode to module matrix
 
 **Files:**
-- Modify: `commercial-tracking-java/src/main/java/org/commercialtracking/QrCode.java`
-- Modify: `commercial-tracking-java/src/test/java/org/commercialtracking/QrCodeTest.java`
+- Modify: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/QrCode.java`
+- Modify: `apps/commercial-tracking-java/src/test/java/org/commercialtracking/QrCodeTest.java`
 
 **Interfaces:**
 - Consumes: `generatorPolynomial`, `mul`, `EXP`, `LOG` from Task 1.
@@ -454,8 +454,8 @@ Expected: `QrCodeTest: PASS`.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add commercial-tracking-java/src/main/java/org/commercialtracking/QrCode.java \
-        commercial-tracking-java/src/test/java/org/commercialtracking/QrCodeTest.java
+git add apps/commercial-tracking-java/src/main/java/org/commercialtracking/QrCode.java \
+        apps/commercial-tracking-java/src/test/java/org/commercialtracking/QrCodeTest.java
 git commit -m "feat(qr): encode byte-mode QR (versions 1-3, ECC-M) with mask selection"
 ```
 
@@ -464,8 +464,8 @@ git commit -m "feat(qr): encode byte-mode QR (versions 1-3, ECC-M) with mask sel
 ### Task 3: QrCode — PNG rendering
 
 **Files:**
-- Modify: `commercial-tracking-java/src/main/java/org/commercialtracking/QrCode.java`
-- Modify: `commercial-tracking-java/src/test/java/org/commercialtracking/QrCodeTest.java`
+- Modify: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/QrCode.java`
+- Modify: `apps/commercial-tracking-java/src/test/java/org/commercialtracking/QrCodeTest.java`
 
 **Interfaces:**
 - Produces: `public byte[] toPng(int scale, int quietModules) throws java.io.IOException` — a PNG whose pixel side is `(size + quietModules*2) * scale`, dark modules black on white.
@@ -523,7 +523,7 @@ Expected: `QrCodeTest: PASS`.
 Run this one-off snippet to write a QR PNG, then scan it with a phone QR reader; it must decode to `1Z999AA10123456784`:
 
 ```bash
-cd commercial-tracking-java
+cd apps/commercial-tracking-java
 cat > /tmp/QrManual.java <<'EOF'
 import org.commercialtracking.QrCode;
 import java.nio.file.*;
@@ -542,8 +542,8 @@ Expected: `qr-manual.png` scans to `1Z999AA10123456784`. (If it does not decode,
 - [ ] **Step 6: Commit**
 
 ```bash
-git add commercial-tracking-java/src/main/java/org/commercialtracking/QrCode.java \
-        commercial-tracking-java/src/test/java/org/commercialtracking/QrCodeTest.java
+git add apps/commercial-tracking-java/src/main/java/org/commercialtracking/QrCode.java \
+        apps/commercial-tracking-java/src/test/java/org/commercialtracking/QrCodeTest.java
 git commit -m "feat(qr): render QR matrix to PNG via ImageIO"
 ```
 
@@ -552,8 +552,8 @@ git commit -m "feat(qr): render QR matrix to PNG via ImageIO"
 ### Task 4: DocxWriter — package skeleton, headings, paragraphs
 
 **Files:**
-- Create: `commercial-tracking-java/src/main/java/org/commercialtracking/DocxWriter.java`
-- Create: `commercial-tracking-java/src/test/java/org/commercialtracking/DocxWriterTest.java`
+- Create: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/DocxWriter.java`
+- Create: `apps/commercial-tracking-java/src/test/java/org/commercialtracking/DocxWriterTest.java`
 
 **Interfaces:**
 - Produces: `class DocxWriter` with fluent `heading(String)`, `paragraph(String)`, and `void save(Path)`. Task 5 adds tables and inline images.
@@ -703,7 +703,7 @@ public final class DocxWriter {
 
 - [ ] **Step 4: Wire the test into build.ps1**
 
-In `commercial-tracking-java/build.ps1`, add after the `QrCodeTest` block:
+In `apps/commercial-tracking-java/build.ps1`, add after the `QrCodeTest` block:
 
 ```powershell
     & java -cp "$classes;$testClasses" org.commercialtracking.DocxWriterTest
@@ -718,9 +718,9 @@ Expected: `DocxWriterTest: PASS`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add commercial-tracking-java/src/main/java/org/commercialtracking/DocxWriter.java \
-        commercial-tracking-java/src/test/java/org/commercialtracking/DocxWriterTest.java \
-        commercial-tracking-java/build.ps1
+git add apps/commercial-tracking-java/src/main/java/org/commercialtracking/DocxWriter.java \
+        apps/commercial-tracking-java/src/test/java/org/commercialtracking/DocxWriterTest.java \
+        apps/commercial-tracking-java/build.ps1
 git commit -m "feat(docx): minimal OOXML writer with headings and paragraphs"
 ```
 
@@ -729,8 +729,8 @@ git commit -m "feat(docx): minimal OOXML writer with headings and paragraphs"
 ### Task 5: DocxWriter — tables and inline PNG images
 
 **Files:**
-- Modify: `commercial-tracking-java/src/main/java/org/commercialtracking/DocxWriter.java`
-- Modify: `commercial-tracking-java/src/test/java/org/commercialtracking/DocxWriterTest.java`
+- Modify: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/DocxWriter.java`
+- Modify: `apps/commercial-tracking-java/src/test/java/org/commercialtracking/DocxWriterTest.java`
 
 **Interfaces:**
 - Consumes: `DocxWriter` base (Task 4), `QrCode.toPng` (Task 3).
@@ -848,8 +848,8 @@ Open the temp `.docx` (path printed by adding a temporary `System.out.println(wi
 - [ ] **Step 6: Commit**
 
 ```bash
-git add commercial-tracking-java/src/main/java/org/commercialtracking/DocxWriter.java \
-        commercial-tracking-java/src/test/java/org/commercialtracking/DocxWriterTest.java
+git add apps/commercial-tracking-java/src/main/java/org/commercialtracking/DocxWriter.java \
+        apps/commercial-tracking-java/src/test/java/org/commercialtracking/DocxWriterTest.java
 git commit -m "feat(docx): tables and inline PNG images"
 ```
 
