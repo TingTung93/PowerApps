@@ -4,7 +4,7 @@
 
 **Goal:** Complete the user-facing layer over the Plan 3 API: a management-report PDF, a Swing `--classic-ui` fallback, the React/MUI browser SPA (replacing Plan 3's minimal bundled UI) with QR label printing, and release/qualification packaging.
 
-**Architecture:** All presentation consumes the tested Plan 3 surfaces (`AppService`, `BrowserServer`'s `/api/*`, `ManagementReport`). `PortablePdf` (ported from `commercial-tracking-java`, dependency-free) adds a PDF to the management report. `SwingApp` drives `AppService` directly for the offline desktop fallback. The React/MUI SPA is built by Vite into `src/main/resources/web` (replacing the hand-written UI), talking only to `/api/*`; QR codes render client-side from a bundled library (offline). `build.ps1` gains an npm frontend build; packaging adds README/TESTING/RELEASE_NOTES and `dist-review/qualification` evidence.
+**Architecture:** All presentation consumes the tested Plan 3 surfaces (`AppService`, `BrowserServer`'s `/api/*`, `ManagementReport`). `PortablePdf` (ported from `apps/commercial-tracking-java`, dependency-free) adds a PDF to the management report. `SwingApp` drives `AppService` directly for the offline desktop fallback. The React/MUI SPA is built by Vite into `src/main/resources/web` (replacing the hand-written UI), talking only to `/api/*`; QR codes render client-side from a bundled library (offline). `build.ps1` gains an npm frontend build; packaging adds README/TESTING/RELEASE_NOTES and `dist-review/qualification` evidence.
 
 **Tech Stack:** Java 8 (`javac --release 8`, Swing, `com.sun.net.httpserver`), and — new in this plan — Node/npm with Vite + React 19 + MUI 7 + a QR library, at build time only. The shipped JAR remains Java-8-only with the SPA embedded.
 
@@ -15,18 +15,18 @@
 - Package root: `org.medsupply`. **Formatting: conventional, readable, multi-line Java** — do not minify.
 - Depends on Plans 1–3 (built, green on `main`): `AppService` (`configure`, `reload`, `stock`, `catalog`, `dashboard(Instant)`, `reorder(Instant)`, `snapshot(Instant)`, `scan`, `receive`, `pick`, `adjust`, `archive`, `registerProduct`, `lookupGudid`, `identity`, `store`, `BadRequest`), `BrowserServer` (`start`, `startAndOpen`, `stop`, `token`, `/api/*`), `ManagementReport` (`write`, `renderHtml`, `renderReorderCsv`, `Result{html,csv}`), `AppConfig`, `Json`.
 - Java tests are framework-free `*Test` classes printing `XxxTest: PASS`; `build.ps1` auto-discovers them.
-- The Vite build writes to `medical-supply-java/src/main/resources/web` with `emptyOutDir: true`, so it **replaces** Plan 3's committed `web/index.html` + `web/app.js` (removed in Task 3). The built `web/` becomes generated output (git-ignored); source lives under `frontend/`.
+- The Vite build writes to `apps/medical-supply-java/src/main/resources/web` with `emptyOutDir: true`, so it **replaces** Plan 3's committed `web/index.html` + `web/app.js` (removed in Task 3). The built `web/` becomes generated output (git-ignored); source lives under `frontend/`.
 
 ---
 
 ### Task 1: Management-report PDF (port PortablePdf)
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/PortablePdf.java`
-- Modify: `medical-supply-java/src/main/java/org/medsupply/ManagementReport.java`
-- Modify: `medical-supply-java/src/main/java/org/medsupply/BrowserServer.java` (report response includes `pdfFile`)
-- Test: `medical-supply-java/src/test/java/org/medsupply/PortablePdfTest.java`
-- Modify: `medical-supply-java/src/test/java/org/medsupply/ManagementReportTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/PortablePdf.java`
+- Modify: `apps/medical-supply-java/src/main/java/org/medsupply/ManagementReport.java`
+- Modify: `apps/medical-supply-java/src/main/java/org/medsupply/BrowserServer.java` (report response includes `pdfFile`)
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/PortablePdfTest.java`
+- Modify: `apps/medical-supply-java/src/test/java/org/medsupply/ManagementReportTest.java`
 
 **Interfaces:**
 - Produces:
@@ -35,7 +35,7 @@
 
 - [ ] **Step 1: Write the failing test for `PortablePdf`**
 
-`medical-supply-java/src/test/java/org/medsupply/PortablePdfTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/PortablePdfTest.java`:
 
 ```java
 package org.medsupply;
@@ -66,12 +66,12 @@ public final class PortablePdfTest {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... PortablePdf`.
 
 - [ ] **Step 3: Add `PortablePdf` (ported, dependency-free)**
 
-`medical-supply-java/src/main/java/org/medsupply/PortablePdf.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/PortablePdf.java`:
 
 ```java
 package org.medsupply;
@@ -150,7 +150,7 @@ public final class PortablePdf {
 
 - [ ] **Step 4: Run to verify `PortablePdfTest` passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `PortablePdfTest: PASS`.
 
 - [ ] **Step 5: Add the PDF to `ManagementReport`**
@@ -206,13 +206,13 @@ In `BrowserServer.route`, in the `/api/report` branch, after `response.put("csvF
 
 - [ ] **Step 8: Build, verify all green**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `PortablePdfTest: PASS`, `ManagementReportTest: PASS`, and all others, then `Built: ...`.
 
 - [ ] **Step 9: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/PortablePdf.java medical-supply-java/src/main/java/org/medsupply/ManagementReport.java medical-supply-java/src/main/java/org/medsupply/BrowserServer.java medical-supply-java/src/test/java/org/medsupply/PortablePdfTest.java medical-supply-java/src/test/java/org/medsupply/ManagementReportTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/PortablePdf.java apps/medical-supply-java/src/main/java/org/medsupply/ManagementReport.java apps/medical-supply-java/src/main/java/org/medsupply/BrowserServer.java apps/medical-supply-java/src/test/java/org/medsupply/PortablePdfTest.java apps/medical-supply-java/src/test/java/org/medsupply/ManagementReportTest.java
 git commit -m "feat(medsupply): management report PDF"
 ```
 
@@ -221,9 +221,9 @@ git commit -m "feat(medsupply): management report PDF"
 ### Task 2: Swing `--classic-ui` fallback
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/SwingApp.java`
-- Modify: `medical-supply-java/src/main/java/org/medsupply/MedicalSupplyApp.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/SwingRowsTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/SwingApp.java`
+- Modify: `apps/medical-supply-java/src/main/java/org/medsupply/MedicalSupplyApp.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/SwingRowsTest.java`
 
 **Interfaces:**
 - Consumes: `AppService`, `AppConfig`, `GudidClient`, `HttpsFetcher`.
@@ -234,7 +234,7 @@ git commit -m "feat(medsupply): management report PDF"
 
 - [ ] **Step 1: Write the failing test (pure formatter, no display)**
 
-`medical-supply-java/src/test/java/org/medsupply/SwingRowsTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/SwingRowsTest.java`:
 
 ```java
 package org.medsupply;
@@ -265,12 +265,12 @@ public final class SwingRowsTest {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... SwingApp`.
 
 - [ ] **Step 3: Write `SwingApp`**
 
-`medical-supply-java/src/main/java/org/medsupply/SwingApp.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/SwingApp.java`:
 
 ```java
 package org.medsupply;
@@ -439,13 +439,13 @@ Replace the `--classic-ui` branch in `MedicalSupplyApp.main` with:
 
 - [ ] **Step 5: Build and verify**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `SwingRowsTest: PASS` and all others green. (The frame itself is verified manually: `java -jar dist/MedicalSupply-RC.jar --classic-ui`.)
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/SwingApp.java medical-supply-java/src/main/java/org/medsupply/MedicalSupplyApp.java medical-supply-java/src/test/java/org/medsupply/SwingRowsTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/SwingApp.java apps/medical-supply-java/src/main/java/org/medsupply/MedicalSupplyApp.java apps/medical-supply-java/src/test/java/org/medsupply/SwingRowsTest.java
 git commit -m "feat(medsupply): Swing classic-ui fallback"
 ```
 
@@ -456,11 +456,11 @@ git commit -m "feat(medsupply): Swing classic-ui fallback"
 > **Scope note:** This task delivers a *complete, buildable* SPA scaffold — build config, API client, theme, drawer navigation, and working Dashboard / Scan / Inventory / Registration / Labels / Diagnostics workspaces wired to `/api/*`. Visual refinement (spacing, empty states, richer Rapid Scan interactions) is expected to continue iteratively with the `frontend-design` skill against the running app; the scaffold here is functional, not final. Every screen's data and actions use only the Plan 3 API contract, which is already tested.
 
 **Files:**
-- Create: `medical-supply-java/frontend/package.json`, `vite.config.js`, `index.html`
-- Create: `medical-supply-java/frontend/src/api.js`, `theme.js`, `main.jsx`
-- Delete: `medical-supply-java/src/main/resources/web/index.html`, `medical-supply-java/src/main/resources/web/app.js` (replaced by the Vite build output)
-- Modify: `medical-supply-java/.gitignore` (ignore generated `src/main/resources/web/`)
-- Modify: `medical-supply-java/build.ps1` (npm frontend build)
+- Create: `apps/medical-supply-java/frontend/package.json`, `vite.config.js`, `index.html`
+- Create: `apps/medical-supply-java/frontend/src/api.js`, `theme.js`, `main.jsx`
+- Delete: `apps/medical-supply-java/src/main/resources/web/index.html`, `apps/medical-supply-java/src/main/resources/web/app.js` (replaced by the Vite build output)
+- Modify: `apps/medical-supply-java/.gitignore` (ignore generated `src/main/resources/web/`)
+- Modify: `apps/medical-supply-java/build.ps1` (npm frontend build)
 
 **Interfaces:**
 - Consumes: the Plan 3 `/api/*` endpoints (`GET /api/state`; POST `/api/configure|receive|pick|adjust|archive|register|gudid|report|shutdown`).
@@ -468,7 +468,7 @@ git commit -m "feat(medsupply): Swing classic-ui fallback"
 
 - [ ] **Step 1: Create the frontend package + build config**
 
-`medical-supply-java/frontend/package.json`:
+`apps/medical-supply-java/frontend/package.json`:
 
 ```json
 {
@@ -493,7 +493,7 @@ git commit -m "feat(medsupply): Swing classic-ui fallback"
 }
 ```
 
-`medical-supply-java/frontend/vite.config.js`:
+`apps/medical-supply-java/frontend/vite.config.js`:
 
 ```javascript
 import { defineConfig } from 'vite'
@@ -516,7 +516,7 @@ export default defineConfig({
 })
 ```
 
-`medical-supply-java/frontend/index.html`:
+`apps/medical-supply-java/frontend/index.html`:
 
 ```html
 <!doctype html>
@@ -538,7 +538,7 @@ export default defineConfig({
 
 - [ ] **Step 2: Create the API client and theme**
 
-`medical-supply-java/frontend/src/api.js`:
+`apps/medical-supply-java/frontend/src/api.js`:
 
 ```javascript
 const token = window.__MEDSUPPLY_TOKEN__
@@ -570,7 +570,7 @@ export const api = {
 }
 ```
 
-`medical-supply-java/frontend/src/theme.js`:
+`apps/medical-supply-java/frontend/src/theme.js`:
 
 ```javascript
 import { createTheme } from '@mui/material/styles'
@@ -589,7 +589,7 @@ export const theme = createTheme({
 
 - [ ] **Step 3: Create the SPA (`main.jsx`)**
 
-`medical-supply-java/frontend/src/main.jsx` — drawer navigation with the six workspaces. Dashboard, Scan, Inventory, Registration, Labels, and Diagnostics are all functional against `/api/*`. Labels render QR codes client-side (offline) via the bundled `qrcode` library and print with `window.print()`.
+`apps/medical-supply-java/frontend/src/main.jsx` — drawer navigation with the six workspaces. Dashboard, Scan, Inventory, Registration, Labels, and Diagnostics are all functional against `/api/*`. Labels render QR codes client-side (offline) via the bundled `qrcode` library and print with `window.print()`.
 
 ```jsx
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
@@ -881,7 +881,7 @@ createRoot(document.getElementById('root')).render(<App />)
 
 - [ ] **Step 4: Remove Plan 3's minimal UI and ignore generated output**
 
-Delete `medical-supply-java/src/main/resources/web/index.html` and `medical-supply-java/src/main/resources/web/app.js` (the Vite build regenerates `web/`). Add to `medical-supply-java/.gitignore`:
+Delete `apps/medical-supply-java/src/main/resources/web/index.html` and `apps/medical-supply-java/src/main/resources/web/app.js` (the Vite build regenerates `web/`). Add to `apps/medical-supply-java/.gitignore`:
 
 ```gitignore
 /src/main/resources/web/
@@ -889,7 +889,7 @@ Delete `medical-supply-java/src/main/resources/web/index.html` and `medical-supp
 
 - [ ] **Step 5: Add the frontend build to `build.ps1`**
 
-In `medical-supply-java/build.ps1`, add a `-SkipFrontend` switch to the `param(...)` block, and before the main-compilation block insert:
+In `apps/medical-supply-java/build.ps1`, add a `-SkipFrontend` switch to the `param(...)` block, and before the main-compilation block insert:
 
 ```powershell
 if (-not $SkipFrontend) {
@@ -909,16 +909,16 @@ if (-not $SkipFrontend) {
 
 Run:
 ```
-cd medical-supply-java/frontend; npm install; cd ..
-powershell -File medical-supply-java/build.ps1
+cd apps/medical-supply-java/frontend; npm install; cd ..
+powershell -File apps/medical-supply-java/build.ps1
 ```
 Expected: Vite build writes `src/main/resources/web/index.html` + `assets/*`; Java tests pass; `Built: ...`. Then launch `java -jar dist/MedicalSupply-RC.jar`, set a folder, scan, and confirm the Dashboard/Inventory/Labels workspaces render.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add medical-supply-java/frontend medical-supply-java/.gitignore medical-supply-java/build.ps1
-git rm medical-supply-java/src/main/resources/web/index.html medical-supply-java/src/main/resources/web/app.js
+git add apps/medical-supply-java/frontend apps/medical-supply-java/.gitignore apps/medical-supply-java/build.ps1
+git rm apps/medical-supply-java/src/main/resources/web/index.html apps/medical-supply-java/src/main/resources/web/app.js
 git commit -m "feat(medsupply): React/MUI SPA with QR labels and Vite build"
 ```
 
@@ -927,17 +927,17 @@ git commit -m "feat(medsupply): React/MUI SPA with QR labels and Vite build"
 ### Task 4: Release & qualification packaging
 
 **Files:**
-- Create: `medical-supply-java/README.md`, `TESTING.md`, `RELEASE_NOTES.md`
-- Create: `medical-supply-java/qualification/browser-smoke-evidence.md`
-- Modify: `medical-supply-java/build.ps1` (copy docs + qualification into `dist`)
-- Modify: `medical-supply-java/run-medical-supply.cmd` (document `--classic-ui`)
+- Create: `apps/medical-supply-java/README.md`, `TESTING.md`, `RELEASE_NOTES.md`
+- Create: `apps/medical-supply-java/qualification/browser-smoke-evidence.md`
+- Modify: `apps/medical-supply-java/build.ps1` (copy docs + qualification into `dist`)
+- Modify: `apps/medical-supply-java/run-medical-supply.cmd` (document `--classic-ui`)
 
 **Interfaces:**
 - Produces: a self-describing `dist/` matching the commercial-tracking release shape (JAR, launcher, README, TESTING, RELEASE_NOTES, qualification/).
 
 - [ ] **Step 1: Write `README.md`**
 
-`medical-supply-java/README.md`:
+`apps/medical-supply-java/README.md`:
 
 ```markdown
 # Medical Supply Tracking
@@ -978,7 +978,7 @@ Shared events under the selected root; per-user settings and pending files under
 
 - [ ] **Step 2: Write `TESTING.md` and `RELEASE_NOTES.md`**
 
-`medical-supply-java/TESTING.md`:
+`apps/medical-supply-java/TESTING.md`:
 
 ```markdown
 # Testing
@@ -994,7 +994,7 @@ appears in Inventory with the correct expiry color, export a management report, 
 Record results in `qualification/browser-smoke-evidence.md`.
 ```
 
-`medical-supply-java/RELEASE_NOTES.md`:
+`apps/medical-supply-java/RELEASE_NOTES.md`:
 
 ```markdown
 # Release Notes
@@ -1010,7 +1010,7 @@ Record results in `qualification/browser-smoke-evidence.md`.
 
 - [ ] **Step 3: Write the qualification evidence template**
 
-`medical-supply-java/qualification/browser-smoke-evidence.md`:
+`apps/medical-supply-java/qualification/browser-smoke-evidence.md`:
 
 ```markdown
 # Browser Smoke Evidence
@@ -1031,7 +1031,7 @@ Java version: ______  Date: ______  Tester: ______
 
 - [ ] **Step 4: Copy docs + qualification into `dist` in `build.ps1`**
 
-In `medical-supply-java/build.ps1`, after `Copy-Item -LiteralPath (Join-Path $projectRoot "run-medical-supply.cmd") -Destination $dist`, add:
+In `apps/medical-supply-java/build.ps1`, after `Copy-Item -LiteralPath (Join-Path $projectRoot "run-medical-supply.cmd") -Destination $dist`, add:
 
 ```powershell
 foreach ($doc in @("README.md", "TESTING.md", "RELEASE_NOTES.md")) {
@@ -1044,7 +1044,7 @@ if (Test-Path $qual) { Copy-Item -LiteralPath $qual -Destination $dist -Recurse 
 
 - [ ] **Step 5: Document `--classic-ui` in the launcher**
 
-Replace `medical-supply-java/run-medical-supply.cmd` with:
+Replace `apps/medical-supply-java/run-medical-supply.cmd` with:
 
 ```bat
 @echo off
@@ -1060,13 +1060,13 @@ endlocal
 
 - [ ] **Step 6: Full build and package**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: green tests, and `dist/` contains `MedicalSupply-RC.jar`, `run-medical-supply.cmd`, `README.md`, `TESTING.md`, `RELEASE_NOTES.md`, and `qualification/`.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add medical-supply-java/README.md medical-supply-java/TESTING.md medical-supply-java/RELEASE_NOTES.md medical-supply-java/qualification medical-supply-java/build.ps1 medical-supply-java/run-medical-supply.cmd
+git add apps/medical-supply-java/README.md apps/medical-supply-java/TESTING.md apps/medical-supply-java/RELEASE_NOTES.md apps/medical-supply-java/qualification apps/medical-supply-java/build.ps1 apps/medical-supply-java/run-medical-supply.cmd
 git commit -m "docs(medsupply): release and qualification packaging"
 ```
 

@@ -46,5 +46,5 @@ Source specification: `java-commercial-tracking-ui-ux-spec.md`
 The code-controlled UI/UX requirements are implemented. Physical scanner timing,
 two-workstation synchronization, real display scaling, and assistive-technology
 behavior must be signed off using the worksheets in
-`commercial-tracking-java/qualification/`; these cannot be established by unit
+`apps/commercial-tracking-java/qualification/`; these cannot be established by unit
 tests or source inspection alone.

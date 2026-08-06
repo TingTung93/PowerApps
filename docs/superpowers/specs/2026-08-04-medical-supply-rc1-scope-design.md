@@ -1,20 +1,20 @@
 # Medical Supply Java — Release Candidate 1 Scope
 
 **Date:** 2026-08-04
-**Component:** `medical-supply-java`
+**Component:** `apps/medical-supply-java`
 **Status:** Program-level scope, approved. Decomposed into five work-streams; each gets its own spec → plan → implementation cycle.
 
 ## 1. Context
 
-`medical-supply-java` is an event-sourced Java 8 replacement for the PowerApps "Inventory Tracker"
-(`Inventory_Tracker/*.pa.yaml`). It writes immutable, per-event JSON files into a
+`apps/medical-supply-java` is an event-sourced Java 8 replacement for the PowerApps "Inventory Tracker"
+(`apps/inventory-tracker-powerapps/*.pa.yaml`). It writes immutable, per-event JSON files into a
 OneDrive/SharePoint-synchronized folder shared across workstations, and serves a precompiled
 React/MUI SPA over a loopback-only HTTP endpoint. Per-user settings live in
 `%LOCALAPPDATA%\MedicalSupply`.
 
 The core architecture is sound: unique per-event filenames (timestamp + device + `eventId`) mean two
 workstations cannot clobber each other, and replay is idempotent (dedup by `eventId` + content hash).
-The applet is currently **behind its own sibling** (`commercial-tracking-java`, which already drains
+The applet is currently **behind its own sibling** (`apps/commercial-tracking-java`, which already drains
 buffered events and surfaces sync state) and **behind the PowerApp** on several user-facing workflows.
 
 This document defines the complete set of features to implement or change to reach Release
@@ -68,7 +68,7 @@ Severity legend: 🔴 blocker · 🟠 must-have · 🟡 should-have · ⚪ defer
 |---|---|---|
 | A-ID 🔴 | Trustworthy, non-editable identity | `actor` defaults to `USERDOMAIN\user` (`AppConfig.defaultActor`) but is freely editable via `/api/settings`. Remove `actor` from editable settings; derive from OS auth on each launch; record device + user on every event. |
 | A-COMPLETE 🔴 | Trail-completeness guarantee | `EventStore.loadAll` collects per-file errors into a list the UI barely shows. Promote to a first-class "projection incomplete: N events unreadable" state; block/label reports accordingly; attempt to hydrate online-only files or warn. |
-| A3 🔴 | Drain buffered events | `EventStore.retryPending()` exists but is **never called**. Call on startup, on a timer, and after operations; surface `pendingCount` as an alert (port `commercial-tracking-java` pattern). |
+| A3 🔴 | Drain buffered events | `EventStore.retryPending()` exists but is **never called**. Call on startup, on a timer, and after operations; surface `pendingCount` as an alert (port `apps/commercial-tracking-java` pattern). |
 | A1 🔴 | Negative-inventory hard guard | `AppService.pick` blindly decrements; `Projection.apply` has no floor. Reject a pick that exceeds on-hand. |
 | A4 🟠 | Orphan `.partial` recovery/cleanup | `finalizeShared` can leave `<name>.json.partial` if the process dies mid-move; nothing ever scans shared `.partial`. Add recovery/cleanup on load. |
 | A8 🟠 | Crash-safe config save | `AppConfig.save` writes `client.json` without temp+atomic move (unlike `EventStore`/`LocalEventIndex`). Make it crash-safe. |

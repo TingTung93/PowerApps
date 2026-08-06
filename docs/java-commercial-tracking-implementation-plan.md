@@ -50,7 +50,7 @@ The prototype is a validation baseline, not the finished architecture. Productio
 ## 4. Target implementation shape
 
 ```text
-commercial-tracking-java/
+apps/commercial-tracking-java/
 ├── build.ps1
 ├── README.md
 ├── frontend/

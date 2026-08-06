@@ -4,15 +4,15 @@
 
 **Goal:** Turn the Plan 2 domain into a runnable application: a shared headless `AppService` (used by every front end), an exportable management report, a loopback HTTP API server with a minimal bundled browser UI, and the build wiring to package web resources.
 
-**Architecture:** `AppService` wraps `EventStore` + `Projection` + `InventoryAnalytics` + `ReorderAdvisor` + `GudidClient` behind plain Java methods and a `snapshot()` map — this is the single brain both the browser API and (Plan 4) the Swing UI call, and it is fully unit-testable with no HTTP. `ManagementReport` renders the dashboard/reorder data to HTML + CSV under the shared `reports/` folder. `BrowserServer` (ported from `commercial-tracking-java`) exposes `AppService` over `127.0.0.1` with an ephemeral port, a random session token, and a static handler serving a minimal plain-HTML/JS UI embedded in the JAR. No React build yet — Plan 4 replaces the bundled UI with the MUI SPA and adds the Swing fallback, QR labels, PDF, and qualification packaging.
+**Architecture:** `AppService` wraps `EventStore` + `Projection` + `InventoryAnalytics` + `ReorderAdvisor` + `GudidClient` behind plain Java methods and a `snapshot()` map — this is the single brain both the browser API and (Plan 4) the Swing UI call, and it is fully unit-testable with no HTTP. `ManagementReport` renders the dashboard/reorder data to HTML + CSV under the shared `reports/` folder. `BrowserServer` (ported from `apps/commercial-tracking-java`) exposes `AppService` over `127.0.0.1` with an ephemeral port, a random session token, and a static handler serving a minimal plain-HTML/JS UI embedded in the JAR. No React build yet — Plan 4 replaces the bundled UI with the MUI SPA and adds the Swing fallback, QR labels, PDF, and qualification packaging.
 
 **Tech Stack:** Java 8 (`javac --release 8`), `com.sun.net.httpserver` (JDK built-in), the Plan 1 `Json` library. No third-party libraries; no npm in this plan.
 
 ## Global Constraints
 
 - Target Java 8 bytecode (`javac --release 8`), Java SE + `com.sun.net.httpserver` only. No third-party libraries. No npm/Node in this plan.
-- Package root: `org.medsupply`. Build/test via `medical-supply-java/build.ps1` (auto-discovers `*Test`). This plan adds a **resource-copy step** to `build.ps1` (Task 6) so `src/main/resources/web/**` is bundled into the JAR.
-- **Formatting: conventional, readable, multi-line Java** — one statement per line, standard indentation, matching `commercial-tracking-java`. Do not minify.
+- Package root: `org.medsupply`. Build/test via `apps/medical-supply-java/build.ps1` (auto-discovers `*Test`). This plan adds a **resource-copy step** to `build.ps1` (Task 6) so `src/main/resources/web/**` is bundled into the JAR.
+- **Formatting: conventional, readable, multi-line Java** — one statement per line, standard indentation, matching `apps/commercial-tracking-java`. Do not minify.
 - Depends on Plan 1 + Plan 2 types (built and verified): `AppConfig`, `EventStore`, `Json`, `SupplyEvent`, `SupplyEvents` (+ `Identity`), `ItemKey`, `Gs1Parser`/`Gs1Scan`, `Projection`/`CatalogProduct`/`StockLine`, `InventoryAnalytics`/`DashboardMetrics`, `ReorderAdvisor`/`ReorderSuggestion`/`Params`, `GudidClient`/`GudidResult`.
 - Tests are framework-free `*Test` classes with `public static void main(String[])` that throw `AssertionError` on failure and print `XxxTest: PASS`.
 - Time is injected into read-model methods (`Instant now`) for deterministic tests. Event `occurredUtc` is stamped from `Instant.now()` only inside `AppService` mutation methods (acceptable; those are not asserted on exact time).
@@ -23,8 +23,8 @@
 ### Task 1: AppService core — configure, reload, snapshot
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/AppService.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/AppServiceTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/AppService.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/AppServiceTest.java`
 
 **Interfaces:**
 - Consumes: `AppConfig`, `EventStore`, `Projection`, `InventoryAnalytics`, `ReorderAdvisor`, `GudidClient`, `SupplyEvents` (Plans 1–2).
@@ -38,7 +38,7 @@
 
 - [ ] **Step 1: Write the failing test**
 
-`medical-supply-java/src/test/java/org/medsupply/AppServiceTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/AppServiceTest.java`:
 
 ```java
 package org.medsupply;
@@ -88,12 +88,12 @@ public final class AppServiceTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... AppService`.
 
 - [ ] **Step 3: Write `AppService` (core)**
 
-`medical-supply-java/src/main/java/org/medsupply/AppService.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/AppService.java`:
 
 ```java
 package org.medsupply;
@@ -295,13 +295,13 @@ public final class AppService {
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `AppServiceTest: PASS`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/AppService.java medical-supply-java/src/test/java/org/medsupply/AppServiceTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/AppService.java apps/medical-supply-java/src/test/java/org/medsupply/AppServiceTest.java
 git commit -m "feat(medsupply): application service core (configure, reload, snapshot)"
 ```
 
@@ -310,8 +310,8 @@ git commit -m "feat(medsupply): application service core (configure, reload, sna
 ### Task 2: AppService scan and stock mutations
 
 **Files:**
-- Modify: `medical-supply-java/src/main/java/org/medsupply/AppService.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/AppServiceStockTest.java`
+- Modify: `apps/medical-supply-java/src/main/java/org/medsupply/AppService.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/AppServiceStockTest.java`
 
 **Interfaces:**
 - Consumes: `Gs1Parser`/`Gs1Scan`, `SupplyEvents` (Plan 2).
@@ -325,7 +325,7 @@ git commit -m "feat(medsupply): application service core (configure, reload, sna
 
 - [ ] **Step 1: Write the failing test**
 
-`medical-supply-java/src/test/java/org/medsupply/AppServiceStockTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/AppServiceStockTest.java`:
 
 ```java
 package org.medsupply;
@@ -379,7 +379,7 @@ public final class AppServiceStockTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... receive` / `BadRequest`.
 
 - [ ] **Step 3: Add scan/stock methods to `AppService`**
@@ -488,13 +488,13 @@ Add these members to `AppService` (inside the class):
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `AppServiceStockTest: PASS`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/AppService.java medical-supply-java/src/test/java/org/medsupply/AppServiceStockTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/AppService.java apps/medical-supply-java/src/test/java/org/medsupply/AppServiceStockTest.java
 git commit -m "feat(medsupply): scan, receive, pick, adjust, archive, register"
 ```
 
@@ -503,8 +503,8 @@ git commit -m "feat(medsupply): scan, receive, pick, adjust, archive, register"
 ### Task 3: GUDID lookup passthrough
 
 **Files:**
-- Modify: `medical-supply-java/src/main/java/org/medsupply/AppService.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/AppServiceGudidTest.java`
+- Modify: `apps/medical-supply-java/src/main/java/org/medsupply/AppService.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/AppServiceGudidTest.java`
 
 **Interfaces:**
 - Consumes: `GudidClient`/`GudidResult` (Plan 2).
@@ -512,7 +512,7 @@ git commit -m "feat(medsupply): scan, receive, pick, adjust, archive, register"
 
 - [ ] **Step 1: Write the failing test**
 
-`medical-supply-java/src/test/java/org/medsupply/AppServiceGudidTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/AppServiceGudidTest.java`:
 
 ```java
 package org.medsupply;
@@ -554,7 +554,7 @@ public final class AppServiceGudidTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... lookupGudid`.
 
 - [ ] **Step 3: Add `lookupGudid` to `AppService`**
@@ -578,13 +578,13 @@ Expected: FAIL — `cannot find symbol ... lookupGudid`.
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `AppServiceGudidTest: PASS`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/AppService.java medical-supply-java/src/test/java/org/medsupply/AppServiceGudidTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/AppService.java apps/medical-supply-java/src/test/java/org/medsupply/AppServiceGudidTest.java
 git commit -m "feat(medsupply): GUDID lookup passthrough in AppService"
 ```
 
@@ -593,8 +593,8 @@ git commit -m "feat(medsupply): GUDID lookup passthrough in AppService"
 ### Task 4: Management report (HTML + CSV)
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/ManagementReport.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/ManagementReportTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/ManagementReport.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/ManagementReportTest.java`
 
 **Interfaces:**
 - Consumes: `StockLine`, `ReorderSuggestion`, `DashboardMetrics`.
@@ -605,7 +605,7 @@ git commit -m "feat(medsupply): GUDID lookup passthrough in AppService"
 
 - [ ] **Step 1: Write the failing test**
 
-`medical-supply-java/src/test/java/org/medsupply/ManagementReportTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/ManagementReportTest.java`:
 
 ```java
 package org.medsupply;
@@ -667,12 +667,12 @@ public final class ManagementReportTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... ManagementReport`.
 
 - [ ] **Step 3: Write `ManagementReport`**
 
-`medical-supply-java/src/main/java/org/medsupply/ManagementReport.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/ManagementReport.java`:
 
 ```java
 package org.medsupply;
@@ -788,13 +788,13 @@ public final class ManagementReport {
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `ManagementReportTest: PASS`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/ManagementReport.java medical-supply-java/src/test/java/org/medsupply/ManagementReportTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/ManagementReport.java apps/medical-supply-java/src/test/java/org/medsupply/ManagementReportTest.java
 git commit -m "feat(medsupply): management report (HTML + CSV)"
 ```
 
@@ -803,10 +803,10 @@ git commit -m "feat(medsupply): management report (HTML + CSV)"
 ### Task 5: HTTP API server + minimal bundled UI
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/BrowserServer.java`
-- Create: `medical-supply-java/src/main/resources/web/index.html`
-- Create: `medical-supply-java/src/main/resources/web/app.js`
-- Test: `medical-supply-java/src/test/java/org/medsupply/BrowserServerTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/BrowserServer.java`
+- Create: `apps/medical-supply-java/src/main/resources/web/index.html`
+- Create: `apps/medical-supply-java/src/main/resources/web/app.js`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/BrowserServerTest.java`
 
 **Interfaces:**
 - Consumes: `AppService` (Tasks 1–3), `ManagementReport` (Task 4), `Json` (Plan 1), `AppConfig`.
@@ -819,7 +819,7 @@ git commit -m "feat(medsupply): management report (HTML + CSV)"
 
 - [ ] **Step 1: Write the failing test (starts the server, calls the API)**
 
-`medical-supply-java/src/test/java/org/medsupply/BrowserServerTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/BrowserServerTest.java`:
 
 ```java
 package org.medsupply;
@@ -904,12 +904,12 @@ public final class BrowserServerTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... BrowserServer`.
 
 - [ ] **Step 3: Write `BrowserServer`**
 
-`medical-supply-java/src/main/java/org/medsupply/BrowserServer.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/BrowserServer.java`:
 
 ```java
 package org.medsupply;
@@ -1161,7 +1161,7 @@ public final class BrowserServer {
 
 - [ ] **Step 4: Write the minimal bundled UI**
 
-`medical-supply-java/src/main/resources/web/index.html`:
+`apps/medical-supply-java/src/main/resources/web/index.html`:
 
 ```html
 <!doctype html>
@@ -1206,7 +1206,7 @@ public final class BrowserServer {
 </html>
 ```
 
-`medical-supply-java/src/main/resources/web/app.js`:
+`apps/medical-supply-java/src/main/resources/web/app.js`:
 
 ```javascript
 const TOKEN = window.SESSION_TOKEN;
@@ -1282,13 +1282,13 @@ setInterval(refresh, 15000);
 
 - [ ] **Step 5: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `BrowserServerTest: PASS`. (The static resources are not needed for the test to pass, but they must exist for the app to serve a UI; Task 6 bundles them.)
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/BrowserServer.java medical-supply-java/src/main/resources/web/index.html medical-supply-java/src/main/resources/web/app.js medical-supply-java/src/test/java/org/medsupply/BrowserServerTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/BrowserServer.java apps/medical-supply-java/src/main/resources/web/index.html apps/medical-supply-java/src/main/resources/web/app.js apps/medical-supply-java/src/test/java/org/medsupply/BrowserServerTest.java
 git commit -m "feat(medsupply): loopback HTTP API server and minimal bundled UI"
 ```
 
@@ -1297,8 +1297,8 @@ git commit -m "feat(medsupply): loopback HTTP API server and minimal bundled UI"
 ### Task 6: Wire the launcher and bundle web resources
 
 **Files:**
-- Modify: `medical-supply-java/src/main/java/org/medsupply/MedicalSupplyApp.java`
-- Modify: `medical-supply-java/build.ps1`
+- Modify: `apps/medical-supply-java/src/main/java/org/medsupply/MedicalSupplyApp.java`
+- Modify: `apps/medical-supply-java/build.ps1`
 
 **Interfaces:**
 - Consumes: `BrowserServer`, `AppService`, `AppConfig`, `GudidClient`/`HttpsFetcher` (Plans 2–3).
@@ -1306,7 +1306,7 @@ git commit -m "feat(medsupply): loopback HTTP API server and minimal bundled UI"
 
 - [ ] **Step 1: Update `build.ps1` to bundle resources**
 
-In `medical-supply-java/build.ps1`, immediately after the main-compilation block (after the `if ($LASTEXITCODE -ne 0) { throw "Main compilation failed." }` line), insert:
+In `apps/medical-supply-java/build.ps1`, immediately after the main-compilation block (after the `if ($LASTEXITCODE -ne 0) { throw "Main compilation failed." }` line), insert:
 
 ```powershell
 $resources = Join-Path $projectRoot "src\main\resources"
@@ -1317,7 +1317,7 @@ if (Test-Path $resources) {
 
 - [ ] **Step 2: Update `MedicalSupplyApp.main` to launch the server**
 
-Replace the body of `MedicalSupplyApp.main` in `medical-supply-java/src/main/java/org/medsupply/MedicalSupplyApp.java` with:
+Replace the body of `MedicalSupplyApp.main` in `apps/medical-supply-java/src/main/java/org/medsupply/MedicalSupplyApp.java` with:
 
 ```java
     public static void main(String[] args) {
@@ -1352,20 +1352,20 @@ Replace the body of `MedicalSupplyApp.main` in `medical-supply-java/src/main/jav
 
 Run:
 ```
-powershell -File medical-supply-java/build.ps1
+powershell -File apps/medical-supply-java/build.ps1
 ```
 Expected: every `*Test: PASS` (including `AppServiceTest`, `AppServiceStockTest`, `AppServiceGudidTest`, `ManagementReportTest`, `BrowserServerTest`) and `Built: ...`.
 
 Then verify the packaged server serves the UI headlessly:
 ```
-java -Dmedsupply.noDesktop=true -cp medical-supply-java/dist/MedicalSupply-RC.jar org.medsupply.BrowserServer 2>NUL || echo "(server has no main; use the app)"
+java -Dmedsupply.noDesktop=true -cp apps/medical-supply-java/dist/MedicalSupply-RC.jar org.medsupply.BrowserServer 2>NUL || echo "(server has no main; use the app)"
 ```
 Prefer this manual check: launch the app, note the printed `Medical Supply UI: http://127.0.0.1:<port>`, open it in a browser, set a folder, and scan. (Automated coverage is `BrowserServerTest`.)
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/MedicalSupplyApp.java medical-supply-java/build.ps1
+git add apps/medical-supply-java/src/main/java/org/medsupply/MedicalSupplyApp.java apps/medical-supply-java/build.ps1
 git commit -m "feat(medsupply): launch browser UI by default and bundle web resources"
 ```
 

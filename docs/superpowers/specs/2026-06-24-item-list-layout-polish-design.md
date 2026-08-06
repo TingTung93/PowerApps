@@ -6,7 +6,7 @@ Improve the `ItemList` screen's formatting and layout while preserving its exist
 
 ## Scope
 
-Only `Inventory_Tracker/ItemList.pa.yaml` is in scope for UI changes. Existing local formula fixes in related files remain untouched.
+Only `apps/inventory-tracker-powerapps/ItemList.pa.yaml` is in scope for UI changes. Existing local formula fixes in related files remain untouched.
 
 ## Design
 

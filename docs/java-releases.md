@@ -3,7 +3,7 @@
 Use the repository-level release command to create the shareable artifacts for both Java applications:
 
 ```powershell
-.\package-java-releases.ps1
+.\scripts\package-java-releases.ps1
 ```
 
 The source of truth is [`java-release-track.json`](java-release-track.json). Each application independently follows one of two channels:

@@ -1,7 +1,7 @@
 # Manifest QR codes, DOCX documents, void/custody + date-scoping fixes, and settings/time-display cleanup
 
 **Date:** 2026-08-04
-**Component:** `commercial-tracking-java`
+**Component:** `apps/commercial-tracking-java`
 **Status:** Approved (design), pending implementation plans
 
 ## Summary

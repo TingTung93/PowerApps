@@ -11,10 +11,10 @@
 ## Global Constraints
 
 - **Pure JDK only** — no third-party libraries. Build is `javac --release 8 -encoding UTF-8`.
-- **Java build/test command** (run from `commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`. `ManifestWriterTest` is already wired into `build.ps1` (line 72–73) — no `build.ps1` change is required for this plan.
-- **Frontend commands** (run from `commercial-tracking-java/frontend/`): `npm test` (Node logic tests) and `npm run build` (Vite bundle).
+- **Java build/test command** (run from `apps/commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`. `ManifestWriterTest` is already wired into `build.ps1` (line 72–73) — no `build.ps1` change is required for this plan.
+- **Frontend commands** (run from `apps/commercial-tracking-java/frontend/`): `npm test` (Node logic tests) and `npm run build` (Vite bundle).
 - **Repo root** is `F:\PowerApps`. All paths below are relative to it unless absolute.
-- **Package** is `org.commercialtracking`; sources under `commercial-tracking-java/src/main/java/org/commercialtracking/`, tests under `commercial-tracking-java/src/test/java/org/commercialtracking/`.
+- **Package** is `org.commercialtracking`; sources under `apps/commercial-tracking-java/src/main/java/org/commercialtracking/`, tests under `apps/commercial-tracking-java/src/test/java/org/commercialtracking/`.
 - **Checksum:** `ManifestWriter.Result.checksum` and `ManifestWriter.checksum(path)` are computed over the **DOCX** bytes; `Result.path` is the `.docx`, `Result.htmlPath` is the `.html`.
 - **Consumed shared interfaces (do not redefine):**
   - Plan 1 — `QrCode.encode(String) -> QrCode` with `public final int size;` and `public final boolean[][] modules;` (`[row][col]`, true = dark), and `public byte[] toPng(int scale, int quietModules) throws java.io.IOException`.
@@ -31,8 +31,8 @@
 ## Task 1: ManifestWriter — DOCX + HTML + QR + date + time + custody grouping
 
 **Files:**
-- Replace: `commercial-tracking-java/src/main/java/org/commercialtracking/ManifestWriter.java`
-- Replace: `commercial-tracking-java/src/test/java/org/commercialtracking/ManifestWriterTest.java`
+- Replace: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/ManifestWriter.java`
+- Replace: `apps/commercial-tracking-java/src/test/java/org/commercialtracking/ManifestWriterTest.java`
 
 **Interfaces:**
 - Consumes: `QrCode.encode(String)`, `QrCode.toPng(int,int)`, `DocxWriter` (`heading`/`paragraph`/`table`/`save`, `Cell.text`/`Cell.image`), `TimeFormat.prepared(String, ZoneId, String)`, `TimeFormat.utcMinute(String)`.
@@ -195,7 +195,7 @@ public final class ManifestWriterTest {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run (from `commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`
+Run (from `apps/commercial-tracking-java/`): `powershell -File build.ps1 -SkipFrontend`
 Expected: **Test compilation failed** — the new 7-arg `write(...)` signature and `.docx` behavior do not exist yet (the old `ManifestWriter` returns a PDF and has no `date`/`timeFormat` parameter).
 
 - [ ] **Step 3: Write the implementation (replace `ManifestWriter.java`)**
@@ -502,8 +502,8 @@ Add a temporary `System.out.println(result.path)` at the end of `verify` for `co
 - [ ] **Step 6: Commit**
 
 ```bash
-git add commercial-tracking-java/src/main/java/org/commercialtracking/ManifestWriter.java \
-        commercial-tracking-java/src/test/java/org/commercialtracking/ManifestWriterTest.java
+git add apps/commercial-tracking-java/src/main/java/org/commercialtracking/ManifestWriter.java \
+        apps/commercial-tracking-java/src/test/java/org/commercialtracking/ManifestWriterTest.java
 git commit -m "feat(manifest): DOCX+HTML output with QR codes, date header, and custody recipient grouping"
 ```
 
@@ -512,7 +512,7 @@ git commit -m "feat(manifest): DOCX+HTML output with QR codes, date header, and 
 ## Task 2: BrowserServer.manifest() — void guard, date scoping, custody eligibility, host time
 
 **Files:**
-- Modify: `commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java` — the `manifest(...)` method (~line 474–553), `manifestMaps()` (~line 168–192), and two new private helpers.
+- Modify: `apps/commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java` — the `manifest(...)` method (~line 474–553), `manifestMaps()` (~line 168–192), and two new private helpers.
 
 **Interfaces:**
 - Consumes: `Projection.all()`, `PackageState.receivedUtc` (Plan 4), `SharedConfigManager` `timeFormat`, `ManifestWriter.write(root, manifestId, type, scope, date, timeFormat, events)` (Task 1).
@@ -698,7 +698,7 @@ Build and run the app (`powershell -File build.ps1` then launch the produced jar
 - [ ] **Step 6: Commit**
 
 ```bash
-git add commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java
+git add apps/commercial-tracking-java/src/main/java/org/commercialtracking/BrowserServer.java
 git commit -m "feat(manifest): date-scoped eligibility, void guard, multi-recipient custody, host-time formatting"
 ```
 
@@ -707,9 +707,9 @@ git commit -m "feat(manifest): date-scoped eligibility, void guard, multi-recipi
 ## Task 3: Frontend manifest eligibility module + Node test
 
 **Files:**
-- Create: `commercial-tracking-java/frontend/src/manifestEligibility.js`
-- Create: `commercial-tracking-java/frontend/test/manifestEligibility.test.js`
-- Modify: `commercial-tracking-java/frontend/package.json` (append the new test to the `test` chain)
+- Create: `apps/commercial-tracking-java/frontend/src/manifestEligibility.js`
+- Create: `apps/commercial-tracking-java/frontend/test/manifestEligibility.test.js`
+- Modify: `apps/commercial-tracking-java/frontend/package.json` (append the new test to the `test` chain)
 
 **Interfaces:**
 - Produces (pure, Node-importable): `inboundEligible(packages, {date, location})`, `custodyEligible(packages, {date, recipient})`, `groupByRecipient(list)`.
@@ -756,7 +756,7 @@ console.log('ManifestEligibilityTest: PASS')
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run (from `commercial-tracking-java/frontend/`): `node test/manifestEligibility.test.js`
+Run (from `apps/commercial-tracking-java/frontend/`): `node test/manifestEligibility.test.js`
 Expected: an error — cannot resolve `../src/manifestEligibility.js` (module does not exist yet).
 
 - [ ] **Step 3: Write the implementation**
@@ -820,15 +820,15 @@ to:
 
 - [ ] **Step 5: Run to verify it passes**
 
-Run (from `commercial-tracking-java/frontend/`): `npm test`
+Run (from `apps/commercial-tracking-java/frontend/`): `npm test`
 Expected output includes `ScannerCaptureTest: PASS` and `ManifestEligibilityTest: PASS`.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add commercial-tracking-java/frontend/src/manifestEligibility.js \
-        commercial-tracking-java/frontend/test/manifestEligibility.test.js \
-        commercial-tracking-java/frontend/package.json
+git add apps/commercial-tracking-java/frontend/src/manifestEligibility.js \
+        apps/commercial-tracking-java/frontend/test/manifestEligibility.test.js \
+        apps/commercial-tracking-java/frontend/package.json
 git commit -m "feat(ui): pure manifest eligibility helpers with date/void/custody rules and tests"
 ```
 
@@ -837,7 +837,7 @@ git commit -m "feat(ui): pure manifest eligibility helpers with date/void/custod
 ## Task 4: Frontend ManifestWorkspace — date picker + recipient grouping
 
 **Files:**
-- Modify: `commercial-tracking-java/frontend/src/main.jsx` — add the eligibility import (top of file), a `localDateToday` helper, and replace the `ManifestWorkspace` component (~line 506–534).
+- Modify: `apps/commercial-tracking-java/frontend/src/main.jsx` — add the eligibility import (top of file), a `localDateToday` helper, and replace the `ManifestWorkspace` component (~line 506–534).
 
 **Interfaces:**
 - Consumes: `inboundEligible`/`custodyEligible`/`groupByRecipient` (Task 3), `api.manifest` (via the `onFinalize` prop already wired at ~line 307), `formatDate` (already imported in `main.jsx`).
@@ -943,7 +943,7 @@ Notes:
 
 - [ ] **Step 4: Build the frontend**
 
-Run (from `commercial-tracking-java/frontend/`): `npm run build`
+Run (from `apps/commercial-tracking-java/frontend/`): `npm run build`
 Expected: Vite build succeeds (no unresolved imports, no JSX errors) and emits the bundle under `frontend/dist`.
 
 Then run `npm test` again to confirm the whole chain (scanner + eligibility) is green.
@@ -955,7 +955,7 @@ Run `npm run dev` (or the full app build) and open the Manifests page: confirm t
 - [ ] **Step 6: Commit**
 
 ```bash
-git add commercial-tracking-java/frontend/src/main.jsx
+git add apps/commercial-tracking-java/frontend/src/main.jsx
 git commit -m "feat(ui): manifest date picker and recipient-grouped custody preparation"
 ```
 

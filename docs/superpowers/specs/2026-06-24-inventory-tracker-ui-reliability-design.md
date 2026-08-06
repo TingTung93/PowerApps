@@ -2,7 +2,7 @@
 
 ## Scope
 
-This pass applies only to the checked-in screens under `Inventory_Tracker`. `Table View` and `Archive` are intentionally out of scope.
+This pass applies only to the checked-in screens under `apps/inventory-tracker-powerapps`. `Table View` and `Archive` are intentionally out of scope.
 
 ## Approach
 

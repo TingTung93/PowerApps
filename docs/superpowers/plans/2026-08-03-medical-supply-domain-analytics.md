@@ -11,8 +11,8 @@
 ## Global Constraints
 
 - Target Java 8 bytecode: compile with `javac --release 8`; use only Java SE 8 APIs. No third-party libraries.
-- Package root: `org.medsupply`. Build/test via the existing `medical-supply-java/build.ps1` (it auto-discovers every `*Test` class — no build-script edits needed).
-- **Formatting: conventional, readable, multi-line Java** — one statement per line, standard indentation, matching `commercial-tracking-java`. Do not minify onto dense single lines. (Plan 1's engine files were minified; keep new files readable and reformat any file you substantially touch.)
+- Package root: `org.medsupply`. Build/test via the existing `apps/medical-supply-java/build.ps1` (it auto-discovers every `*Test` class — no build-script edits needed).
+- **Formatting: conventional, readable, multi-line Java** — one statement per line, standard indentation, matching `apps/commercial-tracking-java`. Do not minify onto dense single lines. (Plan 1's engine files were minified; keep new files readable and reformat any file you substantially touch.)
 - Depends on Plan 1 types (already built and verified): `SupplyEvent` (`eventType`, `occurredUtc`, `recordedUtc`, `deviceId`, `sessionId`, `actor`, `Map<String,String> payload`, `String payload(String)`), `EventStore` (`append`, `LoadResult{List<SupplyEvent> events; List<String> errors;}`), `AppConfig` (`reorderWindowDays`, `reorderLeadDays`, `reorderSafetyDays`, `reorderCoverageDays`, `staleDays`, `gudidEnabled`, `gudidEndpoint`), `Json` (`parse`, `write`, `asMap`, `asList`, `str`).
 - Tests are framework-free `*Test` classes with `public static void main(String[])` that throw `AssertionError` on failure and print `XxxTest: PASS` on success.
 - Time is always injected (`Instant now` / `LocalDate today`) — never call `Instant.now()` inside analytics/reorder logic, so tests are deterministic.
@@ -23,9 +23,9 @@
 ### Task 1: Event types, payload keys, and factories
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/ItemKey.java`
-- Create: `medical-supply-java/src/main/java/org/medsupply/SupplyEvents.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/SupplyEventsTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/ItemKey.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/SupplyEvents.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/SupplyEventsTest.java`
 
 **Interfaces:**
 - Consumes: `SupplyEvent` (Plan 1).
@@ -46,7 +46,7 @@
 
 - [ ] **Step 1: Write the failing test**
 
-`medical-supply-java/src/test/java/org/medsupply/SupplyEventsTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/SupplyEventsTest.java`:
 
 ```java
 package org.medsupply;
@@ -98,12 +98,12 @@ public final class SupplyEventsTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... ItemKey` / `SupplyEvents`.
 
 - [ ] **Step 3: Write `ItemKey`**
 
-`medical-supply-java/src/main/java/org/medsupply/ItemKey.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/ItemKey.java`:
 
 ```java
 package org.medsupply;
@@ -124,7 +124,7 @@ public final class ItemKey {
 
 - [ ] **Step 4: Write `SupplyEvents`**
 
-`medical-supply-java/src/main/java/org/medsupply/SupplyEvents.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/SupplyEvents.java`:
 
 ```java
 package org.medsupply;
@@ -261,13 +261,13 @@ public final class SupplyEvents {
 
 - [ ] **Step 5: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `SupplyEventsTest: PASS`.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/ItemKey.java medical-supply-java/src/main/java/org/medsupply/SupplyEvents.java medical-supply-java/src/test/java/org/medsupply/SupplyEventsTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/ItemKey.java apps/medical-supply-java/src/main/java/org/medsupply/SupplyEvents.java apps/medical-supply-java/src/test/java/org/medsupply/SupplyEventsTest.java
 git commit -m "feat(medsupply): domain event types, item key, and factories"
 ```
 
@@ -276,9 +276,9 @@ git commit -m "feat(medsupply): domain event types, item key, and factories"
 ### Task 2: GS1 barcode parser
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/Gs1Scan.java`
-- Create: `medical-supply-java/src/main/java/org/medsupply/Gs1Parser.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/Gs1ParserTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/Gs1Scan.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/Gs1Parser.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/Gs1ParserTest.java`
 
 **Interfaces:**
 - Consumes: `ItemKey` (Task 1).
@@ -288,7 +288,7 @@ git commit -m "feat(medsupply): domain event types, item key, and factories"
 
 - [ ] **Step 1: Write the failing test**
 
-`medical-supply-java/src/test/java/org/medsupply/Gs1ParserTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/Gs1ParserTest.java`:
 
 ```java
 package org.medsupply;
@@ -358,12 +358,12 @@ public final class Gs1ParserTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... Gs1Parser`.
 
 - [ ] **Step 3: Write `Gs1Scan`**
 
-`medical-supply-java/src/main/java/org/medsupply/Gs1Scan.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/Gs1Scan.java`:
 
 ```java
 package org.medsupply;
@@ -388,7 +388,7 @@ public final class Gs1Scan {
 
 - [ ] **Step 4: Write `Gs1Parser`**
 
-`medical-supply-java/src/main/java/org/medsupply/Gs1Parser.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/Gs1Parser.java`:
 
 ```java
 package org.medsupply;
@@ -488,13 +488,13 @@ public final class Gs1Parser {
 
 - [ ] **Step 5: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `Gs1ParserTest: PASS`.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/Gs1Scan.java medical-supply-java/src/main/java/org/medsupply/Gs1Parser.java medical-supply-java/src/test/java/org/medsupply/Gs1ParserTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/Gs1Scan.java apps/medical-supply-java/src/main/java/org/medsupply/Gs1Parser.java apps/medical-supply-java/src/test/java/org/medsupply/Gs1ParserTest.java
 git commit -m "feat(medsupply): GS1 barcode parser with FNC1 handling"
 ```
 
@@ -503,10 +503,10 @@ git commit -m "feat(medsupply): GS1 barcode parser with FNC1 handling"
 ### Task 3: Catalog + inventory projections
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/CatalogProduct.java`
-- Create: `medical-supply-java/src/main/java/org/medsupply/StockLine.java`
-- Create: `medical-supply-java/src/main/java/org/medsupply/Projection.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/ProjectionTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/CatalogProduct.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/StockLine.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/Projection.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/ProjectionTest.java`
 
 **Interfaces:**
 - Consumes: `SupplyEvent` (Plan 1), `SupplyEvents` (Task 1).
@@ -519,7 +519,7 @@ Assume events arrive already sorted by `EventStore.loadAll()` (occurredUtc, reco
 
 - [ ] **Step 1: Write the failing test**
 
-`medical-supply-java/src/test/java/org/medsupply/ProjectionTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/ProjectionTest.java`:
 
 ```java
 package org.medsupply;
@@ -580,12 +580,12 @@ public final class ProjectionTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... Projection`.
 
 - [ ] **Step 3: Write `CatalogProduct` and `StockLine`**
 
-`medical-supply-java/src/main/java/org/medsupply/CatalogProduct.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/CatalogProduct.java`:
 
 ```java
 package org.medsupply;
@@ -606,7 +606,7 @@ public final class CatalogProduct {
 }
 ```
 
-`medical-supply-java/src/main/java/org/medsupply/StockLine.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/StockLine.java`:
 
 ```java
 package org.medsupply;
@@ -633,7 +633,7 @@ public final class StockLine {
 
 - [ ] **Step 4: Write `Projection`**
 
-`medical-supply-java/src/main/java/org/medsupply/Projection.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/Projection.java`:
 
 ```java
 package org.medsupply;
@@ -738,13 +738,13 @@ public final class Projection {
 
 - [ ] **Step 5: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `ProjectionTest: PASS`.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/CatalogProduct.java medical-supply-java/src/main/java/org/medsupply/StockLine.java medical-supply-java/src/main/java/org/medsupply/Projection.java medical-supply-java/src/test/java/org/medsupply/ProjectionTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/CatalogProduct.java apps/medical-supply-java/src/main/java/org/medsupply/StockLine.java apps/medical-supply-java/src/main/java/org/medsupply/Projection.java apps/medical-supply-java/src/test/java/org/medsupply/ProjectionTest.java
 git commit -m "feat(medsupply): catalog and inventory projections"
 ```
 
@@ -753,9 +753,9 @@ git commit -m "feat(medsupply): catalog and inventory projections"
 ### Task 4: Dashboard analytics
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/DashboardMetrics.java`
-- Create: `medical-supply-java/src/main/java/org/medsupply/InventoryAnalytics.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/InventoryAnalyticsTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/DashboardMetrics.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/InventoryAnalytics.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/InventoryAnalyticsTest.java`
 
 **Interfaces:**
 - Consumes: `StockLine` (Task 3), `SupplyEvent` (Plan 1).
@@ -765,7 +765,7 @@ git commit -m "feat(medsupply): catalog and inventory projections"
 
 - [ ] **Step 1: Write the failing test**
 
-`medical-supply-java/src/test/java/org/medsupply/InventoryAnalyticsTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/InventoryAnalyticsTest.java`:
 
 ```java
 package org.medsupply;
@@ -822,12 +822,12 @@ public final class InventoryAnalyticsTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... InventoryAnalytics`.
 
 - [ ] **Step 3: Write `DashboardMetrics`**
 
-`medical-supply-java/src/main/java/org/medsupply/DashboardMetrics.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/DashboardMetrics.java`:
 
 ```java
 package org.medsupply;
@@ -847,7 +847,7 @@ public final class DashboardMetrics {
 
 - [ ] **Step 4: Write `InventoryAnalytics`**
 
-`medical-supply-java/src/main/java/org/medsupply/InventoryAnalytics.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/InventoryAnalytics.java`:
 
 ```java
 package org.medsupply;
@@ -915,13 +915,13 @@ public final class InventoryAnalytics {
 
 - [ ] **Step 5: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `InventoryAnalyticsTest: PASS`.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/DashboardMetrics.java medical-supply-java/src/main/java/org/medsupply/InventoryAnalytics.java medical-supply-java/src/test/java/org/medsupply/InventoryAnalyticsTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/DashboardMetrics.java apps/medical-supply-java/src/main/java/org/medsupply/InventoryAnalytics.java apps/medical-supply-java/src/test/java/org/medsupply/InventoryAnalyticsTest.java
 git commit -m "feat(medsupply): dashboard analytics metrics"
 ```
 
@@ -930,9 +930,9 @@ git commit -m "feat(medsupply): dashboard analytics metrics"
 ### Task 5: PAR + consumption reorder advisor
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/ReorderSuggestion.java`
-- Create: `medical-supply-java/src/main/java/org/medsupply/ReorderAdvisor.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/ReorderAdvisorTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/ReorderSuggestion.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/ReorderAdvisor.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/ReorderAdvisorTest.java`
 
 **Interfaces:**
 - Consumes: `CatalogProduct`, `StockLine` (Task 3), `SupplyEvent`/`SupplyEvents` (Task 1).
@@ -943,7 +943,7 @@ git commit -m "feat(medsupply): dashboard analytics metrics"
 
 - [ ] **Step 1: Write the failing test**
 
-`medical-supply-java/src/test/java/org/medsupply/ReorderAdvisorTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/ReorderAdvisorTest.java`:
 
 ```java
 package org.medsupply;
@@ -1039,12 +1039,12 @@ public final class ReorderAdvisorTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... ReorderAdvisor`.
 
 - [ ] **Step 3: Write `ReorderSuggestion`**
 
-`medical-supply-java/src/main/java/org/medsupply/ReorderSuggestion.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/ReorderSuggestion.java`:
 
 ```java
 package org.medsupply;
@@ -1067,7 +1067,7 @@ public final class ReorderSuggestion {
 
 - [ ] **Step 4: Write `ReorderAdvisor`**
 
-`medical-supply-java/src/main/java/org/medsupply/ReorderAdvisor.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/ReorderAdvisor.java`:
 
 ```java
 package org.medsupply;
@@ -1166,13 +1166,13 @@ public final class ReorderAdvisor {
 
 - [ ] **Step 5: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `ReorderAdvisorTest: PASS`.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/ReorderSuggestion.java medical-supply-java/src/main/java/org/medsupply/ReorderAdvisor.java medical-supply-java/src/test/java/org/medsupply/ReorderAdvisorTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/ReorderSuggestion.java apps/medical-supply-java/src/main/java/org/medsupply/ReorderAdvisor.java apps/medical-supply-java/src/test/java/org/medsupply/ReorderAdvisorTest.java
 git commit -m "feat(medsupply): PAR and consumption reorder advisor"
 ```
 
@@ -1181,10 +1181,10 @@ git commit -m "feat(medsupply): PAR and consumption reorder advisor"
 ### Task 6: FDA GUDID client (offline-first, injectable fetch)
 
 **Files:**
-- Create: `medical-supply-java/src/main/java/org/medsupply/GudidResult.java`
-- Create: `medical-supply-java/src/main/java/org/medsupply/GudidClient.java`
-- Create: `medical-supply-java/src/main/java/org/medsupply/HttpsFetcher.java`
-- Test: `medical-supply-java/src/test/java/org/medsupply/GudidClientTest.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/GudidResult.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/GudidClient.java`
+- Create: `apps/medical-supply-java/src/main/java/org/medsupply/HttpsFetcher.java`
+- Test: `apps/medical-supply-java/src/test/java/org/medsupply/GudidClientTest.java`
 
 **Interfaces:**
 - Consumes: `Json` (Plan 1).
@@ -1196,7 +1196,7 @@ git commit -m "feat(medsupply): PAR and consumption reorder advisor"
 
 - [ ] **Step 1: Write the failing test (offline fixture)**
 
-`medical-supply-java/src/test/java/org/medsupply/GudidClientTest.java`:
+`apps/medical-supply-java/src/test/java/org/medsupply/GudidClientTest.java`:
 
 ```java
 package org.medsupply;
@@ -1253,12 +1253,12 @@ public final class GudidClientTest {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: FAIL — `cannot find symbol ... GudidClient`.
 
 - [ ] **Step 3: Write `GudidResult`**
 
-`medical-supply-java/src/main/java/org/medsupply/GudidResult.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/GudidResult.java`:
 
 ```java
 package org.medsupply;
@@ -1294,7 +1294,7 @@ public final class GudidResult {
 
 - [ ] **Step 4: Write `GudidClient`**
 
-`medical-supply-java/src/main/java/org/medsupply/GudidClient.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/GudidClient.java`:
 
 ```java
 package org.medsupply;
@@ -1365,7 +1365,7 @@ public final class GudidClient {
 
 - [ ] **Step 5: Write `HttpsFetcher` (real transport, not unit-tested)**
 
-`medical-supply-java/src/main/java/org/medsupply/HttpsFetcher.java`:
+`apps/medical-supply-java/src/main/java/org/medsupply/HttpsFetcher.java`:
 
 ```java
 package org.medsupply;
@@ -1409,13 +1409,13 @@ public final class HttpsFetcher implements GudidClient.Fetcher {
 
 - [ ] **Step 6: Run the test to verify it passes**
 
-Run: `powershell -File medical-supply-java/build.ps1`
+Run: `powershell -File apps/medical-supply-java/build.ps1`
 Expected: `GudidClientTest: PASS`.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/GudidResult.java medical-supply-java/src/main/java/org/medsupply/GudidClient.java medical-supply-java/src/main/java/org/medsupply/HttpsFetcher.java medical-supply-java/src/test/java/org/medsupply/GudidClientTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/GudidResult.java apps/medical-supply-java/src/main/java/org/medsupply/GudidClient.java apps/medical-supply-java/src/main/java/org/medsupply/HttpsFetcher.java apps/medical-supply-java/src/test/java/org/medsupply/GudidClientTest.java
 git commit -m "feat(medsupply): offline-first FDA GUDID client"
 ```
 
@@ -1424,7 +1424,7 @@ git commit -m "feat(medsupply): offline-first FDA GUDID client"
 ### Task 7: Domain pipeline in the self-test
 
 **Files:**
-- Modify: `medical-supply-java/src/main/java/org/medsupply/SelfTest.java`
+- Modify: `apps/medical-supply-java/src/main/java/org/medsupply/SelfTest.java`
 
 **Interfaces:**
 - Consumes: `Gs1Parser`, `SupplyEvents`, `EventStore`, `Projection`, `InventoryAnalytics`, `ReorderAdvisor` (Tasks 1–5).
@@ -1432,7 +1432,7 @@ git commit -m "feat(medsupply): offline-first FDA GUDID client"
 
 - [ ] **Step 1: Extend the self test**
 
-Replace the body of `SelfTest.run()` in `medical-supply-java/src/main/java/org/medsupply/SelfTest.java` (keep the existing schema-version check and the existing store round-trip; append the following before the method returns):
+Replace the body of `SelfTest.run()` in `apps/medical-supply-java/src/main/java/org/medsupply/SelfTest.java` (keep the existing schema-version check and the existing store round-trip; append the following before the method returns):
 
 ```java
         // Domain pipeline smoke: parse a GS1 label, receive stock, project, analyze, advise.
@@ -1468,15 +1468,15 @@ Replace the body of `SelfTest.run()` in `medical-supply-java/src/main/java/org/m
 
 Run:
 ```
-powershell -File medical-supply-java/build.ps1
-java -jar medical-supply-java/dist/MedicalSupply-RC.jar --self-test
+powershell -File apps/medical-supply-java/build.ps1
+java -jar apps/medical-supply-java/dist/MedicalSupply-RC.jar --self-test
 ```
 Expected: every `*Test: PASS` line during the build (including the new `SupplyEventsTest`, `Gs1ParserTest`, `ProjectionTest`, `InventoryAnalyticsTest`, `ReorderAdvisorTest`, `GudidClientTest`), then `MedicalSupply self-test: PASS`.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add medical-supply-java/src/main/java/org/medsupply/SelfTest.java
+git add apps/medical-supply-java/src/main/java/org/medsupply/SelfTest.java
 git commit -m "test(medsupply): end-to-end domain pipeline self-test"
 ```
 

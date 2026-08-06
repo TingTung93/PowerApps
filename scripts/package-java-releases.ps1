@@ -8,7 +8,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$repoRoot = $PSScriptRoot
+$repoRoot = Split-Path -Parent $PSScriptRoot
 $trackPath = Join-Path $repoRoot 'java-release-track.json'
 if (-not (Test-Path -LiteralPath $trackPath)) { throw "Release track is missing: $trackPath" }
 $track = Get-Content -LiteralPath $trackPath -Raw | ConvertFrom-Json
@@ -136,8 +136,8 @@ function New-AppRelease {
 
 New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
 $results = @(
-    New-AppRelease -Name 'CommercialTracking' -Version $CommercialTrackingVersion -Channel $track.applications.commercialTracking.channel -ProjectDirectory 'commercial-tracking-java' -JarName 'CommercialTracking-RC.jar' -LauncherName 'run-commercial-tracking.cmd'
-    New-AppRelease -Name 'MedicalSupply' -Version $MedicalSupplyVersion -Channel $track.applications.medicalSupply.channel -ProjectDirectory 'medical-supply-java' -JarName 'MedicalSupply-RC.jar' -LauncherName 'run-medical-supply.cmd'
+    New-AppRelease -Name 'CommercialTracking' -Version $CommercialTrackingVersion -Channel $track.applications.commercialTracking.channel -ProjectDirectory 'apps/commercial-tracking-java' -JarName 'CommercialTracking-RC.jar' -LauncherName 'run-commercial-tracking.cmd'
+    New-AppRelease -Name 'MedicalSupply' -Version $MedicalSupplyVersion -Channel $track.applications.medicalSupply.channel -ProjectDirectory 'apps/medical-supply-java' -JarName 'MedicalSupply-RC.jar' -LauncherName 'run-medical-supply.cmd'
 )
 
 $manifest = @("Java application release artifacts", "Generated: $([DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))", "")

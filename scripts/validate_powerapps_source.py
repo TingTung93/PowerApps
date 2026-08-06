@@ -5,7 +5,7 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
-APP_DIR = ROOT / "Inventory_Tracker"
+APP_DIR = ROOT / "apps" / "inventory-tracker-powerapps"
 
 
 def read(name):

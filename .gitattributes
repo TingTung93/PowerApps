@@ -14,3 +14,6 @@
 *.jar   binary
 *.pdf   binary
 *.docx  binary
+*.zip   binary
+*.msapp binary
+*.msapr binary
