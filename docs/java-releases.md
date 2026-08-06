@@ -6,7 +6,7 @@ Use the repository-level release command to create the shareable artifacts for b
 .\scripts\package-java-releases.ps1
 ```
 
-The source of truth is [`java-release-track.json`](java-release-track.json). Each application independently follows one of two channels:
+The source of truth is [`java-release-track.json`](../java-release-track.json). Each application independently follows one of two channels:
 
 - `candidate` — qualification builds with a SemVer pre-release suffix such as `0.2.0-rc1`.
 - `stable` — approved end-user builds with a plain SemVer version such as `0.1.0`.
